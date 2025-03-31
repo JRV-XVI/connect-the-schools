@@ -1,0 +1,2102 @@
+html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Aliados - Mexicanos Primero Jalisco</title>
+    <!-- Google Fonts - Montserrat -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #009933; /* Updated to green */
+            --secondary-color: #183264; /* Updated to dark blue */
+            --accent-color: #EB6012; /* Added orange accent */
+            --light-accent: #F59D15; /* Added light orange accent */
+            --sidebar-width: 250px;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Montserrat', sans-serif; /* Updated to Montserrat */
+        }
+        
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: var(--primary-color); /* Updated to dark blue */
+            color: white;
+            overflow-y: auto;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        
+        /* Rest of CSS remains the same, except color references below */
+        
+        .sidebar-header {
+            padding: 1.5rem 1rem;
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar-menu {
+            padding: 0.5rem 0;
+        }
+        
+        .sidebar-menu .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 0.8rem 1rem;
+            border-left: 3px solid transparent;
+        }
+        
+        .sidebar-menu .nav-link:hover, 
+        .sidebar-menu .nav-link.active {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-left: 3px solid var(--accent-color); /* Updated to orange */
+        }
+        
+        .sidebar-menu .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 20px;
+        }
+        
+        .navbar {
+            margin-left: var(--sidebar-width);
+            background-color: white;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 1.5rem;
+            border-radius: 0.5rem;
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            font-weight: 600;
+        }
+        
+        .stat-card {
+            border-radius: 0.5rem;
+            border-left: 4px solid;
+        }
+        
+        .stat-card-primary {
+            border-left-color: var(--primary-color);
+        }
+        
+        .stat-card-success {
+            border-left-color: var(--primary-color); /* Updated to green */
+        }
+        
+        .stat-card-warning {
+            border-left-color: var(--light-accent); /* Updated to light orange */
+        }
+        
+        .stat-card-danger {
+            border-left-color: var(--accent-color); /* Updated to orange */
+        }
+        
+        .stat-icon {
+            height: 48px;
+            width: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: white;
+        }
+        
+        .bg-primary-light {
+            background-color: rgba(0, 153, 51, 0.2); /* Updated to green with opacity */
+            color: var(--primary-color);
+        }
+        
+        .bg-success-light {
+            background-color: rgba(0, 153, 51, 0.2); /* Updated to green with opacity */
+            color: var(--primary-color);
+        }
+        
+        .bg-warning-light {
+            background-color: rgba(245, 157, 21, 0.2); /* Updated to light orange with opacity */
+            color: var(--light-accent);
+        }
+        
+        .bg-danger-light {
+            background-color: rgba(235, 96, 18, 0.2); /* Updated to orange with opacity */
+            color: var(--accent-color);
+        }
+        
+        .badge-notification {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 0.6rem;
+        }
+        
+        .school-card {
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        
+        .school-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .profile-pic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+        
+        .toggle-control {
+            display: flex;
+            align-items: center;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            -webkit-transition: .4s;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: var(--primary-color);
+        }
+        
+        input:focus + .toggle-slider {
+            box-shadow: 0 0 1px var(--primary-color);
+        }
+        
+        input:checked + .toggle-slider:before {
+            -webkit-transform: translateX(26px);
+            -ms-transform: translateX(26px);
+            transform: translateX(26px);
+        }
+        
+        .category-badge {
+            font-size: 0.8rem;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            padding: 5px 10px;
+        }
+        
+        #schoolMap {
+            height: 400px;
+            border-radius: 0.5rem;
+        }
+        
+        .nav-pills .nav-link.active {
+            background-color: var(--primary-color);
+        }
+        
+        .school-filter-panel {
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+        }
+        
+        .notification-dropdown {
+            max-height: 300px;
+            overflow-y: auto;
+            width: 320px;
+        }
+        
+        .custom-tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .custom-tooltip .tooltip-text {
+            visibility: hidden;
+            width: 120px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .custom-tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Update Bootstrap color overrides */
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover, .btn-primary:focus {
+            background-color: #007f2a;
+            border-color: #007f2a;
+        }
+        
+        .bg-primary {
+            background-color: var(--primary-color) !important;
+        }
+        
+        .bg-success {
+            background-color: var(--primary-color) !important;
+        }
+        
+        .bg-warning {
+            background-color: var(--light-accent) !important;
+        }
+        
+        .bg-danger {
+            background-color: var(--accent-color) !important;
+        }
+        
+        .text-primary {
+            color: var(--primary-color) !important;
+        }
+        
+        .text-success {
+            color: var(--primary-color) !important;
+        }
+        
+        .text-warning {
+            color: var(--light-accent) !important;
+        }
+        
+        .text-danger {
+            color: var(--accent-color) !important;
+        }
+        
+        .border-left-success {
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .border-left-primary {
+            border-left: 4px solid var(--secondary-color);
+        }
+    </style>
+</head>
+<!-- The rest of the HTML remains unchanged -->
+<body>
+
+<!-- Sidebar Navigation -->
+<div class="sidebar">
+    <div class="sidebar-header text-center">
+        <img src="https://via.placeholder.com/150x50?text=MPJ+Logo" alt="Mexicanos Primero Jalisco" class="img-fluid">
+    </div>
+    <div class="sidebar-menu">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a href="#dashboard" class="nav-link active">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#offers" class="nav-link">
+                    <i class="fas fa-hand-holding-heart"></i> Mis Ofertas de Apoyo
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#schools" class="nav-link">
+                    <i class="fas fa-school"></i> Buscar Escuelas
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#projects" class="nav-link">
+                    <i class="fas fa-project-diagram"></i> Proyectos Activos
+                    <span class="badge bg-success float-end">3</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#history" class="nav-link">
+                    <i class="fas fa-history"></i> Historial de Apoyos
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#messages" class="nav-link">
+                    <i class="fas fa-envelope"></i> Mensajes
+                    <span class="badge bg-danger float-end">2</span>
+                </a>
+            </li>
+            <li class="nav-item mt-3">
+                <a href="#profile" class="nav-link">
+                    <i class="fas fa-user-cog"></i> Perfil
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light sticky-top">
+    <div class="container-fluid">
+        <button class="navbar-toggler" type="button">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown me-3">
+                    <a class="nav-link position-relative" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-bell fa-lg"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            4
+                        </span>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end notification-dropdown p-0" aria-labelledby="notificationDropdown">
+                        <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                            <h6 class="mb-0">Notificaciones</h6>
+                            <a href="#" class="text-decoration-none small">Marcar todas como leídas</a>
+                        </div>
+                        <div class="list-group list-group-flush">
+                            <a href="#" class="list-group-item list-group-item-action unread">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0 bg-primary rounded-circle text-white p-2 me-3">
+                                        <i class="fas fa-handshake"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <p class="mb-1"><strong>Nueva solicitud aceptada</strong></p>
+                                        <p class="mb-1 small">La Escuela Primaria Miguel Hidalgo ha aceptado su oferta de apoyo.</p>
+                                        <p class="mb-0 text-muted small">Hace 2 horas</p>
+                                    </div>
+                                </div>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action unread">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0 bg-info rounded-circle text-white p-2 me-3">
+                                        <i class="fas fa-envelope"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <p class="mb-1"><strong>Nuevo mensaje</strong></p>
+                                        <p class="mb-1 small">Ha recibido un mensaje de Escuela Secundaria Técnica #45.</p>
+                                        <p class="mb-0 text-muted small">Hace 5 horas</p>
+                                    </div>
+                                </div>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0 bg-success rounded-circle text-white p-2 me-3">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <p class="mb-1"><strong>Proyecto finalizado</strong></p>
+                                        <p class="mb-1 small">El proyecto "Dotación de equipos de cómputo" ha sido marcado como finalizado.</p>
+                                        <p class="mb-0 text-muted small">Hace 2 días</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="p-2 border-top text-center">
+                            <a href="#" class="text-decoration-none">Ver todas las notificaciones</a>
+                        </div>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="profile-pic me-2">
+                            <img src="https://via.placeholder.com/40x40" alt="Profile" class="img-fluid">
+                        </div>
+                        <span>Empresa ABC</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item" href="#profile"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
+                        <li><a class="dropdown-item" href="#settings"><i class="fas fa-cog me-2"></i>Configuración</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="main-content">
+    <section id="dashboard" class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">Dashboard de Aliado</h1>
+            <button class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Nueva Oferta de Apoyo
+            </button>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="row">
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card stat-card stat-card-primary h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="text-muted mb-1">Proyectos Activos</h5>
+                                <h2 class="mb-0">3</h2>
+                            </div>
+                            <div class="stat-icon bg-primary-light">
+                                <i class="fas fa-project-diagram"></i>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <span class="text-success small">
+                                <i class="fas fa-arrow-up me-1"></i>1 más que el mes anterior
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card stat-card stat-card-success h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="text-muted mb-1">Solicitudes Pendientes</h5>
+                                <h2 class="mb-0">2</h2>
+                            </div>
+                            <div class="stat-icon bg-success-light">
+                                <i class="fas fa-clipboard-list"></i>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <span class="text-success small">
+                                <i class="fas fa-arrow-up me-1"></i>2 nuevas solicitudes
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card stat-card stat-card-warning h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="text-muted mb-1">Escuelas Apoyadas</h5>
+                                <h2 class="mb-0">5</h2>
+                            </div>
+                            <div class="stat-icon bg-warning-light">
+                                <i class="fas fa-school"></i>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <span class="text-success small">
+                                <i class="fas fa-arrow-up me-1"></i>2 más que el año anterior
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card stat-card stat-card-danger h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="text-muted mb-1">Impacto (Estudiantes)</h5>
+                                <h2 class="mb-0">950</h2>
+                            </div>
+                            <div class="stat-icon bg-danger-light">
+                                <i class="fas fa-user-graduate"></i>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <span class="text-success small">
+                                <i class="fas fa-arrow-up me-1"></i>125 más que el año anterior
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="row mb-4">
+            <div class="col-lg-8">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Acciones Recientes</h5>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="recentActionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                Esta semana
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="recentActionsDropdown">
+                                <li><a class="dropdown-item" href="#">Hoy</a></li>
+                                <li><a class="dropdown-item" href="#">Esta semana</a></li>
+                                <li><a class="dropdown-item" href="#">Este mes</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Acción</th>
+                                        <th>Escuela</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>09/03/2025</td>
+                                        <td>Actualizó documentación del proyecto</td>
+                                        <td>Esc. Prim. Benito Juárez</td>
+                                        <td><span class="badge bg-success">Completado</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>08/03/2025</td>
+                                        <td>Respondió mensaje</td>
+                                        <td>Esc. Sec. Técnica #45</td>
+                                        <td><span class="badge bg-success">Completado</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>07/03/2025</td>
+                                        <td>Nueva oferta de apoyo</td>
+                                        <td>Varias escuelas</td>
+                                        <td><span class="badge bg-info">Activo</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>05/03/2025</td>
+                                        <td>Subió evidencia de entrega</td>
+                                        <td>Esc. Prim. Miguel Hidalgo</td>
+                                        <td><span class="badge bg-success">Completado</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>03/03/2025</td>
+                                        <td>Aceptó vinculación</td>
+                                        <td>Esc. Prim. Miguel Hidalgo</td>
+                                        <td><span class="badge bg-success">Completado</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="mb-0">Próximos Eventos</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item px-0">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <h6 class="mb-0">Entrega de Equipamiento</h6>
+                                    <span class="badge bg-primary">15/03/2025</span>
+                                </div>
+                                <p class="mb-1 small">Escuela Primaria Benito Juárez</p>
+                                <small class="text-muted">Confirmación pendiente</small>
+                            </div>
+                            <div class="list-group-item px-0">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <h6 class="mb-0">Firma de Convenio</h6>
+                                    <span class="badge bg-primary">18/03/2025</span>
+                                </div>
+                                <p class="mb-1 small">Escuela Secundaria Técnica #45</p>
+                                <small class="text-muted">Cita confirmada</small>
+                            </div>
+                            <div class="list-group-item px-0">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <h6 class="mb-0">Evaluación Final</h6>
+                                    <span class="badge bg-primary">25/03/2025</span>
+                                </div>
+                                <p class="mb-1 small">Proyecto "Equipamiento de Biblioteca"</p>
+                                <small class="text-muted">Preparar reportes finales</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer text-center">
+                        <button class="btn btn-sm btn-outline-primary">Ver todos los eventos</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Active Projects Overview -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Proyectos Activos</h5>
+                <button class="btn btn-sm btn-outline-primary">Ver todos</button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Proyecto</th>
+                                <th>Escuela</th>
+                                <th>Fecha Inicio</th>
+                                <th>Fecha Fin</th>
+                                <th>Progreso</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Equipamiento de Aula de Cómputo</td>
+                                <td>Esc. Prim. Benito Juárez</td>
+                                <td>15/02/2025</td>
+                                <td>15/04/2025</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="progress flex-grow-1" style="height: 6px;">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: 65%"></div>
+                                        </div>
+                                        <span class="ms-2">65%</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-success"><i class="fas fa-pen"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Dotación de Material Deportivo</td>
+                                <td>Esc. Sec. Técnica #45</td>
+                                <td>01/03/2025</td>
+                                <td>30/03/2025</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="progress flex-grow-1" style="height: 6px;">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: 40%"></div>
+                                        </div>
+                                        <span class="ms-2">40%</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-success"><i class="fas fa-pen"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Pintura y Rehabilitación</td>
+                                <td>Esc. Prim. Miguel Hidalgo</td>
+                                <td>03/03/2025</td>
+                                <td>20/04/2025</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="progress flex-grow-1" style="height: 6px;">
+                                            <div class="progress-bar bg-warning" role="progressbar" style="width: 25%"></div>
+                                        </div>
+                                        <span class="ms-2">25%</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-success"><i class="fas fa-pen"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+<!-- Gestión de Ofertas de Apoyo (RF-A01) -->
+<section id="offers" class="mb-5 pt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Gestión de Ofertas de Apoyo</h2>
+        <div>
+            <button class="btn btn-outline-primary me-2">
+                <i class="fas fa-history me-1"></i> Historial
+            </button>
+            <button class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i> Nueva Oferta
+            </button>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="active-offers-tab" data-bs-toggle="tab" data-bs-target="#active-offers" type="button" role="tab" aria-selected="true">Ofertas Activas</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="inactive-offers-tab" data-bs-toggle="tab" data-bs-target="#inactive-offers" type="button" role="tab" aria-selected="false">Ofertas Inactivas</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="draft-offers-tab" data-bs-toggle="tab" data-bs-target="#draft-offers" type="button" role="tab" aria-selected="false">Borradores</button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="active-offers" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Categoría</th>
+                                    <th>Descripción</th>
+                                    <th>Disponibilidad</th>
+                                    <th>Cobertura</th>
+                                    <th>Solicitudes</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary-light rounded-circle p-2 me-2">
+                                                <i class="fas fa-laptop text-primary"></i>
+                                            </div>
+                                            <span>Equipamiento Tecnológico</span>
+                                        </div>
+                                    </td>
+                                    <td>Computadoras de escritorio para aulas</td>
+                                    <td>15 unidades</td>
+                                    <td>Zona Metropolitana</td>
+                                    <td>2 pendientes</td>
+                                    <td>
+                                        <div class="toggle-switch small">
+                                            <input type="checkbox" id="offer1" checked>
+                                            <label class="toggle-slider" for="offer1"></label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-sm btn-outline-info"><i class="fas fa-eye"></i></button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-success-light rounded-circle p-2 me-2">
+                                                <i class="fas fa-paint-roller text-success"></i>
+                                            </div>
+                                            <span>Infraestructura</span>
+                                        </div>
+                                    </td>
+                                    <td>Pintura y rehabilitación de espacios</td>
+                                    <td>Por proyecto</td>
+                                    <td>Todo Jalisco</td>
+                                    <td>1 pendiente</td>
+                                    <td>
+                                        <div class="toggle-switch small">
+                                            <input type="checkbox" id="offer2" checked>
+                                            <label class="toggle-slider" for="offer2"></label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-sm btn-outline-info"><i class="fas fa-eye"></i></button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-warning-light rounded-circle p-2 me-2">
+                                                <i class="fas fa-futbol text-warning"></i>
+                                            </div>
+                                            <span>Material Deportivo</span>
+                                        </div>
+                                    </td>
+                                    <td>Equipamiento para educación física</td>
+                                    <td>30 kits completos</td>
+                                    <td>Todo Jalisco</td>
+                                    <td>0 pendientes</td>
+                                    <td>
+                                        <div class="toggle-switch small">
+                                            <input type="checkbox" id="offer3" checked>
+                                            <label class="toggle-slider" for="offer3"></label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-sm btn-outline-info"><i class="fas fa-eye"></i></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="inactive-offers" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Categoría</th>
+                                    <th>Descripción</th>
+                                    <th>Razón de inactividad</th>
+                                    <th>Última actualización</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-secondary-light rounded-circle p-2 me-2">
+                                                <i class="fas fa-book text-secondary"></i>
+                                            </div>
+                                            <span>Material Bibliográfico</span>
+                                        </div>
+                                    </td>
+                                    <td>Libros para biblioteca escolar</td>
+                                    <td>Agotados temporalmente</td>
+                                    <td>01/03/2025</td>
+                                    <td>
+                                        <div class="toggle-switch small">
+                                            <input type="checkbox" id="offer4">
+                                            <label class="toggle-slider" for="offer4"></label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-sm btn-outline-info"><i class="fas fa-eye"></i></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="draft-offers" role="tabpanel">
+                    <!-- Contenido de ofertas en borrador -->
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Búsqueda de Escuelas (RF-A02) -->
+<section id="schools" class="mb-5 pt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Búsqueda de Escuelas</h2>
+        <div>
+            <button class="btn btn-outline-primary me-2" data-bs-toggle="collapse" data-bs-target="#filterPanel">
+                <i class="fas fa-filter me-1"></i> Filtros
+            </button>
+            <button class="btn btn-primary">
+                <i class="fas fa-map-marked-alt me-2"></i> Ver Mapa
+            </button>
+        </div>
+    </div>
+
+    <!-- Panel de filtros -->
+    <div class="collapse mb-4" id="filterPanel">
+        <div class="card school-filter-panel">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Nivel educativo</label>
+                    <select class="form-select">
+                        <option value="">Todos</option>
+                        <option value="primaria">Primaria</option>
+                        <option value="secundaria">Secundaria</option>
+                        <option value="preescolar">Preescolar</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Tipo de necesidad</label>
+                    <select class="form-select">
+                        <option value="">Todas</option>
+                        <option value="infraestructura">Infraestructura</option>
+                        <option value="equipamiento">Equipamiento</option>
+                        <option value="formacion">Formación Docente</option>
+                        <option value="materiales">Materiales Didácticos</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Municipio</label>
+                    <select class="form-select">
+                        <option value="">Todos</option>
+                        <option value="guadalajara">Guadalajara</option>
+                        <option value="zapopan">Zapopan</option>
+                        <option value="tlaquepaque">Tlaquepaque</option>
+                        <option value="tonala">Tonalá</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Urgencia</label>
+                    <select class="form-select">
+                        <option value="">Cualquiera</option>
+                        <option value="alta">Alta</option>
+                        <option value="media">Media</option>
+                        <option value="baja">Baja</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Matrícula</label>
+                    <div class="input-group">
+                        <input type="number" class="form-control" placeholder="Mínimo">
+                        <span class="input-group-text">-</span>
+                        <input type="number" class="form-control" placeholder="Máximo">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Compatibilidad con mis ofertas</label>
+                    <div class="d-flex align-items-center mt-2">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="matchFilter">
+                            <label class="form-check-label" for="matchFilter">Solo mostrar compatibles</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 d-flex justify-content-end">
+                    <button class="btn btn-light me-2">Limpiar</button>
+                    <button class="btn btn-primary">Aplicar Filtros</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resultados de búsqueda -->
+    <div class="row">
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card school-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title mb-0">Esc. Prim. Vicente Guerrero</h5>
+                        <span class="badge bg-primary">Primaria</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                        <small class="text-muted">Guadalajara, Jalisco</small>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Matrícula:</span>
+                            <strong>320 alumnos</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Turno:</span>
+                            <strong>Matutino y Vespertino</strong>
+                        </div>
+                    </div>
+                    <h6 class="mb-2">Necesidades prioritarias:</h6>
+                    <div class="mb-3">
+                        <span class="badge bg-danger category-badge">Rehabilitación de techos</span>
+                        <span class="badge bg-warning category-badge">Material didáctico</span>
+                        <span class="badge bg-info category-badge">Equipamiento deportivo</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="text-success"><i class="fas fa-check-circle me-1"></i> Compatible con sus ofertas</span>
+                        <button class="btn btn-sm btn-primary">
+                            <i class="fas fa-handshake me-1"></i> Vincular
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card school-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title mb-0">Esc. Sec. Técnica #58</h5>
+                        <span class="badge bg-success">Secundaria</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                        <small class="text-muted">Zapopan, Jalisco</small>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Matrícula:</span>
+                            <strong>485 alumnos</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Turno:</span>
+                            <strong>Matutino</strong>
+                        </div>
+                    </div>
+                    <h6 class="mb-2">Necesidades prioritarias:</h6>
+                    <div class="mb-3">
+                        <span class="badge bg-danger category-badge">Equipos de cómputo</span>
+                        <span class="badge bg-warning category-badge">Formación docente</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="text-success"><i class="fas fa-check-circle me-1"></i> Compatible con sus ofertas</span>
+                        <button class="btn btn-sm btn-primary">
+                            <i class="fas fa-handshake me-1"></i> Vincular
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card school-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title mb-0">Jardín de Niños "Rosaura Zapata"</h5>
+                        <span class="badge bg-info">Preescolar</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                        <small class="text-muted">Tlaquepaque, Jalisco</small>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Matrícula:</span>
+                            <strong>120 alumnos</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Turno:</span>
+                            <strong>Matutino</strong>
+                        </div>
+                    </div>
+                    <h6 class="mb-2">Necesidades prioritarias:</h6>
+                    <div class="mb-3">
+                        <span class="badge bg-danger category-badge">Área de juegos</span>
+                        <span class="badge bg-warning category-badge">Material didáctico</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="text-secondary"><i class="fas fa-info-circle me-1"></i> Compatibilidad parcial</span>
+                        <button class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye me-1"></i> Ver detalles
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paginación -->
+    <nav aria-label="Page navigation" class="d-flex justify-content-center mt-4">
+        <ul class="pagination">
+            <li class="page-item disabled">
+                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Anterior</a>
+            </li>
+            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item">
+                <a class="page-link" href="#">Siguiente</a>
+            </li>
+        </ul>
+    </nav>
+</section>
+
+<!-- Proyectos Activos (RF-A03 y RF-A04) -->
+<section id="projects" class="mb-5 pt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Proyectos Activos</h2>
+        <div>
+            <button class="btn btn-outline-primary me-2">
+                <i class="fas fa-file-export me-1"></i> Exportar Reporte
+            </button>
+            <button class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> Nuevo Registro
+            </button>
+        </div>
+    </div>
+
+    <!-- Proyecto detallado -->
+    <div class="card mb-4">
+        <div class="card-header bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Equipamiento de Aula de Cómputo</h5>
+                <span class="badge bg-success">En ejecución</span>
+            </div>
+            <div class="text-muted">
+                <small>Escuela: <strong>Primaria Benito Juárez</strong> | Inicio: 15/02/2025 | Finalización estimada: 15/04/2025</small>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h6>Progreso del proyecto</h6>
+                    <div class="progress mb-2" style="height: 20px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 65%;" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100">
+                            65% completado
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted small">
+                        <span>Inicio: 15/02/2025</span>
+                        <span>Hoy</span>
+                        <span>Fin: 15/04/2025</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h6>Información General</h6>
+                    <div class="row">
+                        <div class="col-6">
+                            <p class="mb-1"><strong>Inversión:</strong> $150,000 MXN</p>
+                            <p class="mb-1"><strong>Beneficiados:</strong> 320 alumnos</p>
+                        </div>
+                        <div class="col-6">
+                            <p class="mb-1"><strong>Responsable:</strong> Juan Pérez</p>
+                            <p class="mb-1"><strong>Tipo de apoyo:</strong> Material</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <ul class="nav nav-pills mb-3" id="project-tabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="timeline-tab" data-bs-toggle="tab" data-bs-target="#timeline" type="button" role="tab" aria-selected="true">Cronograma</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="evidence-tab" data-bs-toggle="tab" data-bs-target="#evidence" type="button" role="tab" aria-selected="false">Evidencias</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="communication-tab" data-bs-toggle="tab" data-bs-target="#communication" type="button" role="tab" aria-selected="false">Comunicación</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents" type="button" role="tab" aria-selected="false">Documentos</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content p-3 border rounded" id="project-content">
+                    <!-- Tab Cronograma -->
+                    <div class="tab-pane fade show active" id="timeline" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">Fases del Proyecto</h6>
+                            <button class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-pen me-1"></i> Actualizar avance
+                            </button>
+                        </div>
+
+                        <div class="timeline-item complete">
+                            <div class="card border-left-success">
+                                <div class="card-body py-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">Fase 1: Diagnóstico y planificación</h6>
+                                            <p class="mb-0 text-muted small">15/02/2025 - 28/02/2025</p>
+                                        </div>
+                                        <span class="badge bg-success">Completado</span>
+                                    </div>
+                                    <div class="mt-2 small">
+                                        <p class="mb-1">Entregables completados:</p>
+                                        <ul class="mb-0">
+                                            <li>Inventario actual de equipos</li>
+                                            <li>Diagnóstico de necesidades</li>
+                                            <li>Plan de implementación</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="timeline-item active">
+                            <div class="card border-left-primary mt-3">
+                                <div class="card-body py-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">Fase 2: Adquisición e instalación</h6>
+                                            <p class="mb-0 text-muted small">01/03/2025 - 31/03/2025</p>
+                                        </div>
+                                        <span class="badge bg-primary">En progreso (40%)</span>
+                                    </div>
+                                    <div class="mt-2 small">
+                                        <p class="mb-1">Actividades en curso:</p>
+                                        <ul class="mb-0">
+                                            <li class="text-success"><i class="fas fa-check-circle me-1"></i> Compra de equipos completada</li>
+                                            <li class="text-primary"><i class="fas fa-spinner me-1"></i> Instalación de red en proceso</li>
+                                            <li class="text-muted"><i class="far fa-circle me-1"></i> Configuración de equipos pendiente</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="timeline-item">
+                            <div class="card border-left-secondary mt-3">
+                                <div class="card-body py-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">Fase 3: Capacitación y entrega</h6>
+                                            <p class="mb-0 text-muted small">01/04/2025 - 15/04/2025</p>
+                                        </div>
+                                        <span class="badge bg-secondary">Pendiente</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab Evidencias -->
+                    <div class="tab-pane fade" id="evidence" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">Evidencias del Proyecto</h6>
+                            <button class="btn btn-sm btn-primary">
+                                <i class="fas fa-plus me-1"></i> Subir nueva evidencia
+                            </button>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="card h-100">
+                                    <img src="https://via.placeholder.com/300x200?text=Inventario" class="card-img-top" alt="Evidencia">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Diagnóstico inicial</h6>
+                                        <p class="card-text small">Inventario de equipos existentes y evaluación de necesidades.</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-secondary">Fase 1</span>
+                                            <small class="text-muted">20/02/2025</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100">
+                                    <img src="https://via.placeholder.com/300x200?text=Factura" class="card-img-top" alt="Evidencia">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Comprobante de compra</h6>
+                                        <p class="card-text small">Factura de adquisición de 15 equipos de cómputo.</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-primary">Fase 2</span>
+                                            <small class="text-muted">05/03/2025</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100">
+                                    <img src="https://via.placeholder.com/300x200?text=Instalación" class="card-img-top" alt="Evidencia">
+                                    <div class="card-body">
+                                        <h<!-- Gestión de Ofertas de Apoyo (RF-A01) -->
+<section id="offers" class="mb-5 pt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Gestión de Ofertas de Apoyo</h2>
+        <div>
+            <button class="btn btn-outline-primary me-2">
+                <i class="fas fa-history me-1"></i> Historial
+            </button>
+            <button class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i> Nueva Oferta
+            </button>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="active-offers-tab" data-bs-toggle="tab" data-bs-target="#active-offers" type="button" role="tab" aria-selected="true">Ofertas Activas</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="inactive-offers-tab" data-bs-toggle="tab" data-bs-target="#inactive-offers" type="button" role="tab" aria-selected="false">Ofertas Inactivas</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="draft-offers-tab" data-bs-toggle="tab" data-bs-target="#draft-offers" type="button" role="tab" aria-selected="false">Borradores</button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="active-offers" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Categoría</th>
+                                    <th>Descripción</th>
+                                    <th>Disponibilidad</th>
+                                    <th>Cobertura</th>
+                                    <th>Solicitudes</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary-light rounded-circle p-2 me-2">
+                                                <i class="fas fa-laptop text-primary"></i>
+                                            </div>
+                                            <span>Equipamiento Tecnológico</span>
+                                        </div>
+                                    </td>
+                                    <td>Computadoras de escritorio para aulas</td>
+                                    <td>15 unidades</td>
+                                    <td>Zona Metropolitana</td>
+                                    <td>2 pendientes</td>
+                                    <td>
+                                        <div class="toggle-switch small">
+                                            <input type="checkbox" id="offer1" checked>
+                                            <label class="toggle-slider" for="offer1"></label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-sm btn-outline-info"><i class="fas fa-eye"></i></button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-success-light rounded-circle p-2 me-2">
+                                                <i class="fas fa-paint-roller text-success"></i>
+                                            </div>
+                                            <span>Infraestructura</span>
+                                        </div>
+                                    </td>
+                                    <td>Pintura y rehabilitación de espacios</td>
+                                    <td>Por proyecto</td>
+                                    <td>Todo Jalisco</td>
+                                    <td>1 pendiente</td>
+                                    <td>
+                                        <div class="toggle-switch small">
+                                            <input type="checkbox" id="offer2" checked>
+                                            <label class="toggle-slider" for="offer2"></label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-sm btn-outline-info"><i class="fas fa-eye"></i></button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-warning-light rounded-circle p-2 me-2">
+                                                <i class="fas fa-futbol text-warning"></i>
+                                            </div>
+                                            <span>Material Deportivo</span>
+                                        </div>
+                                    </td>
+                                    <td>Equipamiento para educación física</td>
+                                    <td>30 kits completos</td>
+                                    <td>Todo Jalisco</td>
+                                    <td>0 pendientes</td>
+                                    <td>
+                                        <div class="toggle-switch small">
+                                            <input type="checkbox" id="offer3" checked>
+                                            <label class="toggle-slider" for="offer3"></label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-sm btn-outline-info"><i class="fas fa-eye"></i></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="inactive-offers" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Categoría</th>
+                                    <th>Descripción</th>
+                                    <th>Razón de inactividad</th>
+                                    <th>Última actualización</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-secondary-light rounded-circle p-2 me-2">
+                                                <i class="fas fa-book text-secondary"></i>
+                                            </div>
+                                            <span>Material Bibliográfico</span>
+                                        </div>
+                                    </td>
+                                    <td>Libros para biblioteca escolar</td>
+                                    <td>Agotados temporalmente</td>
+                                    <td>01/03/2025</td>
+                                    <td>
+                                        <div class="toggle-switch small">
+                                            <input type="checkbox" id="offer4">
+                                            <label class="toggle-slider" for="offer4"></label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-sm btn-outline-info"><i class="fas fa-eye"></i></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="draft-offers" role="tabpanel">
+                    <!-- Contenido de ofertas en borrador -->
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Búsqueda de Escuelas (RF-A02) -->
+<section id="schools" class="mb-5 pt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Búsqueda de Escuelas</h2>
+        <div>
+            <button class="btn btn-outline-primary me-2" data-bs-toggle="collapse" data-bs-target="#filterPanel">
+                <i class="fas fa-filter me-1"></i> Filtros
+            </button>
+            <button class="btn btn-primary">
+                <i class="fas fa-map-marked-alt me-2"></i> Ver Mapa
+            </button>
+        </div>
+    </div>
+
+    <!-- Panel de filtros -->
+    <div class="collapse mb-4" id="filterPanel">
+        <div class="card school-filter-panel">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Nivel educativo</label>
+                    <select class="form-select">
+                        <option value="">Todos</option>
+                        <option value="primaria">Primaria</option>
+                        <option value="secundaria">Secundaria</option>
+                        <option value="preescolar">Preescolar</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Tipo de necesidad</label>
+                    <select class="form-select">
+                        <option value="">Todas</option>
+                        <option value="infraestructura">Infraestructura</option>
+                        <option value="equipamiento">Equipamiento</option>
+                        <option value="formacion">Formación Docente</option>
+                        <option value="materiales">Materiales Didácticos</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Municipio</label>
+                    <select class="form-select">
+                        <option value="">Todos</option>
+                        <option value="guadalajara">Guadalajara</option>
+                        <option value="zapopan">Zapopan</option>
+                        <option value="tlaquepaque">Tlaquepaque</option>
+                        <option value="tonala">Tonalá</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Urgencia</label>
+                    <select class="form-select">
+                        <option value="">Cualquiera</option>
+                        <option value="alta">Alta</option>
+                        <option value="media">Media</option>
+                        <option value="baja">Baja</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Matrícula</label>
+                    <div class="input-group">
+                        <input type="number" class="form-control" placeholder="Mínimo">
+                        <span class="input-group-text">-</span>
+                        <input type="number" class="form-control" placeholder="Máximo">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Compatibilidad con mis ofertas</label>
+                    <div class="d-flex align-items-center mt-2">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="matchFilter">
+                            <label class="form-check-label" for="matchFilter">Solo mostrar compatibles</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 d-flex justify-content-end">
+                    <button class="btn btn-light me-2">Limpiar</button>
+                    <button class="btn btn-primary">Aplicar Filtros</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resultados de búsqueda -->
+    <div class="row">
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card school-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title mb-0">Esc. Prim. Vicente Guerrero</h5>
+                        <span class="badge bg-primary">Primaria</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                        <small class="text-muted">Guadalajara, Jalisco</small>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Matrícula:</span>
+                            <strong>320 alumnos</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Turno:</span>
+                            <strong>Matutino y Vespertino</strong>
+                        </div>
+                    </div>
+                    <h6 class="mb-2">Necesidades prioritarias:</h6>
+                    <div class="mb-3">
+                        <span class="badge bg-danger category-badge">Rehabilitación de techos</span>
+                        <span class="badge bg-warning category-badge">Material didáctico</span>
+                        <span class="badge bg-info category-badge">Equipamiento deportivo</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="text-success"><i class="fas fa-check-circle me-1"></i> Compatible con sus ofertas</span>
+                        <button class="btn btn-sm btn-primary">
+                            <i class="fas fa-handshake me-1"></i> Vincular
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card school-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title mb-0">Esc. Sec. Técnica #58</h5>
+                        <span class="badge bg-success">Secundaria</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                        <small class="text-muted">Zapopan, Jalisco</small>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Matrícula:</span>
+                            <strong>485 alumnos</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Turno:</span>
+                            <strong>Matutino</strong>
+                        </div>
+                    </div>
+                    <h6 class="mb-2">Necesidades prioritarias:</h6>
+                    <div class="mb-3">
+                        <span class="badge bg-danger category-badge">Equipos de cómputo</span>
+                        <span class="badge bg-warning category-badge">Formación docente</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="text-success"><i class="fas fa-check-circle me-1"></i> Compatible con sus ofertas</span>
+                        <button class="btn btn-sm btn-primary">
+                            <i class="fas fa-handshake me-1"></i> Vincular
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card school-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title mb-0">Jardín de Niños "Rosaura Zapata"</h5>
+                        <span class="badge bg-info">Preescolar</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                        <small class="text-muted">Tlaquepaque, Jalisco</small>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Matrícula:</span>
+                            <strong>120 alumnos</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Turno:</span>
+                            <strong>Matutino</strong>
+                        </div>
+                    </div>
+                    <h6 class="mb-2">Necesidades prioritarias:</h6>
+                    <div class="mb-3">
+                        <span class="badge bg-danger category-badge">Área de juegos</span>
+                        <span class="badge bg-warning category-badge">Material didáctico</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="text-secondary"><i class="fas fa-info-circle me-1"></i> Compatibilidad parcial</span>
+                        <button class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye me-1"></i> Ver detalles
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paginación -->
+    <nav aria-label="Page navigation" class="d-flex justify-content-center mt-4">
+        <ul class="pagination">
+            <li class="page-item disabled">
+                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Anterior</a>
+            </li>
+            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item">
+                <a class="page-link" href="#">Siguiente</a>
+            </li>
+        </ul>
+    </nav>
+</section>
+
+<!-- Proyectos Activos (RF-A03 y RF-A04) -->
+<section id="projects" class="mb-5 pt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Proyectos Activos</h2>
+        <div>
+            <button class="btn btn-outline-primary me-2">
+                <i class="fas fa-file-export me-1"></i> Exportar Reporte
+            </button>
+            <button class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> Nuevo Registro
+            </button>
+        </div>
+    </div>
+
+    <!-- Proyecto detallado -->
+    <div class="card mb-4">
+        <div class="card-header bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Equipamiento de Aula de Cómputo</h5>
+                <span class="badge bg-success">En ejecución</span>
+            </div>
+            <div class="text-muted">
+                <small>Escuela: <strong>Primaria Benito Juárez</strong> | Inicio: 15/02/2025 | Finalización estimada: 15/04/2025</small>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h6>Progreso del proyecto</h6>
+                    <div class="progress mb-2" style="height: 20px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 65%;" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100">
+                            65% completado
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted small">
+                        <span>Inicio: 15/02/2025</span>
+                        <span>Hoy</span>
+                        <span>Fin: 15/04/2025</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h6>Información General</h6>
+                    <div class="row">
+                        <div class="col-6">
+                            <p class="mb-1"><strong>Inversión:</strong> $150,000 MXN</p>
+                            <p class="mb-1"><strong>Beneficiados:</strong> 320 alumnos</p>
+                        </div>
+                        <div class="col-6">
+                            <p class="mb-1"><strong>Responsable:</strong> Juan Pérez</p>
+                            <p class="mb-1"><strong>Tipo de apoyo:</strong> Material</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <ul class="nav nav-pills mb-3" id="project-tabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="timeline-tab" data-bs-toggle="tab" data-bs-target="#timeline" type="button" role="tab" aria-selected="true">Cronograma</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="evidence-tab" data-bs-toggle="tab" data-bs-target="#evidence" type="button" role="tab" aria-selected="false">Evidencias</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="communication-tab" data-bs-toggle="tab" data-bs-target="#communication" type="button" role="tab" aria-selected="false">Comunicación</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents" type="button" role="tab" aria-selected="false">Documentos</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content p-3 border rounded" id="project-content">
+                    <!-- Tab Cronograma -->
+                    <div class="tab-pane fade show active" id="timeline" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">Fases del Proyecto</h6>
+                            <button class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-pen me-1"></i> Actualizar avance
+                            </button>
+                        </div>
+
+                        <div class="timeline-item complete">
+                            <div class="card border-left-success">
+                                <div class="card-body py-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">Fase 1: Diagnóstico y planificación</h6>
+                                            <p class="mb-0 text-muted small">15/02/2025 - 28/02/2025</p>
+                                        </div>
+                                        <span class="badge bg-success">Completado</span>
+                                    </div>
+                                    <div class="mt-2 small">
+                                        <p class="mb-1">Entregables completados:</p>
+                                        <ul class="mb-0">
+                                            <li>Inventario actual de equipos</li>
+                                            <li>Diagnóstico de necesidades</li>
+                                            <li>Plan de implementación</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="timeline-item active">
+                            <div class="card border-left-primary mt-3">
+                                <div class="card-body py-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">Fase 2: Adquisición e instalación</h6>
+                                            <p class="mb-0 text-muted small">01/03/2025 - 31/03/2025</p>
+                                        </div>
+                                        <span class="badge bg-primary">En progreso (40%)</span>
+                                    </div>
+                                    <div class="mt-2 small">
+                                        <p class="mb-1">Actividades en curso:</p>
+                                        <ul class="mb-0">
+                                            <li class="text-success"><i class="fas fa-check-circle me-1"></i> Compra de equipos completada</li>
+                                            <li class="text-primary"><i class="fas fa-spinner me-1"></i> Instalación de red en proceso</li>
+                                            <li class="text-muted"><i class="far fa-circle me-1"></i> Configuración de equipos pendiente</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="timeline-item">
+                            <div class="card border-left-secondary mt-3">
+                                <div class="card-body py-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">Fase 3: Capacitación y entrega</h6>
+                                            <p class="mb-0 text-muted small">01/04/2025 - 15/04/2025</p>
+                                        </div>
+                                        <span class="badge bg-secondary">Pendiente</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab Evidencias -->
+                    <div class="tab-pane fade" id="evidence" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">Evidencias del Proyecto</h6>
+                            <button class="btn btn-sm btn-primary">
+                                <i class="fas fa-plus me-1"></i> Subir nueva evidencia
+                            </button>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="card h-100">
+                                    <img src="https://via.placeholder.com/300x200?text=Inventario" class="card-img-top" alt="Evidencia">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Diagnóstico inicial</h6>
+                                        <p class="card-text small">Inventario de equipos existentes y evaluación de necesidades.</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-secondary">Fase 1</span>
+                                            <small class="text-muted">20/02/2025</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100">
+                                    <img src="https://via.placeholder.com/300x200?text=Factura" class="card-img-top" alt="Evidencia">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Comprobante de compra</h6>
+                                        <p class="card-text small">Factura de adquisición de 15 equipos de cómputo.</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-primary">Fase 2</span>
+                                            <small class="text-muted">05/03/2025</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100">
+                                    <img src="https://via.placeholder.com/300x200?text=Instalación" class="card-img-top" alt="Evidencia">
+                                    <div class="card-body">
+                                     <!-- Tab Evidencias (completando la parte cortada) -->
+<div class="col-md-4">
+    <div class="card h-100">
+        <img src="https://via.placeholder.com/300x200?text=Instalación" class="card-img-top" alt="Evidencia">
+        <div class="card-body">
+            <h6 class="card-title">Instalación en proceso</h6>
+            <p class="card-text small">Fotografías del proceso de instalación de equipos y cableado de red.</p>
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="badge bg-primary">Fase 2</span>
+                <small class="text-muted">08/03/2025</small>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Tab Comunicación -->
+<div class="tab-pane fade" id="communication" role="tabpanel">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="mb-0">Comunicación con Escuela</h6>
+        <button class="btn btn-sm btn-primary">
+            <i class="fas fa-paper-plane me-1"></i> Enviar mensaje
+        </button>
+    </div>
+
+    <div class="card chat-container">
+        <div class="card-body chat-history p-3">
+            <div class="message-thread">
+                <div class="message incoming mb-3">
+                    <div class="message-header d-flex justify-content-between mb-1">
+                        <small><strong>María González (Directora)</strong></small>
+                        <small class="text-muted">02/03/2025 08:45</small>
+                    </div>
+                    <div class="message-content p-3 bg-light rounded">
+                        <p class="mb-0">Buenos días, quería confirmar la fecha programada para la instalación de los equipos. Necesitamos preparar el espacio y asegurar que haya personal disponible ese día.</p>
+                    </div>
+                </div>
+
+                <div class="message outgoing mb-3">
+                    <div class="message-header d-flex justify-content-between mb-1">
+                        <small><strong>Juan Pérez (Usted)</strong></small>
+                        <small class="text-muted">02/03/2025 09:30</small>
+                    </div>
+                    <div class="message-content p-3 bg-primary text-white rounded">
+                        <p class="mb-0">¡Buenos días! La instalación está programada para el jueves 6 de marzo a las 9:00 AM. Llegaremos con un equipo de 3 técnicos y necesitaremos aproximadamente 6 horas para completar la instalación.</p>
+                    </div>
+                </div>
+
+                <div class="message incoming mb-3">
+                    <div class="message-header d-flex justify-content-between mb-1">
+                        <small><strong>María González (Directora)</strong></small>
+                        <small class="text-muted">02/03/2025 10:15</small>
+                    </div>
+                    <div class="message-content p-3 bg-light rounded">
+                        <p class="mb-0">Perfecto, confirmo la fecha y hora. El encargado de tecnología estará presente durante toda la jornada para apoyarlos en lo que necesiten. ¿Requieren alguna preparación específica del aula?</p>
+                    </div>
+                </div>
+
+                <div class="message outgoing mb-3">
+                    <div class="message-header d-flex justify-content-between mb-1">
+                        <small><strong>Juan Pérez (Usted)</strong></small>
+                        <small class="text-muted">02/03/2025 11:05</small>
+                    </div>
+                    <div class="message-content p-3 bg-primary text-white rounded">
+                        <p class="mb-0">Gracias por confirmar. Sería ideal si pudieran tener despejadas las mesas donde se instalarán los equipos y asegurar que las conexiones eléctricas estén accesibles. También necesitaremos acceso a la red de internet para configurar los equipos.</p>
+                    </div>
+                </div>
+
+                <div class="message incoming mb-3">
+                    <div class="message-header d-flex justify-content-between mb-1">
+                        <small><strong>María González (Directora)</strong></small>
+                        <small class="text-muted">02/03/2025 11:30</small>
+                    </div>
+                    <div class="message-content p-3 bg-light rounded">
+                        <p class="mb-0">Entendido. Nos encargaremos de preparar todo según sus indicaciones. Gracias por su apoyo y coordinación.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer p-2">
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="Escriba su mensaje...">
+                <button class="btn btn-primary"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tab Documentos -->
+<div class="tab-pane fade" id="documents" role="tabpanel">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="mb-0">Documentación del Proyecto</h6>
+        <button class="btn btn-sm btn-primary">
+            <i class="fas fa-upload me-1"></i> Subir documento
+        </button>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Documento</th>
+                    <th>Tipo</th>
+                    <th>Fase</th>
+                    <th>Subido por</th>
+                    <th>Fecha</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="me-2">
+                                <i class="fas fa-file-pdf text-danger fa-lg"></i>
+                            </div>
+                            <div>
+                                <div>Convenio de colaboración</div>
+                                <small class="text-muted">354 KB</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>Contrato</td>
+                    <td>Planificación</td>
+                    <td>Administrador</td>
+                    <td>15/02/2025</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-download"></i></button>
+                        <button class="btn btn-sm btn-outline-info"><i class="fas fa-eye"></i></button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="me-2">
+                                <i class="fas fa-file-excel text-success fa-lg"></i>
+                            </div>
+                            <div>
+                                <div>Inventario de equipos</div>
+                                <small class="text-muted">128 KB</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>Planificación</td>
+                    <td>Fase 1</td>
+                    <td>Juan Pérez</td>
+                    <td>20/02/2025</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-download"></i></button>
+                        <button class="btn btn-sm btn-outline-info"><i class="fas fa-eye"></i></button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="me-2">
+                                <i class="fas fa-file-word text-primary fa-lg"></i>
+                            </div>
+                            <div>
+                                <div>Especificaciones técnicas</div>
+                                <small class="text-muted">245 KB</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>Técnico</td>
+                    <td>Fase 1</td>
+                    <td>Depto. Técnico</td>
+                    <td>25/02/2025</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-download"></i></button>
+                        <button class="btn btn-sm btn-outline-info"><i class="fas fa-eye"></i></button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="me-2">
+                                <i class="fas fa-file-pdf text-danger fa-lg"></i>
+                            </div>
+                            <div>
+                                <div>Factura de compra</div>
+                                <small class="text-muted">187 KB</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>Financiero</td>
+                    <td>Fase 2</td>
+                    <td>Depto. Contabilidad</td>
+                    <td>05/03/2025</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-download"></i></button>
+                        <button class="btn btn-sm btn-outline-info"><i class="fas fa-eye"></i></button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="me-2">
+                                <i class="fas fa-file-image text-info fa-lg"></i>
+                            </div>
+                            <div>
+                                <div>Fotografías de instalación</div>
+                                <small class="text-muted">3.2 MB</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>Evidencias</td>
+                    <td>Fase 2</td>
+                    <td>Juan Pérez</td>
+                    <td>08/03/2025</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-download"></i></button>
+                        <button class="btn btn-sm btn-outline-info"><i class="fas fa-eye"></i></button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<!-- Botones de acción en la parte inferior -->
+<div class="mt-4 text-end">
+    <button class="btn btn-outline-secondary me-2">
+        <i class="fas fa-arrow-left me-1"></i> Volver a proyectos
+    </button>
+    <button class="btn btn-outline-primary me-2">
+        <i class="fas fa-file-export me-1"></i> Generar reporte
+    </button>
+    <button class="btn btn-primary">
+        <i class="fas fa-save me-1"></i> Guardar cambios
+    </button>
+</div>

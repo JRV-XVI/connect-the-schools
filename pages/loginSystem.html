@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mexicanos Primero Jalisco | Inicio</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1a5276;
+            --secondary-color: #f39c12;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .navbar-brand img {
+            height: 40px;
+        }
+        .hero-section {
+            background: linear-gradient(rgba(26, 82, 118, 0.8), rgba(26, 82, 118, 0.9)), url('hero-bg.jpg');
+            background-size: cover;
+            color: white;
+            padding: 100px 0;
+        }
+        .login-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .footer {
+            background-color: var(--dark-color);
+            color: white;
+        }
+        .feature-card {
+            transition: transform 0.3s;
+        }
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navegación -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+    <div class="container">
+        <a class="navbar-brand" href="#">
+            <img src="logo_mpj.png" alt="Logo Mexicanos Primero Jalisco">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="#sobre-nosotros">Sobre Nosotros</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#como-funciona">Cómo Funciona</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#contacto">Contacto</a>
+                </li>
+                <li class="nav-item">
+                    <a class="btn btn-outline-primary ms-2" href="#registro">Registrarse</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section con Login -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-7 mb-5 mb-lg-0">
+                <h1 class="display-4 fw-bold mb-4">Conectando escuelas con aliados para transformar la educación</h1>
+                <p class="lead mb-4">Plataforma de vinculación entre instituciones educativas y organizaciones de apoyo para mejorar la calidad educativa en Jalisco.</p>
+                <div class="d-flex gap-3">
+                    <a href="#registro" class="btn btn-light btn-lg">Conocer más</a>
+                    <a href="#registro" class="btn btn-outline-light btn-lg">Registrarse</a>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="card login-card p-4">
+                    <h3 class="text-center mb-4">Iniciar Sesión</h3>
+                    <form>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Correo electrónico</label>
+                            <input type="email" class="form-control" id="email" placeholder="ejemplo@correo.com" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Contraseña</label>
+                            <input type="password" class="form-control" id="password" required>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="remember">
+                                <label class="form-check-label" for="remember">
+                                    Recordarme
+                                </label>
+                            </div>
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#recoveryModal">¿Olvidaste tu contraseña?</a>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Ingresar</button>
+                        <div class="text-center mt-4">
+                            <span>¿No tienes cuenta?</span>
+                            <a href="#registro" class="ms-2">Regístrate aquí</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Cómo Funciona -->
+<section id="como-funciona" class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">¿Cómo funciona nuestra plataforma?</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 feature-card text-center p-4">
+                    <div class="my-3">
+                        <i class="fas fa-school feature-icon"></i>
+                    </div>
+                    <h4>Para escuelas</h4>
+                    <p>Diagnostica necesidades, prioriza proyectos y conecta con aliados que pueden brindar el apoyo necesario para mejorar la calidad educativa.</p>
+                    <a href="#" class="btn btn-outline-primary mt-auto">Más información</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 feature-card text-center p-4">
+                    <div class="my-3">
+                        <i class="fas fa-hands-helping feature-icon"></i>
+                    </div>
+                    <h4>Para aliados</h4>
+                    <p>Ofrece tus apoyos a instituciones educativas, selecciona proyectos alineados a tus capacidades e intereses y realiza un seguimiento del impacto.</p>
+                    <a href="#" class="btn btn-outline-primary mt-auto">Más información</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 feature-card text-center p-4">
+                    <div class="my-3">
+                        <i class="fas fa-chart-line feature-icon"></i>
+                    </div>
+                    <h4>Resultados medibles</h4>
+                    <p>Todas las intervenciones son evaluadas para medir su impacto real en indicadores educativos clave como aprendizaje y asistencia escolar.</p>
+                    <a href="#" class="btn btn-outline-primary mt-auto">Conocer impacto</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Modalidad de Registro -->
+<section id="registro" class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Únete a nuestra plataforma</h2>
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card">
+                    <div class="card-body p-0">
+                        <ul class="nav nav-pills nav-fill" id="registerTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active py-3" data-bs-toggle="tab" data-bs-target="#escuelas-tab">
+                                    <i class="fas fa-school me-2"></i> Soy una escuela
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link py-3" data-bs-toggle="tab" data-bs-target="#aliados-tab">
+                                    <i class="fas fa-handshake me-2"></i> Soy un aliado
+                                </button>
+                            </li>
+                        </ul>
+                        <div class="tab-content p-4" id="registerTabContent">
+                            <div class="tab-pane fade show active" id="escuelas-tab">
+                                <h4 class="mb-4">Registro para escuelas</h4>
+                                <p class="mb-4">Complete el formulario para iniciar el proceso de registro como institución educativa.</p>
+                                <form class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="school-name" class="form-label">Nombre de la institución</label>
+                                        <input type="text" class="form-control" id="school-name" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="cct" class="form-label">Clave de Centro de Trabajo (CCT)</label>
+                                        <input type="text" class="form-control" id="cct" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="school-email" class="form-label">Correo electrónico institucional</label>
+                                        <input type="email" class="form-control" id="school-email" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="school-phone" class="form-label">Teléfono</label>
+                                        <input type="tel" class="form-control" id="school-phone" required>
+                                    </div>
+                                    <div class="col-12">
+                                        <button type="submit" class="btn btn-primary">Continuar registro</button>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="tab-pane fade" id="aliados-tab">
+                                <h4 class="mb-4">Registro para aliados</h4>
+                                <p class="mb-4">Complete el formulario para iniciar el proceso de registro como organización o persona que desea apoyar.</p>
+                                <form class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="ally-type" class="form-label">Tipo de aliado</label>
+                                        <select class="form-select" id="ally-type" required>
+                                            <option selected disabled value="">Selecciona...</option>
+                                            <option>Empresa</option>
+                                            <option>Organización Civil</option>
+                                            <option>Institución Gubernamental</option>
+                                            <option>Universidad/Bachillerato</option>
+                                            <option>Persona de la comunidad</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="ally-name" class="form-label">Nombre de la organización/persona</label>
+                                        <input type="text" class="form-control" id="ally-name" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="ally-email" class="form-label">Correo electrónico</label>
+                                        <input type="email" class="form-control" id="ally-email" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="ally-phone" class="form-label">Teléfono</label>
+                                        <input type="tel" class="form-control" id="ally-phone" required>
+                                    </div>
+                                    <div class="col-12">
+                                        <button type="submit" class="btn btn-primary">Continuar registro</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Modal Recuperación de Contraseña -->
+<div class="modal fade" id="recoveryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Recuperación de contraseña</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Ingresa tu correo electrónico para recibir instrucciones para restablecer tu contraseña.</p>
+                <form>
+                    <div class="mb-3">
+                        <label for="recovery-email" class="form-label">Correo electrónico</label>
+                        <input type="email" class="form-control" id="recovery-email" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary">Enviar instrucciones</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="footer py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-4 mb-4 mb-lg-0">
+                <img src="logo_white.png" alt="Logo Mexicanos Primero Jalisco" height="50">
+                <p class="mt-3">Transformando la educación en Jalisco a través de la colaboración y vinculación estratégica.</p>
+            </div>
+            <div class="col-lg-2 col-md-4 mb-4 mb-md-0">
+                <h5>Enlaces</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="#" class="text-white text-decoration-none">Inicio</a></li>
+                    <li class="mb-2"><a href="#" class="text-white text-decoration-none">Sobre Nosotros</a></li>
+                    <li class="mb-2"><a href="#" class="text-white text-decoration-none">Contacto</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-3 col-md-4 mb-4 mb-md-0">
+                <h5>Recursos</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="#" class="text-white text-decoration-none">Preguntas Frecuentes</a></li>
+                    <li class="mb-2"><a href="#" class="text-white text-decoration-none">Manual de Usuario</a></li>
+                    <li class="mb-2"><a href="#" class="text-white text-decoration-none">Blog</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-3 col-md-4">
+                <h5>Contacto</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i> Av. Niños Héroes 2734, Guadalajara</li>
+                    <li class="mb-2"><i class="fas fa-phone me-2"></i> (33) 1234-5678</li>
+                    <li class="mb-2"><i class="fas fa-envelope me-2"></i> contacto@mpjalisco.org</li>
+                </ul>
+                <div class="mt-3">
+                    <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+        </div>
+        <hr class="my-4 bg-light">
+        <div class="text-center">
+            <p class="mb-0">© 2025 Mexicanos Primero Jalisco. Todos los derechos reservados.</p>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
