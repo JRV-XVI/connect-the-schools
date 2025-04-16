@@ -1,10 +1,10 @@
 const express = require('express');
-const router = require('./router.js');
+const auten = require('./routers/autentificacion.js');
 const app = express();
 
 const PORT = process.env.PORT || 4001;
 
-app.use('/api', router);
+app.use('/api', auten);
 
 app.listen(PORT, () => {
 	console.log(`Server is listening on PORT ${PORT}`);
