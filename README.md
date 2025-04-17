@@ -13,23 +13,18 @@ If you are developing a production application, we recommend using TypeScript an
  
 
 ## ¿Como usar knex con la base de datos?
-Las caracteristicas de la base de datos son las siguientes:
-    database: 'connect_the_schools'
-    user: 'admin'
-    password: 'admin'
-    host: 'localhost'
-    port: 5432
+Tienen que ejecutar el archivo `init.sh`
 
-Para crear la base de datos debes usar los siguientes comandos en este orden:
-`psql -U postgres`
-`create database connect_the_schools;`
-`create user admin with encrypted password 'admin';`
-`grant all privileges on database connect_the_schools to admin;`
-`\q`
-`psql -U postgres -d connect_the_schools`
-`grant create on schema public to admin;`
-`grant usage on schema public to admin;`
+Para los que tienen sistema UNIX vas a tener que darle permiso de ejecution con el siguiente comando `chmod +x init.sh`
 
-Ya que tengas la base de datos conectada ahora DEBES de ir a la carpeta "node-app" para crear tu tabla desde knex (este paso varia dependiendo de que tabla quieras generar con knex)
-`npx knex migrate:make nombre_de_la_migracion`
-Con el paso anterior se crear un archivo dentro de la carpeta migrations en donde podras editar lo que tendra tu tabla que quieras desarrollar
+Te va a pedir la contraseña de tu usuario de postgres repetidamene, asi que solo ingresenla
+
+Despues de terminar con la ejecucion del `init.sh` ya tendran una nueva base de datos llamada connect_the_schools con un usuario admin que tiene los permisos necesarios para alterar connect_the_schools
+
+Apartir de aqui ya pueden hacer las migraciones de tablas existentes y nuevas con knex
+
+Para crear una nueva tabla tendran que usar el commando el `npm run knex migrate:make nombre_de_tabla` esto les va a crear un archivo .js en la carpeta migrations y es hay donde van a crear la tabla
+
+Para hacer las migraciones usen `npm run knex migrate:up` esto para crear su nueva tabla dentro de la base de datos
+
+Para mas informacion del manejo de migraciones vea: https://www.luisllamas.es/en/what-is-and-how-to-use-knex/
