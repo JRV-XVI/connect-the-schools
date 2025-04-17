@@ -6,7 +6,7 @@ const obtenerUsuarios = async () => {
 }
 
 const usuarioId = async (id) => {
-	const resultado = await db.query('SELECT * FROM Usuario WHERE id = $1', [id]);
+	const resultado = await db.query('SELECT * FROM Usuario WHERE "idUsuario" = $1', [id]);
 	return resultado.rows;
 }
 
