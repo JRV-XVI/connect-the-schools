@@ -1,0 +1,319 @@
+:root {
+    --primary-color: #009933; /* Updated to green */
+    --secondary-color: #183264; /* Updated to dark blue */
+    --accent-color: #EB6012; /* Added orange accent */
+    --light-accent: #F59D15; /* Added light orange accent */
+    --sidebar-width: 250px;
+}
+
+body {
+    background-color: #f8f9fa;
+    font-family: 'Montserrat', sans-serif; /* Updated to Montserrat */
+}
+
+.sidebar {
+    width: var(--sidebar-width);
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: var(--primary-color); /* Updated to dark blue */
+    color: white;
+    overflow-y: auto;
+    transition: all 0.3s;
+    z-index: 1000;
+}
+
+/* Rest of CSS remains the same, except color references below */
+
+.sidebar-header {
+    padding: 1.5rem 1rem;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-menu {
+    padding: 0.5rem 0;
+}
+
+.sidebar-menu .nav-link {
+    color: rgba(255, 255, 255, 0.8);
+    padding: 0.8rem 1rem;
+    border-left: 3px solid transparent;
+}
+
+.sidebar-menu .nav-link:hover, 
+.sidebar-menu .nav-link.active {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-left: 3px solid var(--accent-color); /* Updated to orange */
+}
+
+.sidebar-menu .nav-link i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+.main-content {
+    margin-left: var(--sidebar-width);
+    padding: 20px;
+}
+
+.navbar {
+    margin-left: var(--sidebar-width);
+    background-color: white;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 1.5rem;
+    border-radius: 0.5rem;
+}
+
+.card-header {
+    background-color: white;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    font-weight: 600;
+}
+
+.stat-card {
+    border-radius: 0.5rem;
+    border-left: 4px solid;
+}
+
+.stat-card-primary {
+    border-left-color: var(--primary-color);
+}
+
+.stat-card-success {
+    border-left-color: var(--primary-color); /* Updated to green */
+}
+
+.stat-card-warning {
+    border-left-color: var(--light-accent); /* Updated to light orange */
+}
+
+.stat-card-danger {
+    border-left-color: var(--accent-color); /* Updated to orange */
+}
+
+.stat-icon {
+    height: 48px;
+    width: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: white;
+}
+
+.bg-primary-light {
+    background-color: rgba(0, 153, 51, 0.2); /* Updated to green with opacity */
+    color: var(--primary-color);
+}
+
+.bg-success-light {
+    background-color: rgba(0, 153, 51, 0.2); /* Updated to green with opacity */
+    color: var(--primary-color);
+}
+
+.bg-warning-light {
+    background-color: rgba(245, 157, 21, 0.2); /* Updated to light orange with opacity */
+    color: var(--light-accent);
+}
+
+.bg-danger-light {
+    background-color: rgba(235, 96, 18, 0.2); /* Updated to orange with opacity */
+    color: var(--accent-color);
+}
+
+.badge-notification {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-size: 0.6rem;
+}
+
+.school-card {
+    transition: transform 0.2s;
+    cursor: pointer;
+}
+
+.school-card:hover {
+    transform: translateY(-5px);
+}
+
+.profile-pic {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.toggle-control {
+    display: flex;
+    align-items: center;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: var(--primary-color);
+}
+
+input:focus + .toggle-slider {
+    box-shadow: 0 0 1px var(--primary-color);
+}
+
+input:checked + .toggle-slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+}
+
+.category-badge {
+    font-size: 0.8rem;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    padding: 5px 10px;
+}
+
+#schoolMap {
+    height: 400px;
+    border-radius: 0.5rem;
+}
+
+.nav-pills .nav-link.active {
+    background-color: var(--primary-color);
+}
+
+.school-filter-panel {
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+}
+
+.notification-dropdown {
+    max-height: 300px;
+    overflow-y: auto;
+    width: 320px;
+}
+
+.custom-tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.custom-tooltip .tooltip-text {
+    visibility: hidden;
+    width: 120px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -60px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.custom-tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Update Bootstrap color overrides */
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover, .btn-primary:focus {
+    background-color: #007f2a;
+    border-color: #007f2a;
+}
+
+.bg-primary {
+    background-color: var(--primary-color) !important;
+}
+
+.bg-success {
+    background-color: var(--primary-color) !important;
+}
+
+.bg-warning {
+    background-color: var(--light-accent) !important;
+}
+
+.bg-danger {
+    background-color: var(--accent-color) !important;
+}
+
+.text-primary {
+    color: var(--primary-color) !important;
+}
+
+.text-success {
+    color: var(--primary-color) !important;
+}
+
+.text-warning {
+    color: var(--light-accent) !important;
+}
+
+.text-danger {
+    color: var(--accent-color) !important;
+}
+
+.border-left-success {
+    border-left: 4px solid var(--primary-color);
+}
+
+.border-left-primary {
+    border-left: 4px solid var(--secondary-color);
+}
