@@ -3,26 +3,29 @@
  * @returns { Promise<void> }
  */
 exports.up = function(knex) {
-    return knex.schema.createTable('perfilEscuela', function(tabla) {
-        tabla.text('cct')
-            .notNullable()
+    return knex.schema.createTable('Mensaje', function(tabla) {
+		tabla.increments('idMensaje')
+            .unsigned()
             .primary();
+        tabla.integer('idMensajeria')
+            .unsigned()
+            .notNullable()
+            .references('idMensajeria')
+            .inTable('Mensajeria')
+            .onDelete('CASCADE');
         tabla.integer('idUsuario')
             .unsigned()
             .notNullable()
             .references('idUsuario')
             .inTable('usuario')
             .onDelete('CASCADE');
-        tabla.text('nivelEducativo')
+        tabla.timestamp('fechaEnvio')
+            .defaultTo(knex.fn.now())
             .notNullable();
-        tabla.text('sector')
+        tabla.text('contenido')
             .notNullable();
-        tabla.integer('numeroEstudiantes')
-            .unsigned()
-            .notNullable();
-        tabla.text('nombreDirector')
-            .notNullable();
-        tabla.text('telefonoDirector')
+        tabla.boolean('leido')
+            .defaultTo(false)
             .notNullable();
     });
 };
@@ -32,5 +35,5 @@ exports.up = function(knex) {
  * @returns { Promise<void> }
  */
 exports.down = function(knex) {
-    return knex.schema.dropTable('perfilEscuela');
+  
 };
