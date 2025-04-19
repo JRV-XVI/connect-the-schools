@@ -4,7 +4,7 @@
  */
 exports.up = function(knex) {
 	return knex.schema.createTable('perfilAliado', function(t) {
-		t.text('cct')
+		t.text('rfc')
 			.notNullable()
 			.primary();
 		t.integer('idUsuario')
