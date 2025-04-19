@@ -3,28 +3,16 @@
  * @returns { Promise<void> }
  */
 exports.up = function(knex) {
-    return knex.schema.createTable('perfilEscuela', function(tabla) {
-        tabla.text('cct')
-            .notNullable()
-            .primary();
-        tabla.integer('idUsuario')
-            .unsigned()
-            .notNullable()
-            .references('idUsuario')
-            .inTable('usuario')
-            .onDelete('CASCADE');
-        tabla.text('nivelEducativo')
-            .notNullable();
-        tabla.text('sector')
-            .notNullable();
-        tabla.integer('numeroEstudiantes')
-            .unsigned()
-            .notNullable();
-        tabla.text('nombreDirector')
-            .notNullable();
-        tabla.text('telefonoDirector')
-            .notNullable();
-    });
+	return knex.schema.createTable('usuario', function(t) {
+		t.increments('idUsuario').unsigned().primary();
+		t.text('correo').notNullable();
+		t.text('contraseña').notNullable();
+		t.boolean('estadoCuenta').notNullable();
+		t.date('fechaCreacion').notNullable();
+		t.text('telefono').notNullable();
+		t.text('nombre').notNullable();
+		t.text('direccion').notNullable();
+	});
 };
 
 /**
@@ -32,5 +20,5 @@ exports.up = function(knex) {
  * @returns { Promise<void> }
  */
 exports.down = function(knex) {
-    return knex.schema.dropTable('perfilEscuela');
+	return knex.schema.dropTable('usuario');
 };

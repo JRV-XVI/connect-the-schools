@@ -62,4 +62,17 @@ escuela.delete('/escuela/:id', eliminarEscuela, (req, res) => {
     });
 });
 
+// Actualizar una escuela por su ID (CCT)
+escuela.put('/escuela/:id', obtenerIdEscuela, async (req, res, next) => {
+    try {
+        const resultado = await model.actualizarEscuela(req.params.id, req.query);
+        if (!resultado) {
+            return res.status(400).json({ mensaje: "No hay campos para actualizar" });
+        }
+        res.status(200).json(resultado);
+    } catch (error) {
+        next(error);
+    }
+});
+
 module.exports = escuela;

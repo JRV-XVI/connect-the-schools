@@ -19,8 +19,13 @@ const mensajePorUsuario = async (id) => {
     return resultado.rows;
 }
 
+const mensajePorMensajeria = async (id) => {
+    const resultado = await db.query('SELECT * FROM "Mensaje" WHERE "idMensajeria" = $1', [id]);
+    return resultado.rows;
+}
+
 const crearMensaje = async (params) => {
-    const resultado = await db.query('INSERT INTO "Mensaje" ("idMensajeria", "idUsuario", "contenido", "leido") VALUES ($1, $2, $3, $4) RETURNING *',
+    const resultado = await db.query('INSERT INTO "Mensaje" ("idMensajeria", "idUsuario", "contenido", "leido") VALUES ($1, $2, $3, $4) ORDER BY RETURNING *',
         [
             params.idMensajeria,
             params.idUsuario,
@@ -35,4 +40,4 @@ const eliminarMensajePorId = async (idMensaje) => {
     return resultado.rows;
 }
 
-module.exports = {obtenerMensaje, mensajePorId, mensajePorUsuario,  crearMensaje, eliminarMensajePorId}
+module.exports = {obtenerMensaje, mensajePorId, mensajePorUsuario, mensajePorMensajeria, crearMensaje, eliminarMensajePorId}

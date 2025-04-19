@@ -31,6 +31,17 @@ const obtenerMensajesPorUsuario = async (req, res, next) => {
     next();
 };
 
+const obtenerMensajesPorMensajeria = async (req, res, next) => {
+    const id = Number(req.params.id);
+    const resultado = await model.mensajePorMensajeria(id);
+    if (resultado.length === 0) {
+        const error = new Error(`Mensajes con el idMensajeria ${req.params.id} no encontrado`);
+        error.status = 404;
+        return next(error);
+    }
+    req.mensajes = resultado;
+    next();
+};
 
 const eliminarMensajePorId = async (req, res, next) => {
     const id = Number(req.params.id);
@@ -64,6 +75,11 @@ mensaje.get('/mensaje/:id', obtenerMensajePorId, (req, res) => {
 mensaje.get('/mensajes/usuario/:idUsuario', obtenerMensajesPorUsuario, (req, res) => {
     res.send(req.mensajes);
 });
+
+// Todos los mensajes de una mensajeria (proyecto) por su ID
+mensaje.get('/mensaje/mensajeria/:id', obtenerMensajesPorMensajeria, (req, res) => {
+    res.send(req.mensajes);
+})
 
 // Crear un mensaje
 mensaje.post('/mensaje', async (req, res, next) => {
