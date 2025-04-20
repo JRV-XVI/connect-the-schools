@@ -19,7 +19,7 @@ exports.up = function(knex) {
             .notNullable();
         tabla.text('prioridad')
             .notNullable();
-        tabla.timestamp('fechaCreacion')
+        tabla.date('fechaCreacion')
             .defaultTo(knex.fn.now())
             .notNullable();
         tabla.integer('estadoValidacion')
