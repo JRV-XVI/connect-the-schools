@@ -10,4 +10,5 @@ app.use('/api', proyecto);
 
 app.listen(PORT, () => {
 	console.log(`Server is listening on PORT ${PORT}`);
+	console.log(`http://localhost:${PORT}/`)
 });
