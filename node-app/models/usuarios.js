@@ -1,11 +1,15 @@
 const db = require('../db');
 
+// ---------------------------------------------- //
+// ----------------- USUARIO  ------------------- // 
+// ---------------------------------------------- // 
+
 const obtenerUsuarios = async () => {
 	const resultado = await db.query('SELECT * FROM Usuario');
 	return resultado.rows;
 };
 
-const usuarioId = async (id) => {
+const infoUsuario = async (id) => {
 	const resultado = await db.query('SELECT * FROM Usuario WHERE "idUsuario" = $1', [id]);
 	return resultado.rows;
 };
@@ -25,10 +29,24 @@ const crearUsuario = async (params) => {
 };
 
 const actualizarUsuario = async (id, params) => {
-	const resultado = await db.query('UPDATE usuario SET correo = $2, contraseña = $3, telefono = $4, nombre = $5, direccion = $6 WHERE "idUsuario" = $1', [id, params.correo, params.contraseña, params.telefono, params.nombre, params.direccion])
+	const camposActualizables = ['correo', 'contraseña', 'telefono', 'nombre', 'direccion'];
+	const disponibles = [];
+	const valores = [id];
+
+	let indiceParam = 2;
+	camposActualizables.forEach(campo => {
+		if (params[campo] !== undefined) {
+			disponibles.push(`"${campo}" = $${indiceParam}`);
+			valores.push(params[campo]);
+			indiceParam++;
+		}
+	});
+
+	if (disponibles.length === 0) return null;
+	const query = `UPDATE usuario SET ${disponibles.join(', ')} WHERE "idUsuario" = $1`;
+	const resultado = await db.query(query, valores);
 	return resultado.rows;
 };
-
 
 const eliminarUsuario = async (id) => {
 	const resultado = await db.query('DELETE FROM Usuario WHERE "idUsuario" = $1', [id]);
@@ -37,4 +55,37 @@ const eliminarUsuario = async (id) => {
 	};
 };
 
-module.exports = { obtenerUsuarios, usuarioId, crearUsuario, eliminarUsuario, actualizarUsuario };
+// ------------------------------------------- //
+// ----------------- ALIADO ------------------ //
+// ------------------------------------------- //
+
+const obtenerAliados = async () => {
+	const resultado = await db.query('SELECT * FROM "perfilAliado"');
+	return resultado.rows;
+};
+
+const infoAliado = async (id) => {
+	const resultado = await db.query('SELECT * FROM "perfilAliado" WHERE rfc = $1', [id]);
+	return resultado.rows;
+};
+
+const crearAliado = async (params) => {
+	const resultado = await db.query('INSERT INTO "perfilAliado" (rfc, "idUsuario", "razonSocial", telefono, "correoRepresentante") VALUES ($1, $2, $3, $4, $5)',
+		[
+			params.rfc,
+			params.idUsuario,
+			params.razonSocial,
+			params.telefono,
+			params.correoRepresentante
+		]);
+	return resultado.rows;
+};
+
+const eliminarAliado = async (id) => {
+	const resultado = await db.query('DELETE FROM "perfilAliado" WHERE "idUsuario" = $1', [id]);
+	return {
+		mensaje: `Aliado con rfc de ${id} fue eliminado correctamente`
+	};
+};
+
+module.exports = { obtenerUsuarios, infoUsuario, crearUsuario, eliminarUsuario, actualizarUsuario, obtenerAliados, infoAliado, crearAliado, eliminarAliado };
