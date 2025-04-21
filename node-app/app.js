@@ -6,6 +6,7 @@ const mensaje = require('./routers/mensaje.js')
 const mensajeria = require('./routers/mensajeria.js')
 const escuela = require('./routers/escuela.js')
 const necesidadApoyo = require('./routers/necesidadApoyo.js')
+const aliado = require('./routers/aliado.js')
 
 const app = express();
 const PORT = process.env.PORT || 4001;
@@ -18,8 +19,9 @@ app.use('/api', mensajeria);
 app.use('/api', escuela);
 app.use('/api', necesidadApoyo);
 app.use('/api', proyecto);
+app.use('/api', aliado);
 
 app.listen(PORT, () => {
-	console.log(`Server is listening on PORT ${PORT}`);
-	console.log(`http://localhost:${PORT}/`)
+    console.log(`[${new Date().toISOString()}] Server running in ${process.env.NODE_ENV || 'development'} mode`);
+    console.log(`Server available at: http://localhost:${PORT}/api`);
 });

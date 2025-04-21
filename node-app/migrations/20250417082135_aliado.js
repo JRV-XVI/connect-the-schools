@@ -13,11 +13,13 @@ exports.up = function(knex) {
 			.references('idUsuario')
 			.inTable('usuario')
 			.onDelete('CASCADE');
-		t.text('razonSocial').notNullable()
+		t.text('razonSocial')
+			.notNullable()
 		t.integer('telefono')
 			.unsigned()
 			.notNullable();
-		t.text('correoRepresentante').notNullable();
+		t.text('correoRepresentante')
+			.notNullable();
 	});
 };
 

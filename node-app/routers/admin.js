@@ -10,32 +10,49 @@ const obtenerIdAdmin = async (req, res, next) => {
     const id = Number(req.params.id);
     const resultado = await model.adminId(id);
 
-    if (resultado === 0) {
-        const error = new Error(`Administrador con id ${req.params.id} no encontrado`);
-        error.status = 404;
-        return next(error);
+    if (resultado.length === 0) {
+        return res.status(404).json({
+            error: `Administrador con id ${id} no encontrado`
+        });
     }
     req.admin = resultado[0];
     req.id = id;
     next();
 };
 
-const eliminarAdmin = async (req, res, next) => {
-    const id = Number(req.params.id);
-    const resultado = await model.eliminarAdminPorId(id);
-      
-    if (resultado === 0) {
-        const error = new Error(`Administrador con id ${id} no encontrado`);
-        error.status = 404;
-        return next(error);
+const verificarUsuarioExiste = async (req, res, next) => {
+    try {
+        const idUsuario = Number(req.query.idUsuario);
+        
+        if (!idUsuario) {
+            return res.status(400).json({
+                error: "Se requiere un ID de usuario"
+            });
+        }
+    
+        const usuarioExiste = await model.verificarUsuarioExiste(idUsuario);
+        
+        if (!usuarioExiste) {
+            return res.status(404).json({
+                error: `No se encontró el usuario con el id ${idUsuario} especificado`
+            });
+        }
+        
+        next();
+    } catch (error) {
+        next(error);
     }
-    req.adminEliminado = resultado;
-    next();
 };
 
 // ------------------------------------------- //
 // ----------------- ROUTERS ----------------- //
 // ------------------------------------------- //
+
+// Crear un administrador
+admin.post('/admin', verificarUsuarioExiste, async (req, res, next) => {
+    const resultado = await model.crearAdmin(req.query);
+    res.send(resultado);
+});
 
 // Obtener todos los administradores
 admin.get('/admin', async (req, res, next) => {
@@ -48,18 +65,27 @@ admin.get('/admin/:id', obtenerIdAdmin, (req, res, next) => {
     res.send(req.admin);
 });
 
-// Crear un administrador
-admin.post('/admin', async (req, res, next) => {
-    const resultado = await model.crearAdmin(req.query);
-    res.send(resultado);
+// Actualizar datos de aliado por RFC
+admin.put('/admin/:id', obtenerIdAdmin, async (req, res, next) => {
+    try {
+        const resultado = await model.actualizarAdmin(req.id, req.query);
+        if (!resultado) {
+            return res.status(400).json({ mensaje: "No hay campos para actualizar" });
+        }
+        res.status(200).json(resultado);
+    } catch (error) {
+        next(error);
+    }
 });
 
 // Eliminar un administrador por su ID
-admin.delete('/admin/:id', eliminarAdmin, (req, res) => {
+admin.delete('/admin/:id', obtenerIdAdmin, (req, res) => {
     res.status(200).json({ 
         mensaje: "Administrador eliminado correctamente", 
         administrador: req.adminEliminado 
     });
 });
+
+
 
 module.exports = admin;
