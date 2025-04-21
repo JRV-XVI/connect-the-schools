@@ -82,7 +82,7 @@ const crearAliado = async (params) => {
 };
 
 const eliminarAliado = async (id) => {
-	const resultado = await db.query('DELETE FROM "perfilAliado" WHERE "idUsuario" = $1', [id]);
+	const resultado = await db.query('DELETE FROM "perfilAliado" WHERE rfc = $1', [id]);
 	return {
 		mensaje: `Aliado con rfc de ${id} fue eliminado correctamente`
 	};

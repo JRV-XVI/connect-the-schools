@@ -65,8 +65,15 @@ usuario.get('/usuario/:id', obtenerUsuario, (req, res, next) => {
 
 // Actualizar datos del usuario
 usuario.put('/usuario/:id', obtenerUsuario, async (req, res, next) => {
-	const resultado = await modelo.actualizarUsuario(req.id, req.query);
-	res.send(resultado);
+	try {
+		const resultado = await modelo.actualizarUsuario(req.id, req.query);
+		res.send(resultado);
+	} catch (error) {
+		// Estableces un código de error y un mensaje personalizado si no existen
+		error.status = error.status || 500;
+		error.message = error.message || 'Error actualizando el usuario';
+		next(error);
+	}
 });
 
 // Eliminar usuario
