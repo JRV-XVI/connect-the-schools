@@ -1,0 +1,52 @@
+import React from 'react';
+import { Container, Row, Col } from 'react-bootstrap';
+
+const Footer = ({ logo }) => {
+  return (
+    <footer className="footer py-5">
+      <Container>
+        <Row>
+          <Col lg={4} className="mb-4 mb-lg-0">
+            <img src={logo} alt="Logo Mexicanos Primero Jalisco" height="50" />
+            <p className="mt-3">Transformando la educación en Jalisco a través de la colaboración y vinculación estratégica.</p>
+          </Col>
+          <Col lg={2} md={4} className="mb-4 mb-md-0">
+            <h5>Enlaces</h5>
+            <ul className="list-unstyled">
+              <li className="mb-2"><a href="#" className="text-white text-decoration-none">Inicio</a></li>
+              <li className="mb-2"><a href="#" className="text-white text-decoration-none">Sobre Nosotros</a></li>
+              <li className="mb-2"><a href="#" className="text-white text-decoration-none">Contacto</a></li>
+            </ul>
+          </Col>
+          <Col lg={3} md={4} className="mb-4 mb-md-0">
+            <h5>Recursos</h5>
+            <ul className="list-unstyled">
+              <li className="mb-2"><a href="#" className="text-white text-decoration-none">Preguntas Frecuentes</a></li>
+              <li className="mb-2"><a href="#" className="text-white text-decoration-none">Manual de Usuario</a></li>
+              <li className="mb-2"><a href="#" className="text-white text-decoration-none">Blog</a></li>
+            </ul>
+          </Col>
+          <Col lg={3} md={4}>
+            <h5>Contacto</h5>
+            <ul className="list-unstyled">
+              <li className="mb-2"><i className="fas fa-map-marker-alt me-2"></i> Av. Niños Héroes 2734, Guadalajara</li>
+              <li className="mb-2"><i className="fas fa-phone me-2"></i> (33) 1234-5678</li>
+              <li className="mb-2"><i className="fas fa-envelope me-2"></i> contacto@mpjalisco.org</li>
+            </ul>
+            <div className="mt-3">
+              <a href="#" className="text-white me-3"><i className="fab fa-facebook-f"></i></a>
+              <a href="#" className="text-white me-3"><i className="fab fa-twitter"></i></a>
+              <a href="#" className="text-white me-3"><i className="fab fa-instagram"></i></a>
+            </div>
+          </Col>
+        </Row>
+        <hr className="my-4 bg-light" />
+        <div className="text-center">
+          <p className="mb-0">© 2025 Mexicanos Primero Jalisco. Todos los derechos reservados.</p>
+        </div>
+      </Container>
+    </footer>
+  );
+};
+
+export default Footer;
