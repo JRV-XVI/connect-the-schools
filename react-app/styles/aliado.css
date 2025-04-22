@@ -1,17 +1,17 @@
 :root {
-    --primary-color: #009933; /* Updated to green */
-    --secondary-color: #183264; /* Updated to dark blue */
-    --accent-color: #EB6012; /* Added orange accent */
-    --light-accent: #F59D15; /* Added light orange accent */
+    --primary-color: #009933; /* Updated to green /
+    --secondary-color: #183264; / Updated to dark blue /
+    --accent-color: #EB6012; / Added orange accent /
+    --light-accent: #F59D15; / Added light orange accent */
     --sidebar-width: 250px;
-}
-
-body {
+    }
+    
+    body {
     background-color: #f8f9fa;
     font-family: 'Montserrat', sans-serif; /* Updated to Montserrat */
-}
-
-.sidebar {
+    }
+    
+    .sidebar {
     width: var(--sidebar-width);
     height: 100vh;
     position: fixed;
@@ -22,84 +22,84 @@ body {
     overflow-y: auto;
     transition: all 0.3s;
     z-index: 1000;
-}
-
-/* Rest of CSS remains the same, except color references below */
-
-.sidebar-header {
+    }
+    
+    /* Rest of CSS remains the same, except color references below */
+    
+    .sidebar-header {
     padding: 1.5rem 1rem;
     background-color: rgba(0, 0, 0, 0.1);
-}
-
-.sidebar-menu {
+    }
+    
+    .sidebar-menu {
     padding: 0.5rem 0;
-}
-
-.sidebar-menu .nav-link {
+    }
+    
+    .sidebar-menu .nav-link {
     color: rgba(255, 255, 255, 0.8);
     padding: 0.8rem 1rem;
     border-left: 3px solid transparent;
-}
-
-.sidebar-menu .nav-link:hover, 
-.sidebar-menu .nav-link.active {
+    }
+    
+    .sidebar-menu .nav-link:hover,
+    .sidebar-menu .nav-link.active {
     color: white;
     background-color: rgba(255, 255, 255, 0.1);
     border-left: 3px solid var(--accent-color); /* Updated to orange */
-}
-
-.sidebar-menu .nav-link i {
+    }
+    
+    .sidebar-menu .nav-link i {
     margin-right: 10px;
     width: 20px;
     text-align: center;
-}
-
-.main-content {
+    }
+    
+    .main-content {
     margin-left: var(--sidebar-width);
     padding: 20px;
-}
-
-.navbar {
+    }
+    
+    .navbar {
     margin-left: var(--sidebar-width);
     background-color: white;
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-}
-
-.card {
+    }
+    
+    .card {
     border: none;
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
     margin-bottom: 1.5rem;
     border-radius: 0.5rem;
-}
-
-.card-header {
+    }
+    
+    .card-header {
     background-color: white;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     font-weight: 600;
-}
-
-.stat-card {
+    }
+    
+    .stat-card {
     border-radius: 0.5rem;
     border-left: 4px solid;
-}
-
-.stat-card-primary {
+    }
+    
+    .stat-card-primary {
     border-left-color: var(--primary-color);
-}
-
-.stat-card-success {
+    }
+    
+    .stat-card-success {
     border-left-color: var(--primary-color); /* Updated to green */
-}
-
-.stat-card-warning {
+    }
+    
+    .stat-card-warning {
     border-left-color: var(--light-accent); /* Updated to light orange */
-}
-
-.stat-card-danger {
+    }
+    
+    .stat-card-danger {
     border-left-color: var(--accent-color); /* Updated to orange */
-}
-
-.stat-icon {
+    }
+    
+    .stat-icon {
     height: 48px;
     width: 48px;
     border-radius: 50%;
@@ -108,70 +108,70 @@ body {
     justify-content: center;
     font-size: 1.25rem;
     color: white;
-}
-
-.bg-primary-light {
+    }
+    
+    .bg-primary-light {
     background-color: rgba(0, 153, 51, 0.2); /* Updated to green with opacity */
     color: var(--primary-color);
-}
-
-.bg-success-light {
+    }
+    
+    .bg-success-light {
     background-color: rgba(0, 153, 51, 0.2); /* Updated to green with opacity */
     color: var(--primary-color);
-}
-
-.bg-warning-light {
+    }
+    
+    .bg-warning-light {
     background-color: rgba(245, 157, 21, 0.2); /* Updated to light orange with opacity */
     color: var(--light-accent);
-}
-
-.bg-danger-light {
+    }
+    
+    .bg-danger-light {
     background-color: rgba(235, 96, 18, 0.2); /* Updated to orange with opacity */
     color: var(--accent-color);
-}
-
-.badge-notification {
+    }
+    
+    .badge-notification {
     position: absolute;
     top: 5px;
     right: 5px;
     font-size: 0.6rem;
-}
-
-.school-card {
+    }
+    
+    .school-card {
     transition: transform 0.2s;
     cursor: pointer;
-}
-
-.school-card:hover {
+    }
+    
+    .school-card:hover {
     transform: translateY(-5px);
-}
-
-.profile-pic {
+    }
+    
+    .profile-pic {
     width: 40px;
     height: 40px;
     border-radius: 50%;
     overflow: hidden;
-}
-
-.toggle-control {
+    }
+    
+    .toggle-control {
     display: flex;
     align-items: center;
-}
-
-.toggle-switch {
+    }
+    
+    .toggle-switch {
     position: relative;
     display: inline-block;
     width: 60px;
     height: 34px;
-}
-
-.toggle-switch input {
+    }
+    
+    .toggle-switch input {
     opacity: 0;
     width: 0;
     height: 0;
-}
-
-.toggle-slider {
+    }
+    
+    .toggle-slider {
     position: absolute;
     cursor: pointer;
     top: 0;
@@ -182,9 +182,9 @@ body {
     -webkit-transition: .4s;
     transition: .4s;
     border-radius: 34px;
-}
-
-.toggle-slider:before {
+    }
+    
+    .toggle-slider:before {
     position: absolute;
     content: "";
     height: 26px;
@@ -195,57 +195,57 @@ body {
     -webkit-transition: .4s;
     transition: .4s;
     border-radius: 50%;
-}
-
-input:checked + .toggle-slider {
+    }
+    
+    input:checked + .toggle-slider {
     background-color: var(--primary-color);
-}
-
-input:focus + .toggle-slider {
+    }
+    
+    input:focus + .toggle-slider {
     box-shadow: 0 0 1px var(--primary-color);
-}
-
-input:checked + .toggle-slider:before {
+    }
+    
+    input:checked + .toggle-slider:before {
     -webkit-transform: translateX(26px);
     -ms-transform: translateX(26px);
     transform: translateX(26px);
-}
-
-.category-badge {
+    }
+    
+    .category-badge {
     font-size: 0.8rem;
     margin-right: 5px;
     margin-bottom: 5px;
     padding: 5px 10px;
-}
-
-#schoolMap {
+    }
+    
+    #schoolMap {
     height: 400px;
     border-radius: 0.5rem;
-}
-
-.nav-pills .nav-link.active {
+    }
+    
+    .nav-pills .nav-link.active {
     background-color: var(--primary-color);
-}
-
-.school-filter-panel {
+    }
+    
+    .school-filter-panel {
     border-radius: 0.5rem;
     padding: 1.5rem;
     background-color: #f8f9fa;
     border: 1px solid #dee2e6;
-}
-
-.notification-dropdown {
+    }
+    
+    .notification-dropdown {
     max-height: 300px;
     overflow-y: auto;
     width: 320px;
-}
-
-.custom-tooltip {
+    }
+    
+    .custom-tooltip {
     position: relative;
     display: inline-block;
-}
-
-.custom-tooltip .tooltip-text {
+    }
+    
+    .custom-tooltip .tooltip-text {
     visibility: hidden;
     width: 120px;
     background-color: #555;
@@ -260,60 +260,60 @@ input:checked + .toggle-slider:before {
     margin-left: -60px;
     opacity: 0;
     transition: opacity 0.3s;
-}
-
-.custom-tooltip:hover .tooltip-text {
+    }
+    
+    .custom-tooltip:hover .tooltip-text {
     visibility: visible;
     opacity: 1;
-}
-
-/* Update Bootstrap color overrides */
-.btn-primary {
+    }
+    
+    /* Update Bootstrap color overrides */
+    .btn-primary {
     background-color: var(--primary-color);
     border-color: var(--primary-color);
-}
-
-.btn-primary:hover, .btn-primary:focus {
+    }
+    
+    .btn-primary:hover, .btn-primary:focus {
     background-color: #007f2a;
     border-color: #007f2a;
-}
-
-.bg-primary {
+    }
+    
+    .bg-primary {
     background-color: var(--primary-color) !important;
-}
-
-.bg-success {
+    }
+    
+    .bg-success {
     background-color: var(--primary-color) !important;
-}
-
-.bg-warning {
+    }
+    
+    .bg-warning {
     background-color: var(--light-accent) !important;
-}
-
-.bg-danger {
+    }
+    
+    .bg-danger {
     background-color: var(--accent-color) !important;
-}
-
-.text-primary {
+    }
+    
+    .text-primary {
     color: var(--primary-color) !important;
-}
-
-.text-success {
+    }
+    
+    .text-success {
     color: var(--primary-color) !important;
-}
-
-.text-warning {
+    }
+    
+    .text-warning {
     color: var(--light-accent) !important;
-}
-
-.text-danger {
+    }
+    
+    .text-danger {
     color: var(--accent-color) !important;
-}
-
-.border-left-success {
+    }
+    
+    .border-left-success {
     border-left: 4px solid var(--primary-color);
-}
-
-.border-left-primary {
+    }
+    
+    .border-left-primary {
     border-left: 4px solid var(--secondary-color);
-}
+    }
