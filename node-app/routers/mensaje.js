@@ -42,11 +42,11 @@ const validarIdUsuario = (req, res, next) => {
 
 const validarCamposObligatorios = (req, res, next) => {
     try {
-        const { contenido, idUsuarioEmisor, idMensajeria } = req.query;
+        const { contenido, idUsuario, idMensajeria } = req.query;
         const camposFaltantes = [];
 
         if (!contenido) camposFaltantes.push('contenido');
-        if (!idUsuarioEmisor) camposFaltantes.push('idUsuarioEmisor');
+        if (!idUsuario) camposFaltantes.push('idUsuario');
         if (!idMensajeria) camposFaltantes.push('idMensajeria');
 
         if (camposFaltantes.length > 0) {

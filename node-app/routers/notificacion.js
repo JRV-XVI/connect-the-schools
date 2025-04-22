@@ -1,5 +1,5 @@
 const express = require('express');
-const model = require('../models/notificacion');
+const model = require('../models/notificacion.js');
 const notificacion = express.Router();
 
 // ---------------------------------------------- //

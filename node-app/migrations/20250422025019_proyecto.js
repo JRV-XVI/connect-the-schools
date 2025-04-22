@@ -9,7 +9,9 @@ exports.up = function(knex) {
 			.primary();
 		t.boolean('validacionAdmin').notNullable();
 		t.text('descripcion').notNullable();
-		t.date('fechaCreacion').notNullable();
+		t.date('fechaCreacion')
+			.defaultTo(knex.fn.now())
+			.notNullable();
 	});
 };
 

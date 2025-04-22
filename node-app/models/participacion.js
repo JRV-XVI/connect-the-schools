@@ -6,7 +6,7 @@ const obtenerParticipacionesSinProyecto = async () => {
         SELECT pp.*, 
                pe."nivelEducativo", pe."nombreDirector",
                pa."razonSocial"
-        FROM "participacionEnProyecto" pp
+        FROM "participacionProyecto" pp
         JOIN "perfilEscuela" pe ON pe."cct" = pp."cct"
         JOIN "perfilAliado" pa ON pa."rfc" = pp."rfc"
         WHERE pp."idProyecto" IS NULL;
@@ -22,7 +22,7 @@ const obtenerParticipacionesPorProyecto = async (idProyecto) => {
                p."descripcion", p."fechaCreacion" as "fechaCreacionProyecto", p."validacionAdmin",
                pe."nivelEducativo", pe."nombreDirector",
                pa."razonSocial"
-        FROM "participacionEnProyecto" pp
+        FROM "participacionProyecto" pp
         JOIN "proyecto" p ON p."idProyecto" = pp."idProyecto"
         JOIN "perfilEscuela" pe ON pe."cct" = pp."cct"
         JOIN "perfilAliado" pa ON pa."rfc" = pp."rfc"
@@ -41,7 +41,7 @@ const obtenerParticipacion = async (rfc, cct) => {
                pa."razonSocial", pa."telefono", pa."correoRepresentante",
                ue."nombre" as "nombreEscuela", ue."correo" as "correoEscuela",
                ua."nombre" as "nombreAliado", ua."correo" as "correoAliado"
-        FROM "participacionEnProyecto" pp
+        FROM "participacionProyecto" pp
         JOIN "perfilEscuela" pe ON pe."cct" = pp."cct"
         JOIN "usuario" ue ON ue."idUsuario" = pe."idUsuario"
         JOIN "perfilAliado" pa ON pa."rfc" = pp."rfc"
@@ -55,7 +55,7 @@ const obtenerParticipacion = async (rfc, cct) => {
 // Crear nueva participación
 const crearParticipacion = async ({ idProyecto = null, cct, rfc, aceptacionAliado, aceptacionEscuela }) => {
     const query = `
-        INSERT INTO "participacionEnProyecto" ("idProyecto", "cct", "rfc", "aceptacionAliado", "aceptacionEscuela")
+        INSERT INTO "participacionProyecto" ("idProyecto", "cct", "rfc", "aceptacionAliado", "aceptacionEscuela")
         VALUES ($1, $2, $3, $4, $5)
         RETURNING *;
     `;
@@ -82,7 +82,7 @@ const actualizarParticipacion = async (rfc, cct, params) => {
     if (updates.length === 0) return null;
 
     const query = `
-        UPDATE "participacionEnProyecto"
+        UPDATE "participacionProyecto"
         SET ${updates.join(', ')}
         WHERE "rfc" = $1 AND "cct" = $2
         RETURNING *;

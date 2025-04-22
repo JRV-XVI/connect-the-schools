@@ -9,7 +9,7 @@ const escuela = express.Router();
 const obtenerIdEscuela = async (req, res, next) => {
     const cct = req.params.cct;
     try {
-        const resultado = await model.obtenerIdEscuela(cct);
+        const resultado = await model.esceulaId(cct);
 
         if (!resultado || resultado.length === 0) {
             return res.status(404).json({
@@ -27,7 +27,7 @@ const obtenerIdEscuela = async (req, res, next) => {
 const eliminarEscuela = async (req, res, next) => {
     try {
         const cct = req.params.cct;
-        const resultado = await model.obtenerIdEscuel(cct);
+        const resultado = await model.esceulaId(cct);
 
         if (resultado === 0) {
             const error = new Error(`Escuela con cct '${cct}' no encontrada`);
@@ -77,7 +77,8 @@ escuela.post('/escuela', async (req, res, next) => {
 });
 
 // Eliminar una escuela por su ID
-escuela.delete('/escuela/:cct', eliminarEscuela, (req, res) => {
+escuela.delete('/escuela/:cct', eliminarEscuela, async (req, res) => {
+    await model.eliminarEscuelaPorId(req.params.cct);
     res.status(200).json({
         mensaje: `Escuela con cct '${req.params.cct}' fue eliminada correctamente`
     });

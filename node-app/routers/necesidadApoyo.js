@@ -58,7 +58,7 @@ const verificarUsuarioExiste = async (req, res, next) => {
 
 const validarCamposObligatorios = (req, res, next) => {
     try {
-        const { descripcion, prioridad } = req.query;
+        const { descripcion, prioridad, idCategoria, idSubcategoria } = req.query;
         const camposFaltantes = [];
 
         if (!descripcion) camposFaltantes.push('descripcion');
@@ -81,7 +81,7 @@ const validarCamposObligatorios = (req, res, next) => {
 // ------------------------------------------- //
 
 // Crear necesidad/apoyo (ruta notificación según documentación)
-necesidadApoyo.post('/notificacion', validarCamposObligatorios, verificarUsuarioExiste, async (req, res, next) => {
+necesidadApoyo.post('/usuarionecesidadApoyo', validarCamposObligatorios, verificarUsuarioExiste, async (req, res, next) => {
     try {
         const resultado = await model.crearNecesidadApoyo(req.query);
         res.status(201).send(resultado);

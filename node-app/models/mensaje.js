@@ -25,7 +25,7 @@ const mensajePorMensajeria = async (id) => {
 }
 
 const crearMensaje = async (params) => {
-    const resultado = await db.query('INSERT INTO "mensaje" ("idMensajeria", "idUsuario", "contenido", "leido") VALUES ($1, $2, $3, $4) ORDER BY RETURNING *',
+    const resultado = await db.query('INSERT INTO "mensaje" ("idMensajeria", "idUsuario", "contenido", "leido") VALUES ($1, $2, $3, $4) RETURNING *',
         [
             params.idMensajeria,
             params.idUsuario,

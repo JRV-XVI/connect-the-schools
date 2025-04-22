@@ -227,7 +227,6 @@ proyecto.put('/proyecto/:idProyecto', verificarProyectoExiste, async (req, res, 
 
 		res.status(200).json({
 			...proyectoActualizado[0],
-			fechaActualizacion: new Date().toISOString().split('T')[0],
 			mensaje: "Proyecto actualizado correctamente"
 		});
 	} catch (error) {
@@ -286,7 +285,7 @@ proyecto.post('/proyecto/etapas/:idEtapa/entregas', verificarEtapaExiste, valida
 
 		const params = {
 			...req.query,
-			fechaEntrega: req.query.fechaEntrega || new Date().toISOString().split('T')[0],
+			fechaEntrega: req.query.fechaEntrega || new Date(),
 			archivo: req.file.buffer
 		};
 
@@ -335,12 +334,7 @@ proyecto.get('/proyecto/etapas/entregas/:idEntrega/archivo', verificarEntregaExi
 			idEntrega: req.idEntrega,
 			tipoContenido: "application/pdf",
 			fechaSubida: req.entrega.fechaEntrega,
-			urlDescargaDirecta: `/api/proyecto/etapas/entregas/${req.idEntrega}/archivo?download=true`,
-			metadata: {
-				páginas: 24, // Esto sería calculado dinámicamente en una implementación real
-				autor: "Equipo de Capacitación",
-				fechaCreación: req.entrega.fechaEntrega
-			}
+			urlDescargaDirecta: `/api/proyecto/etapas/entregas/${req.idEntrega}/archivo?download=true`
 		};
 
 		res.status(200).json(respuesta);
