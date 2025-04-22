@@ -5,7 +5,7 @@ body {
   
   /* Estilos para Hero Section */
   .hero-section {
-    background: linear-gradient(135deg, #0d6efd 0%, #0099ff 100%);
+    background: linear-gradient(135deg, #009933 0%, #009933d1 100%);
     color: white;
     padding: 100px 0;
   }
@@ -30,12 +30,12 @@ body {
   
   .feature-icon {
     font-size: 2.5rem;
-    color: #0d6efd;
+    color: #009933;
   }
   
   /* Estilos para los Tabs de Registro */
   .nav-pills .nav-link.active {
-    background-color: #0d6efd;
+    background-color: #009933;
   }
   
   .nav-pills .nav-link {

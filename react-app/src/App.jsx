@@ -1,23 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Administrador from "./pages/administrador.jsx";
 import Aliado from "./pages/aliado.jsx";
 import Escuela from "./pages/escuela.jsx";
-import InicioSesion from "./pages/inicioSesion.jsx"; // Importamos el componente de inicio de sesión
-import 'bootstrap/dist/css/bootstrap.min.css'; // Importante: añadimos Bootstrap CSS
+import InicioSesion from "./pages/inicioSesion.jsx";
+import 'bootstrap/dist/css/bootstrap.min.css';
 import '../styles/styles.css';
 
 function App() {
-  // Cambiamos el estado inicial a null para indicar que no hay sesión iniciada
-  const [userRole, setUserRole] = useState(null); // null (no autenticado), 'admin', 'aliado' o 'escuela'
+  const [userRole, setUserRole] = useState(null);
   const [userData, setUserData] = useState(null);
+  
+  // Estado para la posición del panel
+  const [panelPosition, setPanelPosition] = useState({ x: 20, y: 20 });
+  const panelRef = useRef(null);
+  const isDraggingRef = useRef(false);
+  const offsetRef = useRef({ x: 0, y: 0 });
 
-  // Manejador de inicio de sesión que recibirá las credenciales del formulario
   const handleLogin = (credentials) => {
     console.log("Intentando iniciar sesión con:", credentials);
     
-    // Simulamos autenticación - esto normalmente sería una llamada a la API
     if (credentials && credentials.email) {
-      // Determinamos el rol basado en el correo (simulación)
       let role;
       if (credentials.email.includes('admin')) {
         role = 'admin';
@@ -26,11 +28,9 @@ function App() {
       } else if (credentials.email.includes('escuela')) {
         role = 'escuela';
       } else {
-        // Por defecto para pruebas
         role = 'aliado';
       }
 
-      // Establecemos el rol y datos del usuario
       setUserRole(role);
       setUserData({
         nombre: `Usuario ${role.charAt(0).toUpperCase() + role.slice(1)}`,
@@ -39,20 +39,64 @@ function App() {
     }
   };
 
-  // Función para cerrar sesión
   const handleLogout = () => {
     setUserRole(null);
     setUserData(null);
   };
 
-  // Renderiza el componente apropiado basado en el estado de autenticación y el rol
+  // Funciones para manejar el arrastre del panel
+  const handleMouseDown = (e) => {
+    isDraggingRef.current = true;
+    
+    // Calcular el desplazamiento desde el punto de clic hasta la esquina del panel
+    const rect = panelRef.current.getBoundingClientRect();
+    offsetRef.current = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+    
+    // Cambiar el cursor durante el arrastre
+    document.body.style.cursor = 'grabbing';
+    
+    // Prevenir comportamiento predeterminado
+    e.preventDefault();
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDraggingRef.current) return;
+    
+    // Calcular la nueva posición basada en la posición del mouse y el offset
+    const newX = e.clientX - offsetRef.current.x;
+    const newY = e.clientY - offsetRef.current.y;
+    
+    // Actualizar la posición del panel
+    setPanelPosition({ x: newX, y: newY });
+    
+    // Prevenir comportamiento predeterminado
+    e.preventDefault();
+  };
+
+  const handleMouseUp = () => {
+    isDraggingRef.current = false;
+    document.body.style.cursor = 'default';
+  };
+
+  // Configurar y limpiar event listeners
+  useEffect(() => {
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
+
   const renderView = () => {
-    // Si no hay usuario autenticado, mostramos la página de inicio de sesión
     if (userRole === null) {
       return <InicioSesion onLogin={handleLogin} />;
     }
 
-    // Si el usuario está autenticado, mostramos su vista según su rol
     switch(userRole) {
       case 'admin':
         return <Administrador userData={userData} onLogout={handleLogout} />;
@@ -69,19 +113,40 @@ function App() {
     <div className="App">
       {renderView()}
       
-      {/* Panel de pruebas - Mejorado con estilos Bootstrap */}
-      <div className="role-buttons" style={{ 
-        position: 'fixed', 
-        bottom: 20, 
-        right: 20, 
-        backgroundColor: '#f8f9fa',
-        padding: '10px',
-        borderRadius: '5px',
-        boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-        zIndex: 1000
-      }}>
+      <div 
+        ref={panelRef}
+        className="role-buttons" 
+        style={{ 
+          position: 'fixed',
+          left: `${panelPosition.x}px`,
+          top: `${panelPosition.y}px`,
+          backgroundColor: '#f8f9fa',
+          padding: '10px',
+          borderRadius: '5px',
+          boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+          zIndex: 1000,
+          cursor: isDraggingRef.current ? 'grabbing' : 'grab'
+        }}
+      >
+        {/* Barra de título para arrastrar */}
+        <div 
+          className="panel-header"
+          onMouseDown={handleMouseDown}
+          style={{
+            padding: '5px',
+            marginBottom: '8px',
+            backgroundColor: '#e9ecef',
+            borderRadius: '3px',
+            cursor: 'grab',
+            textAlign: 'center',
+            fontSize: '12px',
+            fontWeight: 'bold'
+          }}
+        >
+          ✥ Arrastrar para mover ✥
+        </div>
+        
         {userRole === null ? (
-          // Opciones cuando no hay sesión iniciada
           <>
             <h6 className="mb-2">Pruebas de inicio de sesión</h6>
             <div className="d-grid gap-2">
@@ -103,7 +168,6 @@ function App() {
             </div>
           </>
         ) : (
-          // Opciones cuando hay sesión iniciada
           <>
             <h6 className="mb-2">Usuario: {userData?.nombre}</h6>
             <div className="d-grid gap-2">
