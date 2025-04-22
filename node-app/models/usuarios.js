@@ -15,12 +15,10 @@ const infoUsuario = async (id) => {
 };
 
 const crearUsuario = async (params) => {
-	const resultado = await db.query('INSERT INTO Usuario (correo, contraseña, "estadoCuenta", "fechaCreacion", telefono, nombre, direccion) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+	const resultado = await db.query('INSERT INTO Usuario (correo, contraseña, telefono, nombre, direccion) VALUES ($1, $2, $3, $4, $5) RETURNING *',
 		[
 			params.correo,
 			params.contraseña,
-			params.estadoCuenta,
-			params.fechaCreacion,
 			params.telefono,
 			params.nombre,
 			params.direccion
@@ -43,7 +41,7 @@ const actualizarUsuario = async (id, params) => {
 	});
 
 	if (disponibles.length === 0) return null;
-	const query = `UPDATE usuario SET ${disponibles.join(', ')} WHERE "idUsuario" = $1`;
+	const query = `UPDATE usuario SET ${disponibles.join(', ')} WHERE "idUsuario" = $1 RETURNING *`;
 	const resultado = await db.query(query, valores);
 	return resultado.rows;
 };
@@ -55,37 +53,4 @@ const eliminarUsuario = async (id) => {
 	};
 };
 
-// ------------------------------------------- //
-// ----------------- ALIADO ------------------ //
-// ------------------------------------------- //
-
-const obtenerAliados = async () => {
-	const resultado = await db.query('SELECT * FROM "perfilAliado"');
-	return resultado.rows;
-};
-
-const infoAliado = async (id) => {
-	const resultado = await db.query('SELECT * FROM "perfilAliado" WHERE rfc = $1', [id]);
-	return resultado.rows;
-};
-
-const crearAliado = async (params) => {
-	const resultado = await db.query('INSERT INTO "perfilAliado" (rfc, "idUsuario", "razonSocial", telefono, "correoRepresentante") VALUES ($1, $2, $3, $4, $5)',
-		[
-			params.rfc,
-			params.idUsuario,
-			params.razonSocial,
-			params.telefono,
-			params.correoRepresentante
-		]);
-	return resultado.rows;
-};
-
-const eliminarAliado = async (id) => {
-	const resultado = await db.query('DELETE FROM "perfilAliado" WHERE rfc = $1', [id]);
-	return {
-		mensaje: `Aliado con rfc de ${id} fue eliminado correctamente`
-	};
-};
-
-module.exports = { obtenerUsuarios, infoUsuario, crearUsuario, eliminarUsuario, actualizarUsuario, obtenerAliados, infoAliado, crearAliado, eliminarAliado };
+module.exports = { obtenerUsuarios, infoUsuario, crearUsuario, eliminarUsuario, actualizarUsuario};

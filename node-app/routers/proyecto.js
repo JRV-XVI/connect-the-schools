@@ -1,281 +1,352 @@
 const express = require('express');
-const modelo = require('../models/proyectos.js')
 const multer = require('multer');
-const { query } = require('../db.js');
+const modelo = require('../models/proyectos.js');
 const proyecto = express.Router();
-const upload = multer(); // Usa memoria (buffer), no disco
+
+// Configuración para cargar archivos
+const storage = multer.memoryStorage();
+const upload = multer({
+	storage: storage,
+	limits: { fileSize: 10 * 1024 * 1024 }, // 10MB límite
+	fileFilter: (req, file, cb) => {
+		const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+			'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+			'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+			'application/zip'];
+		if (allowedTypes.includes(file.mimetype)) {
+			cb(null, true);
+		} else {
+			cb(new Error('El formato del archivo no es aceptado'), false);
+		}
+	}
+});
 
 // ---------------------------------------------- //
 // ----------------- MIDDLEWARE ----------------- //
-// ---------------------------------------------- // 
+// ---------------------------------------------- //
 
-// PARA OBTENER EL ID Y OBJETO CORRESPONDIENTE
-const obtenerProyecto = async (req, res, next) => {
-	const idProyecto = Number(req.params.idProyecto);
-	const resultado = await modelo.infoProyecto(idProyecto);
-	if (resultado.length === 0) {
-		const error = new Error(`Proyecto con id ${idProyecto} no encontrado`);
-		error.status = 404;
-		return next(error);
+// Middleware para verificar si existe un proyecto
+const verificarProyectoExiste = async (req, res, next) => {
+	try {
+		const idProyecto = Number(req.params.idProyecto);
+
+		if (isNaN(idProyecto) || idProyecto <= 0) {
+			const error = new Error("El formato del id de proyecto no es válido");
+			error.status = 400;
+			return next(error);
+		}
+
+		const resultado = await modelo.infoProyecto(idProyecto);
+
+		if (resultado.length === 0) {
+			const error = new Error(`Proyecto con id ${idProyecto} no encontrado`);
+			error.status = 404;
+			return next(error);
+		}
+
+		req.proyecto = resultado[0];
+		req.idProyecto = idProyecto;
+		next();
+	} catch (error) {
+		next(error);
 	}
-	req.proyecto = resultado[0];
-	req.idProyecto = idProyecto;
-	next();
 };
 
-const obtenerEtapa = async (req, res, next) => {
-	const idEtapa = Number(req.params.idEtapa);
-	const resultado = await modelo.infoEtapa(idEtapa);
-	if (resultado.length === 0) {
-		const error = new Error(`Etapa con id ${idEtapa} no encontrado`);
-		error.status = 404;
-		return next(error);
+// Middleware para verificar si existe una etapa
+const verificarEtapaExiste = async (req, res, next) => {
+	try {
+		const idEtapa = Number(req.params.idEtapa);
+
+		if (isNaN(idEtapa) || idEtapa <= 0) {
+			const error = new Error("El formato del id de etapa no es válido");
+			error.status = 400;
+			return next(error);
+		}
+
+		const resultado = await modelo.infoEtapa(idEtapa);
+
+		if (resultado.length === 0) {
+			const error = new Error(`Etapa con id ${idEtapa} no encontrada`);
+			error.status = 404;
+			return next(error);
+		}
+
+		req.etapa = resultado[0];
+		req.idEtapa = idEtapa;
+		next();
+	} catch (error) {
+		next(error);
 	}
-	req.etapa = resultado[0];
-	req.idEtapa = idEtapa;
-	next();
 };
 
-const obtenerEntrega = async (req, res, next) => {
-	const idEntrega = Number(req.params.idEntrega);
-	const resultado = await modelo.infoEntrega(idEntrega);
-	if (resultado.length === 0) {
-		const error = new Error(`Etapa con id ${idEntrega} no encontrado`);
-		error.status = 404;
-		return next(error);
+// Middleware para verificar si existe una entrega
+const verificarEntregaExiste = async (req, res, next) => {
+	try {
+		const idEntrega = Number(req.params.idEntrega);
+
+		if (isNaN(idEntrega) || idEntrega <= 0) {
+			const error = new Error("El formato del id de entrega no es válido");
+			error.status = 400;
+			return next(error);
+		}
+
+		const resultado = await modelo.infoEntrega(idEntrega);
+
+		if (resultado.length === 0) {
+			const error = new Error(`Entrega con id ${idEntrega} no encontrada`);
+			error.status = 404;
+			return next(error);
+		}
+
+		req.entrega = resultado[0];
+		req.idEntrega = idEntrega;
+		next();
+	} catch (error) {
+		next(error);
 	}
-	req.entrega = resultado[0];
-	req.idEntrega = idEntrega;
-	next();
 };
 
-// PARA VALIDAR SI CONTIENE UN ID EN UNA TABLA
-const validarProyecto = async (req, res, next) => {
-	const resultado = await modelo.obtenerProyectoEtapas(req.idProyecto);
-	if (resultado.length === 0) {
-		const error = new Error(`No existe ninguna etapa relacionada con el proyecto con id ${req.idProyecto}`);
-		error.status = 404;
-		return next(error);
+// Validar campos obligatorios para crear proyecto
+const validarCamposProyecto = (req, res, next) => {
+	try {
+		const { descripcion } = req.query;
+
+		if (!descripcion) {
+			const error = new Error("Faltan los siguientes campos: descripcion");
+			error.status = 400;
+			return next(error);
+		}
+
+		next();
+	} catch (error) {
+		next(error);
 	}
-	req.etapas = resultado;
-	next();
 };
 
-const validarEtapa = async (req, res, next) => {
-	const resultado = await modelo.obtenerProyectoEntrega(req.idEtapa);
-	if (resultado.length === 0) {
-		const error = new Error(`No existe ninguna etapa relacionada con el proyecto con id ${req.idProyecto}`);
-		error.status = 404;
-		return next(error);
+// Validar campos obligatorios para crear etapa
+const validarCamposEtapa = (req, res, next) => {
+	try {
+		const { tituloEtapa, descripcionEtapa, orden } = req.query;
+		const camposFaltantes = [];
+
+		if (!tituloEtapa) camposFaltantes.push('tituloEtapa');
+		if (!descripcionEtapa) camposFaltantes.push('descripcionEtapa');
+		if (!orden) camposFaltantes.push('orden');
+
+		if (camposFaltantes.length > 0) {
+			const error = new Error(`Faltan los siguientes campos: ${camposFaltantes.join(', ')}`);
+			error.status = 400;
+			return next(error);
+		}
+
+		next();
+	} catch (error) {
+		next(error);
 	}
-	req.entrega = resultado;
-	next();
 };
 
-// COMRUEBA SI EXISTE TABLA QUE RELACIONEN A DOS IDs
-const validarProyectoEtapa = async (req, res, next) => {
-	const existe = await modelo.existeProyectoEtapa(req.idEtapa, req.idProyecto);
-	if (!existe) {
-		const error = new Error(`No existe la etapa ${idEtapa} para el proyecto ${idProyecto}`);
-		error.status = 404;
-		return next(error);
+// Validar campos obligatorios para crear entrega
+const validarCamposEntrega = (req, res, next) => {
+	try {
+		const { tituloEntrega, descripcion, estadoEntrega } = req.query;
+		const camposFaltantes = [];
+
+		if (!tituloEntrega) camposFaltantes.push('tituloEntrega');
+		if (!descripcion) camposFaltantes.push('descripcion');
+		if (!estadoEntrega) camposFaltantes.push('estadoEntrega');
+
+		if (camposFaltantes.length > 0) {
+			const error = new Error(`Faltan los siguientes campos: ${camposFaltantes.join(', ')}`);
+			error.status = 400;
+			return next(error);
+		}
+
+		next();
+	} catch (error) {
+		next(error);
 	}
-	next();
-};
-
-const validarEtapaEntrega = async (req, res, next) => {
-	const existe = await modelo.existe(req.idEtapa, req.idProyecto);
-	if (!existe) {
-		const error = new Error(`No existe la etapa ${idEtapa} para el proyecto ${idProyecto}`);
-		error.status = 404;
-		return next(error);
-	}
-	next();
-};
-
-// VERIFICA ARGUMENTOS SI SON LOS SOLIICITADOS
-const validarArgumentosProyecto = (req, res, next) => {
-	const argumentos = req.query;
-
-	if (typeof argumentos !== 'object' || argumentos === null) {
-		const error = new Error('Argumentos inválidos en la URL');
-		error.status = 400;
-		return next(error);
-	}
-
-	const campos = ['validacionAdmin', 'descripcion', 'fechaCreacion']
-
-	const faltantes = campos.filter(campo => !(campo in argumentos));
-
-	if (faltantes.length > 0) {
-		const error = new Error(`Faltan los siguientes campos: ${faltantes.join(', ')}`);
-		error.status = 400;
-		return next(error);
-	}
-	next();
-};
-
-const validarArgumentosEtapas = (req, res, next) => {
-	const argumentos = req.query;
-
-	if (typeof argumentos !== 'object' || argumentos === null) {
-		const error = new Error('Argumentos inválidos en la URL');
-		error.status = 400;
-		return next(error);
-	}
-
-	const campos = ['tituloEtapa', 'descripcionEtapa', 'orden']
-
-	const faltantes = campos.filter(campo => !(campo in argumentos));
-
-	if (faltantes.length > 0) {
-		const error = new Error(`Faltan los siguientes campos: ${faltantes.join(', ')}`);
-		error.status = 400;
-		return next(error);
-	}
-	next();
-};
-
-const validarArgumentosEntregas = (req, res, next) => {
-	const argumentos = req.body;
-
-	if (typeof argumentos !== 'object' || argumentos === null) {
-		const error = new Error('Argumentos inválidos en el body');
-		error.status = 400;
-		return next(error);
-	}
-
-	const campos = ['tituloEntrega', 'fechaEntrega', 'descripcion', 'estadoEntrega', 'observaciones'];
-
-	const faltantes = campos.filter(campo => !(campo in argumentos));
-	if (faltantes.length > 0) {
-		const error = new Error(`Faltan los siguientes campos: ${faltantes.join(', ')}`);
-		error.status = 400;
-		return next(error);
-	}
-
-	// Validar si llegó un archivo
-	if (!req.file || !req.file.buffer) {
-		const error = new Error('Falta el archivo de entrega');
-		error.status = 400;
-		return next(error);
-	}
-
-	next();
 };
 
 // ------------------------------------------- //
-// ----------------- ROUTERS ----------------- //
+// ------------ RUTAS DE PROYECTOS ----------- //
 // ------------------------------------------- //
 
-/**
- *
- *
- * PROYECTO
- *
- * 
-**/
+// Crear un nuevo proyecto
+proyecto.post('/proyecto', validarCamposProyecto, async (req, res, next) => {
+	try {
+		// Añadir fecha actual si no se proporciona
+		const params = {
+			...req.query,
+			fechaCreacion: new Date().toISOString().split('T')[0]
+		};
 
-// Obtener datos del proyecto completo
+		const resultado = await modelo.crearProyecto(params);
+		const nuevoProyecto = await modelo.infoProyecto(resultado.insertId || 1); // Obtener el proyecto recién creado
+
+		res.status(201).json(nuevoProyecto[0]);
+	} catch (error) {
+		next(error);
+	}
+});
+
+// Obtener todos los proyectos
 proyecto.get('/proyecto', async (req, res, next) => {
-	const resultado = await modelo.obtenerProyectos();
-	res.send(resultado);
-});
-
-// Crear proyecto
-proyecto.post('/proyecto', validarArgumentosProyecto, async (req, res, next) => {
-	const resultado = await modelo.crearProyecto(req.query);
-	console.log(resultado);
-	res.send(resultado);
-});
-
-// Obtener proyecto por id
-proyecto.get('/proyecto/:idProyecto', obtenerProyecto, (req, res, next) => {
-	res.send(req.proyecto);
-});
-
-// Actualizar proyecto
-proyecto.put('/proyecto/:idProyecto', obtenerProyecto, async (req, res, next) => {
-	const resultado = await modelo.actualizarProyecto(req.idProyecto, req.query);
-	res.send(resultado);
-});
-
-// Eliminar proyecto
-proyecto.delete('/proyecto/:idProyecto', obtenerProyecto, async (req, res, next) => {
-	const resultado = await modelo.eliminarProyecto(req.idProyecto);
-	res.send(resultado);
-});
-
-/**
- *
- *
- * ETAPAS
- *
- * 
-**/
-
-// Obtener todas las etapas de un proyecto especifico
-proyecto.get('/proyecto/:idProyecto/etapas', obtenerProyecto, validarProyecto, async (req, res, next) => {
-	res.send(req.etapas);
-});
-
-// Obtener una etapa especifica de un proyecto especifico
-proyecto.get('/proyecto/:idProyecto/etapas/:idEtapa', obtenerProyecto, obtenerEtapa, validarProyectoEtapa, (req, res, next) => {
-	res.send(req.etapa);
-});
-
-// Crear etapa en un proyecto
-proyecto.post('/proyecto/:idProyecto/etapas', obtenerProyecto, validarArgumentosEtapas, async (req, res, next) => {
-	const resultado = await modelo.crearProyectoEtapa(req.idProyecto, req.query);
-	res.send(resultado);
-});
-
-/**
- *
- *
- * ENTREGAS
- *
- * 
-**/
-
-// Obtener todas las entrega de una etapa especifica
-proyecto.get('/proyecto/etapas/:idEtapa/entregas', obtenerEtapa, validarEtapa, async (req, res, next) => {
-	res.send(req.entrega);
-});
-
-// Obtener una entrega especifica de una etapa especifica
-proyecto.get('/proyecto/entregas/:idEtapa/entregas/:idEntrega', obtenerEtapa, obtenerEntrega, validarEtapaEntrega, (req, res, next) => {
-	res.send(req.entrega);
-});
-
-// Obtener archivo de entrega
-proyecto.get('/proyecto/etapas/entregas/:idEntrega/archivo', obtenerEntrega, (req, res, next) => {
-	const entrega = req.entrega;
-
-	if (!entrega) {
-		return res.status(404).send({ error: 'Entrega no encontrada' });
+	try {
+		const resultado = await modelo.obtenerProyectos();
+		res.status(200).json(resultado);
+	} catch (error) {
+		next(error);
 	}
-
-	if (!entrega.archivo) {
-		return res.status(404).send({ error: 'Archivo no encontrado' });
-	}
-
-	const archivo = entrega.archivo;
-
-	// Cambia el tipo MIME según el tipo real
-	res.setHeader('Content-Type', 'text/markdown'); // Por el momento se visualiza markdown porque hice una prueba
-	res.setHeader('Content-Disposition', 'inline; filename="documento.md"');
-	res.send(archivo);
 });
 
-// Crear entrega en un etapa
-proyecto.post('/proyecto/etapas/:idEtapa/entregas', obtenerEtapa, upload.single('archivo'), validarArgumentosEntregas, async (req, res, next) => {
-	const datos = {
-		...req.body,
-		archivo: req.file.buffer
-	};
-	const resultado = await modelo.crearProyectoEntrega(req.idEtapa, datos);
-	res.send(resultado);
+// Obtener un proyecto por ID
+proyecto.get('/proyecto/:idProyecto', verificarProyectoExiste, (req, res) => {
+	res.status(200).json(req.proyecto);
+});
+
+// Actualizar un proyecto
+proyecto.put('/proyecto/:idProyecto', verificarProyectoExiste, async (req, res, next) => {
+	try {
+		if (Object.keys(req.query).length === 0) {
+			return res.status(400).json({
+				error: "Los datos proporcionados para actualizar el proyecto no son válidos"
+			});
+		}
+
+		const resultado = await modelo.actualizarProyecto(req.idProyecto, req.query);
+
+		if (!resultado || resultado.affectedRows === 0) {
+			return res.status(202).json({
+				mensaje: "No se realizaron cambios en el proyecto",
+				idProyecto: req.idProyecto
+			});
+		}
+
+		// Obtener el proyecto actualizado
+		const proyectoActualizado = await modelo.infoProyecto(req.idProyecto);
+
+		res.status(200).json({
+			...proyectoActualizado[0],
+			fechaActualizacion: new Date().toISOString().split('T')[0],
+			mensaje: "Proyecto actualizado correctamente"
+		});
+	} catch (error) {
+		next(error);
+	}
+});
+
+// ------------------------------------------- //
+// ------------ RUTAS DE ETAPAS -------------- //
+// ------------------------------------------- //
+
+// Crear una etapa en un proyecto
+proyecto.post('/proyecto/:idProyecto/etapas', verificarProyectoExiste, validarCamposEtapa, async (req, res, next) => {
+	try {
+		const resultado = await modelo.crearProyectoEtapa(req.idProyecto, req.query);
+
+		// Construir respuesta según documentación
+		const respuesta = {
+			idEtapa: resultado.insertId || 1,
+			idProyecto: req.idProyecto,
+			tituloEtapa: req.query.tituloEtapa,
+			descripcionEtapa: req.query.descripcionEtapa,
+			orden: parseInt(req.query.orden),
+			fechaCreacion: new Date().toISOString().split('T')[0],
+			mensaje: "Etapa creada exitosamente"
+		};
+
+		res.status(201).json(respuesta);
+	} catch (error) {
+		next(error);
+	}
+});
+
+// Obtener todas las etapas de un proyecto
+proyecto.get('/proyecto/:idProyecto/etapas', verificarProyectoExiste, async (req, res, next) => {
+	try {
+		const resultado = await modelo.obtenerProyectoEtapas(req.idProyecto);
+		res.status(200).json(resultado);
+	} catch (error) {
+		next(error);
+	}
+});
+
+// ------------------------------------------- //
+// ------------ RUTAS DE ENTREGAS ------------ //
+// ------------------------------------------- //
+
+// Crear una entrega en una etapa
+proyecto.post('/proyecto/etapas/:idEtapa/entregas', verificarEtapaExiste, validarCamposEntrega, upload.single('archivo'), async (req, res, next) => {
+	try {
+		if (!req.file) {
+			const error = new Error("Falta el archivo de entrega");
+			error.status = 400;
+			return next(error);
+		}
+
+		const params = {
+			...req.query,
+			fechaEntrega: req.query.fechaEntrega || new Date().toISOString().split('T')[0],
+			archivo: req.file.buffer
+		};
+
+		const resultado = await modelo.crearProyectoEntrega(req.idEtapa, params);
+
+		// Construir respuesta según documentación
+		const respuesta = {
+			idEntrega: resultado.insertId || 1,
+			idEtapa: req.idEtapa,
+			tituloEntrega: req.query.tituloEntrega,
+			fechaEntrega: params.fechaEntrega,
+			descripcion: req.query.descripcion,
+			estadoEntrega: parseInt(req.query.estadoEntrega),
+			archivo: req.file.originalname,
+			observaciones: req.query.observaciones || ""
+		};
+
+		res.status(201).json(respuesta);
+	} catch (error) {
+		next(error);
+	}
+});
+
+// Obtener todas las entregas de una etapa
+proyecto.get('/proyecto/etapas/:idEtapa/entregas', verificarEtapaExiste, async (req, res, next) => {
+	try {
+		const resultado = await modelo.obtenerProyectoEntrega(req.idEtapa);
+		res.status(200).json(resultado);
+	} catch (error) {
+		next(error);
+	}
+});
+
+// Obtener archivo de una entrega específica
+proyecto.get('/proyecto/etapas/entregas/:idEntrega/archivo', verificarEntregaExiste, (req, res, next) => {
+	try {
+		// Si se solicita descarga directa
+		if (req.query.download === 'true') {
+			res.setHeader('Content-Type', 'application/octet-stream');
+			res.setHeader('Content-Disposition', `attachment; filename="${req.entrega.tituloEntrega}.pdf"`);
+			return res.send(req.entrega.archivo);
+		}
+
+		// Si se solicita solo información sobre el archivo
+		const respuesta = {
+			idEntrega: req.idEntrega,
+			tipoContenido: "application/pdf",
+			fechaSubida: req.entrega.fechaEntrega,
+			urlDescargaDirecta: `/api/proyecto/etapas/entregas/${req.idEntrega}/archivo?download=true`,
+			metadata: {
+				páginas: 24, // Esto sería calculado dinámicamente en una implementación real
+				autor: "Equipo de Capacitación",
+				fechaCreación: req.entrega.fechaEntrega
+			}
+		};
+
+		res.status(200).json(respuesta);
+	} catch (error) {
+		next(error);
+	}
 });
 
 /**
@@ -288,7 +359,9 @@ proyecto.post('/proyecto/etapas/:idEtapa/entregas', obtenerEtapa, upload.single(
 
 proyecto.use((err, req, res, next) => {
 	const estado = err.status || 500;
-	res.status(estado).send({ error: err.message });
+	const mensaje = err.status ? err.message : "Ocurrió un error al procesar la solicitud";
+
+	res.status(estado).json({ error: mensaje });
 });
 
 module.exports = proyecto;

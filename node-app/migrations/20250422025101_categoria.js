@@ -3,7 +3,13 @@
  * @returns { Promise<void> }
  */
 exports.up = function(knex) {
-
+	return knex.schema.createTable('categoria', function(tabla) {
+		tabla.increments('idCategoria')
+			.notNullable()
+			.unsigned()
+			.primary();
+		tabla.text('nombre').notNullable();
+	});
 };
 
 /**

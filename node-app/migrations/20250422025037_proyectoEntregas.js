@@ -6,19 +6,19 @@ exports.up = function(knex) {
 	return knex.schema.createTable('proyectoEntregas', function(t) {
 		t.increments('idEntrega')
 			.unsigned()
-			.primary()
+			.primary();
 		t.integer('idEtapa')
 			.unsigned()
 			.notNullable()
 			.references('idEtapa')
 			.inTable('proyectoEtapas')
-			.onDelete('CASCADE')
-		t.text('tituloEntrega').notNullable()
-		t.date('fechaEntrega').notNullable()
-		t.text('descripcion').notNullable()
+			.onDelete('CASCADE');
+		t.text('tituloEntrega').notNullable();
+		t.date('fechaEntrega').notNullable();
+		t.text('descripcion').notNullable();
 		t.integer('estadoEntrega')
 			.notNullable()
-			.unsigned()
+			.unsigned();
 		t.specificType('archivo', 'BYTEA').notNullable()
 		t.text('observaciones');
 	});

@@ -3,14 +3,14 @@
  * @returns { Promise<void> }
  */
 exports.up = function(knex) {
-    return knex.schema.createTable('Mensajeria', function(tabla) {
+	return knex.schema.createTable('mensajeria', function(tabla) {
 		tabla.increments('idMensajeria')
-            .unsigned()
-            .primary();
+			.unsigned()
+			.primary();
 		tabla.integer('idProyecto'); // FALTA REALACIÒN FK CON PROYECTO
-        tabla.timestamp('fechaCreacion')
-            .defaultTo(knex.fn.now())
-            .notNullable();
+		tabla.date('fechaCreacion')
+			.defaultTo(knex.fn.now())
+			.notNullable();
 	});
 };
 
@@ -19,5 +19,5 @@ exports.up = function(knex) {
  * @returns { Promise<void> }
  */
 exports.down = function(knex) {
-  
+	return knex.schema.dropTable('mensajeria');
 };

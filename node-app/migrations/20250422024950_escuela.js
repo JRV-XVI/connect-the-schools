@@ -3,21 +3,27 @@
  * @returns { Promise<void> }
  */
 exports.up = function(knex) {
-	return knex.schema.createTable('perfilAliado', function(t) {
-		t.text('rfc')
+	return knex.schema.createTable('perfilEscuela', function(tabla) {
+		tabla.text('cct')
 			.notNullable()
 			.primary();
-		t.integer('idUsuario')
+		tabla.integer('idUsuario')
 			.unsigned()
 			.notNullable()
 			.references('idUsuario')
 			.inTable('usuario')
 			.onDelete('CASCADE');
-		t.text('razonSocial').notNullable()
-		t.integer('telefono')
+		tabla.text('nivelEducativo')
+			.notNullable();
+		tabla.text('sector')
+			.notNullable();
+		tabla.integer('numeroEstudiantes')
 			.unsigned()
 			.notNullable();
-		t.text('correoRepresentante').notNullable();
+		tabla.text('nombreDirector')
+			.notNullable();
+		tabla.text('telefonoDirector')
+			.notNullable();
 	});
 };
 
@@ -26,5 +32,5 @@ exports.up = function(knex) {
  * @returns { Promise<void> }
  */
 exports.down = function(knex) {
-	return knex.schema.dropTable('perfilAliado');
+	return knex.schema.dropTable('perfilEscuela');
 };

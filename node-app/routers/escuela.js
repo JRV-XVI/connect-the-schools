@@ -1,5 +1,5 @@
 const express = require('express');
-const model = require('../models/escuela');
+const model = require('../models/escuela.js');
 const escuela = express.Router();
 
 // ---------------------------------------------- //
@@ -7,30 +7,38 @@ const escuela = express.Router();
 // ---------------------------------------------- //
 
 const obtenerIdEscuela = async (req, res, next) => {
-    const id = Number(req.params.id);
-    const resultado = await model.esceulaId(id);
+    const cct = req.params.cct;
+    try {
+        const resultado = await model.obtenerIdEscuela(cct);
 
-    if (resultado === 0) {
-        const error = new Error(`Escuela con id ${req.params.id} no encontrado`);
-        error.status = 404;
-        return next(error);
+        if (!resultado || resultado.length === 0) {
+            return res.status(404).json({
+                error: `Escuela con cct '${cct}' no encontrada`
+            });
+        }
+
+        req.escuela = resultado[0];
+        next();
+    } catch (error) {
+        next(error);
     }
-    req.escuela = resultado[0];
-    req.id = id;
-    next();
 };
 
 const eliminarEscuela = async (req, res, next) => {
-    const id = Number(req.params.id);
-    const resultado = await model.eliminarEscuelaPorId(id);
-      
-    if (resultado === 0) {
-        const error = new Error(`Escuela con id ${id} no encontrado`);
-        error.status = 404;
-        return next(error);
+    try {
+        const cct = req.params.cct;
+        const resultado = await model.obtenerIdEscuel(cct);
+
+        if (resultado === 0) {
+            const error = new Error(`Escuela con cct '${cct}' no encontrada`);
+            error.status = 404;
+            return next(error);
+        }
+        req.escuelaEliminada = resultado;
+        next();
+    } catch (error) {
+        next(error);
     }
-    req.escuelaEliminado = resultado;
-    next();
 };
 
 // ------------------------------------------- //
@@ -39,40 +47,64 @@ const eliminarEscuela = async (req, res, next) => {
 
 // Obtener todos las escuelas
 escuela.get('/escuela', async (req, res, next) => {
-    const resultado = await model.obtenerEscuela();
-    res.send(resultado);
+    try {
+        const resultado = await model.obtenerEscuela();
+        res.status(200).send(resultado);
+    } catch (error) {
+        next(error);
+    }
 });
 
 // Obtener una escuela por su ID
-escuela.get('/escuela/:id', obtenerIdEscuela, (req, res, next) => {
-    res.send(req.escuela);
+escuela.get('/escuela/:cct', obtenerIdEscuela, (req, res) => {
+    res.status(200).send(req.escuela);
 });
 
 // Crear una escuela
 escuela.post('/escuela', async (req, res, next) => {
-    const resultado = await model.crearEscuela(req.query);
-    res.send(resultado);
+    try {
+        const resultado = await model.crearEscuela(req.query);
+        res.status(201).send(resultado);
+    } catch (error) {
+        next(error);
+    }
 });
 
 // Eliminar una escuela por su ID
-escuela.delete('/escuela/:id', eliminarEscuela, (req, res) => {
-    res.status(200).json({ 
-        mensaje: "Administrador eliminado correctamente", 
-        administrador: req.escuelaEliminado 
+escuela.delete('/escuela/:cct', eliminarEscuela, (req, res) => {
+    res.status(200).json({
+        mensaje: `Escuela con cct '${req.params.cct}' fue eliminada correctamente`
     });
 });
 
-// Actualizar una escuela por su ID (CCT)
-escuela.put('/escuela/:id', obtenerIdEscuela, async (req, res, next) => {
+// Actualizar una escuela por su CCT
+escuela.put('/escuela/:cct', obtenerIdEscuela, async (req, res, next) => {
     try {
-        const resultado = await model.actualizarEscuela(req.params.id, req.query);
-        if (!resultado) {
-            return res.status(400).json({ mensaje: "No hay campos para actualizar" });
+        // Verificar que al menos haya un campo para actualizar
+        if (Object.keys(req.query).length === 0) {
+            const error = new Error("Debe enviar al menos un campo válido para actualizar");
+            error.status = 400;
+            return next(error);
         }
+
+        const resultado = await model.actualizarEscuela(req.params.cct, req.query);
         res.status(200).json(resultado);
     } catch (error) {
         next(error);
     }
+});
+
+/**
+ *
+ *
+ * ERRORES
+ *
+ * 
+**/
+
+escuela.use((err, req, res, next) => {
+    const estado = err.status || 500;
+    res.status(estado).json({ error: err.message || "Ocurrió un error al procesar la solicitud" });
 });
 
 module.exports = escuela;

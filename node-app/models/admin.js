@@ -28,13 +28,13 @@ const eliminarAdminPorId = async (idUsuario) => {
     return resultado.rows[0];
 }
 
-const actualizarEscuela = async (cct, params) => {
+const actualizarAdmin = async (id, params) => {
     // Construir query dinámicamente
-    const camposActualizables = ['nivelEducativo', 'sector', 'numeroEstudiantes', 'nombreDirector', 'telefonoDirector'];
+    const camposActualizables = ['idUsuario', 'rol'];
     const updates = [];
-    const values = [cct]; // El primer parámetro es siempre el cct
+    const values = [id];
     
-    let paramIndex = 2; // Empezamos desde $2
+    let paramIndex = 2;
     
     camposActualizables.forEach(campo => {
         if (params[campo] !== undefined) {
@@ -47,9 +47,14 @@ const actualizarEscuela = async (cct, params) => {
     // Si no hay campos para actualizar, retornar
     if (updates.length === 0) return null;
     
-    const query = `UPDATE "perfilEscuela" SET ${updates.join(', ')} WHERE "cct" = $1 RETURNING *`;
+    const query = `UPDATE "perfilAdmin" SET ${updates.join(', ')} WHERE "idPerfilAdmin" = $1 RETURNING *`;
     const resultado = await db.query(query, values);
     return resultado.rows[0];
 }
 
-module.exports = { obtenerAdmin, adminId, crearAdmin, eliminarAdminPorId, actualizarEscuela};
+const verificarUsuarioExiste = async (idUsuario) => {
+    const resultado = await db.query('SELECT * FROM "usuario" WHERE "idUsuario" = $1', [idUsuario]);
+    return resultado.rows.length > 0;
+};
+
+module.exports = { obtenerAdmin, adminId, crearAdmin, eliminarAdminPorId, actualizarAdmin, verificarUsuarioExiste};
