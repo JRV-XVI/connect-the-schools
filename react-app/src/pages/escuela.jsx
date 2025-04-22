@@ -3,18 +3,22 @@ import Sidebar from "../components/barraLateral.jsx";
 import Navbar from "../components/barraNavegacion.jsx";
 import Pendientes from "../components/pendientes.jsx";
 import Proyecto from "../components/proyectos.jsx";
-import NecesidadApoyo from "../components/necesidadApoyo.jsx"; // Nuevo componente importado
-import { StatCardGroup } from "../components/cartas.jsx"; 
+import NecesidadApoyo from "../components/necesidadApoyo.jsx";
+import DiagnosticoNecesidades from '../components/DiagnosticoNecesidades'; // Ruta corregida
+
+import { StatCardGroup } from "../components/cartas.jsx";
 import { sidebarEscuela } from "../data/barraLateral/barraLateralEscuela.js";
 import { navbarEscuela } from "../data/barraNavegacion/barraNavegacionEscuela.js";
-import { cartasEscuela } from "../data/cartas/cartasEscuela.js"; 
+import { cartasEscuela } from "../data/cartas/cartasEscuela.js";
 import { pendientesEscuela } from '../data/pendientes/pendientesEscuela.js';
 import { proyectosEscuela } from '../data/proyectos/proyectosEscuela.js';
-// Importación de los datos para el componente NecesidadApoyo
 import { tabsNecesidades, columnasNecesidades, datosNecesidades } from '../data/necesidadApoyo/necesidades.js';
+import { necesidadesData } from '../data/necesidadesData';
+import { Container } from 'react-bootstrap';
+import '../../styles/escuela.css';
 import Logo from "../assets/MPJ.png";
 
-const Escuela = () => { 
+const Escuela = ({ userData, onLogout }) => { 
   const usuario = navbarEscuela?.usuario || { nombre: "Escuela", foto: "" };
   const notificaciones = navbarEscuela?.notificaciones || [];
   const menuItems = navbarEscuela?.menuItems || [];
@@ -30,6 +34,16 @@ const Escuela = () => {
   const proyectosItems = proyectosTodos.slice(0, 3); // Limitamos a 3 proyectos
   const proyectosTitulo = proyectosEscuela?.titulo || "Proyectos Recientes";
   const proyectosTextoBoton = proyectosEscuela?.textoBoton || "Ver todos";
+
+  // Estado para necesidades y sección activa - Importante: iniciar en 'dashboard'
+  const [necesidades, setNecesidades] = useState(necesidadesData);
+  const [activeSection, setActiveSection] = useState('dashboard');
+
+  // Función para cambiar entre secciones del dashboard
+  const handleSectionChange = (section) => {
+    console.log("Cambiando a sección:", section); // Debug para verificar cambios de sección
+    setActiveSection(section);
+  };
 
   // Manejadores para pendientes y proyectos
   const handleVerPendientes = () => {
@@ -48,30 +62,40 @@ const Escuela = () => {
     console.log("Acción en proyecto:", proyecto.nombre, "Estado:", proyecto.estado);
   };
   
-  // Nuevos manejadores para necesidades escolares
+  // Nuevos manejadores para necesidades escolares (componente NecesidadApoyo)
   const handleAddNecesidad = () => {
     console.log("Agregar nueva necesidad escolar");
-    // Aquí implementarías la lógica para mostrar el formulario de nueva necesidad
   };
 
   const handleEditNecesidad = (item) => {
     console.log("Editar necesidad escolar:", item);
-    // Aquí implementarías la lógica para editar la necesidad seleccionada
   };
 
   const handleViewNecesidad = (item) => {
     console.log("Ver detalles de necesidad escolar:", item);
-    // Aquí implementarías la lógica para mostrar los detalles de la necesidad
   };
 
   const handleToggleStatus = (item) => {
     console.log("Cambiar estado de necesidad escolar:", item);
-    // Aquí implementarías la lógica para activar/desactivar la necesidad
   };
 
   const handleVerHistorial = () => {
     console.log("Ver historial de necesidades escolares");
-    // Aquí implementarías la lógica para mostrar el historial completo
+  };
+  
+  // Manejadores para DiagnosticoNecesidades
+  const handleAddNeed = (newNeed) => {
+    const id = `need-${Date.now()}`;
+    setNecesidades([...necesidades, { id, ...newNeed }]);
+    console.log("Nueva necesidad agregada:", newNeed);
+  };
+
+  const handleEditNeed = (needId) => {
+    console.log("Editando necesidad con ID:", needId);
+  };
+
+  const handleViewNeed = (needId) => {
+    console.log("Viendo detalles de necesidad con ID:", needId);
   };
   
   // Control del sidebar
@@ -80,16 +104,22 @@ const Escuela = () => {
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
+
+  // Debug para verificar el estado actual
+  console.log("Estado actual: activeSection =", activeSection);
+  console.log("Necesidades disponibles:", necesidades.length);
   
   return (
     <div className="dashboard-container">
-      {/* Sidebar fijo */}
+      {/* Sidebar fijo - Asegurarse de pasar correctamente las props */}
       <Sidebar
         logo={Logo}
         title="Connect the Schools"
         menuItems={sidebarEscuela}
         isOpen={sidebarOpen}
         toggleSidebar={toggleSidebar}
+        activeSection={activeSection}
+        onSectionChange={handleSectionChange}
       />
       
       {/* Contenido principal */}
@@ -111,60 +141,86 @@ const Escuela = () => {
           <i className="fas fa-bars"></i>
         </button>
         
-        {/* Contenido del dashboard */}
+        {/* Contenido del dashboard - IMPORTANTE: incluir test buttons para depurar */}
         <div className="content px-3 py-3">
-          <h2 className="mb-4">Dashboard Escuela</h2>
+          {/* Botones de prueba para cambiar secciones directamente */}
+          <div className="mb-3 p-2 bg-light">
+            <button className="btn btn-sm btn-outline-dark me-2" onClick={() => setActiveSection('dashboard')}>
+              Dashboard
+            </button>
+            <button className="btn btn-sm btn-outline-dark me-2" onClick={() => setActiveSection('diagnostico')}>
+              Diagnóstico
+            </button>
+            <span className="ms-3 badge bg-secondary">Sección activa: {activeSection}</span>
+          </div>
           
-          {/* Cartas estadísticas */}
-          <section className="mb-4">
-            <StatCardGroup cards={cartasEscuela} />
-          </section>
-          
-          {/* Sección de Proyectos y Pendientes */}
-          <section className="mb-4">
-            <div className="row">
-              <div className="col-xl-8 col-lg-7">
-                {/* Componente de Proyectos - Limitado a 3 */}
-                <Proyecto 
-                  titulo={proyectosTitulo}
-                  proyectos={proyectosItems}
-                  tipo="escuela"
-                  textoBoton={proyectosTextoBoton}
-                  onButtonClick={handleVerProyectos}
-                  onViewClick={handleVerDetallesProyecto}
-                  onActionClick={handleActionProyecto}
-                  allProjects={proyectosTodos} // Lista completa para el modal
+          {activeSection === 'dashboard' && (
+            <>
+              <h2 className="mb-4">Dashboard Escuela</h2>
+              
+              {/* Cartas estadísticas */}
+              <section className="mb-4">
+                <StatCardGroup cards={cartasEscuela} />
+              </section>
+              
+              {/* Sección de Proyectos y Pendientes */}
+              <section className="mb-4">
+                <div className="row">
+                  <div className="col-xl-8 col-lg-7">
+                    <Proyecto 
+                      titulo={proyectosTitulo}
+                      proyectos={proyectosItems}
+                      tipo="escuela"
+                      textoBoton={proyectosTextoBoton}
+                      onButtonClick={handleVerProyectos}
+                      onViewClick={handleVerDetallesProyecto}
+                      onActionClick={handleActionProyecto}
+                      allProjects={proyectosTodos}
+                    />
+                  </div>
+                  <div className="col-xl-4 col-lg-5">
+                    <Pendientes 
+                      titulo={pendientesTitulo}
+                      items={pendientesItems}
+                      tipo="escuela"
+                      textoBoton={pendientesTextoBoton}
+                      onButtonClick={handleVerPendientes}
+                      allItems={pendientesTodos}
+                    />
+                  </div>
+                </div>
+              </section>
+              
+              {/* NUEVA SECCIÓN: Gestión de necesidades escolares */}
+              <section>
+                <NecesidadApoyo 
+                  tipo="necesidad"
+                  titulo="Gestión de Necesidades Escolares"
+                  tabs={tabsNecesidades}
+                  datos={datosNecesidades}
+                  columnas={columnasNecesidades}
+                  onAdd={handleAddNecesidad}
+                  onEdit={handleEditNecesidad}
+                  onView={handleViewNecesidad}
+                  onToggleStatus={handleToggleStatus}
+                  onHistory={handleVerHistorial}
                 />
-              </div>
-              <div className="col-xl-4 col-lg-5">
-                {/* Componente de Pendientes - Limitado a 5 */}
-                <Pendientes 
-                  titulo={pendientesTitulo}
-                  items={pendientesItems}
-                  tipo="escuela"
-                  textoBoton={pendientesTextoBoton}
-                  onButtonClick={handleVerPendientes}
-                  allItems={pendientesTodos} // Lista completa para el modal
-                />
-              </div>
-            </div>
-          </section>
+              </section>
+            </>
+          )}
           
-          {/* NUEVA SECCIÓN: Gestión de necesidades escolares */}
-          <section>
-            <NecesidadApoyo 
-              tipo="necesidad"
-              titulo="Gestión de Necesidades Escolares"
-              tabs={tabsNecesidades}
-              datos={datosNecesidades}
-              columnas={columnasNecesidades}
-              onAdd={handleAddNecesidad}
-              onEdit={handleEditNecesidad}
-              onView={handleViewNecesidad}
-              onToggleStatus={handleToggleStatus}
-              onHistory={handleVerHistorial}
-            />
-          </section>
+          {/* IMPORTANTE: Verificar que esta condición se evalúa correctamente */}
+          {activeSection === 'diagnostico' && (
+            <>
+              <h2 className="mb-4">Diagnóstico de Necesidades</h2>
+              <DiagnosticoNecesidades
+                necesidades={necesidades}
+                onAddNeed={handleAddNeed}
+                onEditNeed={handleEditNeed}
+                onViewNeed={handleViewNeed}
+              />
+            </>
+          )}
         </div>
       </div>
     </div>

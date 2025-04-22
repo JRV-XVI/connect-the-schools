@@ -6,7 +6,12 @@ const NavigationBar = ({ logo }) => {
     <Navbar expand="lg" className="navbar-light bg-light shadow-sm">
       <Container>
         <Navbar.Brand href="#">
-          <img src={logo} alt="Logo Mexicanos Primero Jalisco" />
+          <img 
+            src={logo} 
+            alt="Logo Mexicanos Primero Jalisco" 
+            height="40" 
+            className="d-inline-block align-top"
+          />
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="navbarNav" />
         <Navbar.Collapse id="navbarNav">
