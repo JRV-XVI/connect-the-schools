@@ -6,18 +6,18 @@ exports.up = function(knex) {
 	return knex.schema.createTable('proyectoEtapas', function(t) {
 		t.increments('idEtapa')
 			.unsigned()
-			.primary()
+			.primary();
 		t.integer('idProyecto')
 			.unsigned()
 			.notNullable()
 			.references('idProyecto')
 			.inTable('proyecto')
-			.onDelete('CASCADE')
-		t.text('tituloEtapa').notNullable()
-		t.text('descripcionEtapa').notNullable()
+			.onDelete('CASCADE');
+		t.text('tituloEtapa').notNullable();
+		t.text('descripcionEtapa').notNullable();
 		t.integer('orden')
 			.notNullable()
-			.unsigned()
+			.unsigned();
 	});
 };
 

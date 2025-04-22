@@ -10,7 +10,7 @@ const obtenerNecesidadApoyo = async () => {
 }
 
 const necesidadApoyoPorId = async (id) => {
-    const resultado = await db.query('SELECT * FROM "necesidadApoyo" WHERE "idNecesidad" = $1', [id]);
+    const resultado = await db.query('SELECT * FROM "necesidadApoyo" WHERE "idNecesidadAPoyo" = $1', [id]);
     return resultado.rows;
 }
 
@@ -34,17 +34,17 @@ const crearNecesidadApoyo = async (params) => {
 }
 
 const eliminarNecesidadApoyo = async (id) => {
-    const resultado = await db.query('DELETE FROM "necesidadApoyo" WHERE "idNecesidad" = $1 RETURNING *', [id]);
+    const resultado = await db.query('DELETE FROM "necesidadApoyo" WHERE "idNecesidadAPoyo" = $1 RETURNING *', [id]);
     return resultado.rows;
 }
 
-const actualizarNecesidadApoyo = async (idNecesidad, params) => {
+const actualizarNecesidadApoyo = async (idNecesidadAPoyo, params) => {
     const camposActualizables = ['descripcion', 'prioridad', 'estadoValidacion'];
     const updates = [];
-    const values = [idNecesidad];
-    
+    const values = [idNecesidadAPoyo];
+
     let paramIndex = 2;
-    
+
     camposActualizables.forEach(campo => {
         if (params[campo] !== undefined) {
             updates.push(`"${campo}" = $${paramIndex}`);
@@ -52,13 +52,13 @@ const actualizarNecesidadApoyo = async (idNecesidad, params) => {
             paramIndex++;
         }
     });
-    
+
     if (updates.length === 0) return null;
-    
-    const query = `UPDATE "necesidadApoyo" SET ${updates.join(', ')} WHERE "idNecesidad" = $1 RETURNING *`;
+
+    const query = `UPDATE "necesidadApoyo" SET ${updates.join(', ')} WHERE "idNecesidadAPoyo" = $1 RETURNING *`;
     const resultado = await db.query(query, values);
     return resultado.rows[0];
 }
 
 
-module.exports = {obtenerNecesidadApoyo, necesidadApoyoPorId, necesidadApoyoPorUsuario, crearNecesidadApoyo, eliminarNecesidadApoyo, actualizarNecesidadApoyo}
+module.exports = { obtenerNecesidadApoyo, necesidadApoyoPorId, necesidadApoyoPorUsuario, crearNecesidadApoyo, eliminarNecesidadApoyo, actualizarNecesidadApoyo }

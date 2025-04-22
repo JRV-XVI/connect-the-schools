@@ -6,10 +6,10 @@ exports.up = function(knex) {
 	return knex.schema.createTable('proyecto', function(t) {
 		t.increments('idProyecto')
 			.unsigned()
-			.primary()
-		t.boolean('validacionAdmin').notNullable()
-		t.text('descripcion').notNullable()
-		t.date('fechaCreacion').notNullable()
+			.primary();
+		t.boolean('validacionAdmin').notNullable();
+		t.text('descripcion').notNullable();
+		t.date('fechaCreacion').notNullable();
 	});
 };
 
@@ -19,5 +19,4 @@ exports.up = function(knex) {
  */
 exports.down = function(knex) {
 	return knex.schema.dropTable('proyecto');
-
 };

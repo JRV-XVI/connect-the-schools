@@ -5,27 +5,27 @@ const db = require('../db');
 // ------------------------------------------ //
 
 const obtenerMensaje = async () => {
-    const resultado = await db.query('SELECT * FROM "Mensaje"');
+    const resultado = await db.query('SELECT * FROM "mensaje"');
     return resultado.rows;
 }
 
 const mensajePorId = async (id) => {
-    const resultado = await db.query('SELECT * FROM "Mensaje" WHERE "idMensaje" = $1', [id]);
+    const resultado = await db.query('SELECT * FROM "mensaje" WHERE "idMensaje" = $1', [id]);
     return resultado.rows;
 }
 
 const mensajePorUsuario = async (id) => {
-    const resultado = await db.query('SELECT * FROM "Mensaje" WHERE "idUsuario" = $1', [id]);
+    const resultado = await db.query('SELECT * FROM "mensaje" WHERE "idUsuario" = $1', [id]);
     return resultado.rows;
 }
 
 const mensajePorMensajeria = async (id) => {
-    const resultado = await db.query('SELECT * FROM "Mensaje" WHERE "idMensajeria" = $1', [id]);
+    const resultado = await db.query('SELECT * FROM "mensaje" WHERE "idMensajeria" = $1', [id]);
     return resultado.rows;
 }
 
 const crearMensaje = async (params) => {
-    const resultado = await db.query('INSERT INTO "Mensaje" ("idMensajeria", "idUsuario", "contenido", "leido") VALUES ($1, $2, $3, $4) ORDER BY RETURNING *',
+    const resultado = await db.query('INSERT INTO "mensaje" ("idMensajeria", "idUsuario", "contenido", "leido") VALUES ($1, $2, $3, $4) ORDER BY RETURNING *',
         [
             params.idMensajeria,
             params.idUsuario,
@@ -36,8 +36,8 @@ const crearMensaje = async (params) => {
 }
 
 const eliminarMensajePorId = async (idMensaje) => {
-    const resultado = await db.query('DELETE FROM "Mensaje" WHERE "idMensaje" = $1 RETURNING *', [idMensaje]);
+    const resultado = await db.query('DELETE FROM "mensaje" WHERE "idMensaje" = $1 RETURNING *', [idMensaje]);
     return resultado.rows;
 }
 
-module.exports = {obtenerMensaje, mensajePorId, mensajePorUsuario, mensajePorMensajeria, crearMensaje, eliminarMensajePorId}
+module.exports = { obtenerMensaje, mensajePorId, mensajePorUsuario, mensajePorMensajeria, crearMensaje, eliminarMensajePorId }

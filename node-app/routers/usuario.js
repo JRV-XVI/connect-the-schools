@@ -22,14 +22,12 @@ const obtenerUsuario = async (req, res, next) => {
 
 const validarUsuarioId = (req, res, next) => {
 	const id = Number(req.params.id);
-	
 	// Verifica que sea un número y mayor que cero
 	if (isNaN(id) || id <= 0 || !Number.isInteger(id)) {
-	  return res.status(400).json({
-		error: "El parámetro 'idUsuario' debe ser un entero mayor que cero"
-	  });
+		return res.status(400).json({
+			error: "El parámetro 'idUsuario' debe ser un entero mayor que cero"
+		});
 	}
-	
 	// Si la validación pasa, continúa
 	next();
 };
