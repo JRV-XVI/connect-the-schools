@@ -38,9 +38,18 @@ const validarUsuarioId = (req, res, next) => {
 
 // Crear usuario
 usuario.post('/usuario', async (req, res, next) => {
-	const resultado = await modelo.crearUsuario(req.query);
-	console.log(resultado);
-	res.send(resultado);
+	try {
+		const resultado = await modelo.crearUsuario(req.query);
+		res.status(201).send(resultado);
+	} catch (error) {
+		if (error.status === 500 || !error.status) {
+			return res.status(400).json({
+				error: "Faltan campos"
+			});
+		}
+		next(error);
+	}
+
 });
 
 // Obtener todos los usuarios

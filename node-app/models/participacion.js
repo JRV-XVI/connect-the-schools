@@ -1,102 +1,129 @@
 const db = require('../db');
 
-// Obtener todas las participaciones sin asignación a proyecto
-const obtenerParticipacionesSinProyecto = async () => {
-    const query = `
-        SELECT pp.*, 
-               pe."nivelEducativo", pe."nombreDirector",
-               pa."razonSocial"
-        FROM "participacionProyecto" pp
-        JOIN "perfilEscuela" pe ON pe."cct" = pp."cct"
-        JOIN "perfilAliado" pa ON pa."rfc" = pp."rfc"
-        WHERE pp."idProyecto" IS NULL;
-    `;
-    const resultado = await db.query(query);
-    return resultado.rows;
+
+// Crear nueva participación en proyecto
+const crearParticipacion = async (rfc, cct, datos = {}) => {
+    // Datos deafault para crear la participacion
+    const {
+        idProyecto = null,
+        aceptacionAliado = true,
+        aceptacionEscuela = false
+    } = datos;
+
+    // Verifica existencia de la escuela
+    const escuela = await db.query('SELECT * FROM "perfilEscuela" WHERE cct = $1', [cct]);
+    if (escuela.rows.length === 0) {
+        const error = new Error(`No se encontró la escuela con CCT: ${cct}`);
+        error.status = 404;
+        throw error;
+    }
+
+    // Verifica existencia del aliado
+    const aliado = await db.query('SELECT * FROM "perfilAliado" WHERE rfc = $1', [rfc]);
+    if (aliado.rows.length === 0) {
+        const error = new Error(`No se encontró el aliado con RFC: ${rfc}`);
+        error.status = 404;
+        throw error;
+    }
+
+    const resultado = await db.query(`
+		INSERT INTO "participacionProyecto" 
+			("idProyecto", cct, rfc, "aceptacionAliado", "aceptacionEscuela")
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING *
+	`, [idProyecto, cct, rfc, aceptacionAliado, aceptacionEscuela]);
+
+    const participacion = resultado.rows[0];
+
+    // Añadir campo virtual: fechaCreacion
+    return {
+        ...participacion,
+        fechaCreacion: new Date().toISOString() // o cualquier formato que estés usando
+    };
 };
 
-// Obtener participaciones por idProyecto
+
+
+// Obtener todas las participaciones por idProyecto
 const obtenerParticipacionesPorProyecto = async (idProyecto) => {
-    const query = `
-        SELECT pp.*, 
-               p."descripcion", p."fechaCreacion" as "fechaCreacionProyecto", p."validacionAdmin",
-               pe."nivelEducativo", pe."nombreDirector",
-               pa."razonSocial"
-        FROM "participacionProyecto" pp
-        JOIN "proyecto" p ON p."idProyecto" = pp."idProyecto"
-        JOIN "perfilEscuela" pe ON pe."cct" = pp."cct"
-        JOIN "perfilAliado" pa ON pa."rfc" = pp."rfc"
-        WHERE pp."idProyecto" = $1;
-    `;
-    const resultado = await db.query(query, [idProyecto]);
+    const resultado = await db.query(`
+		SELECT p.*, 
+			to_jsonb(proyecto.*) AS proyecto,
+			to_jsonb(pe.*) AS escuela,
+			to_jsonb(pa.*) AS aliado
+		FROM "participacionProyecto" p
+		LEFT JOIN proyecto ON proyecto."idProyecto" = p."idProyecto"
+		LEFT JOIN "perfilEscuela" pe ON pe.cct = p.cct
+		LEFT JOIN "perfilAliado" pa ON pa.rfc = p.rfc
+		WHERE p."idProyecto" = $1
+	`, [idProyecto]);
     return resultado.rows;
 };
 
-// Obtener una participación por rfc y cct (vinculación)
-const obtenerParticipacion = async (rfc, cct) => {
-    const query = `
-        SELECT pp.*,
-               pe."nivelEducativo", pe."sector", pe."numeroEstudiantes",
-               pe."nombreDirector", pe."telefonoDirector",
-               pa."razonSocial", pa."telefono", pa."correoRepresentante",
-               ue."nombre" as "nombreEscuela", ue."correo" as "correoEscuela",
-               ua."nombre" as "nombreAliado", ua."correo" as "correoAliado"
-        FROM "participacionProyecto" pp
-        JOIN "perfilEscuela" pe ON pe."cct" = pp."cct"
-        JOIN "usuario" ue ON ue."idUsuario" = pe."idUsuario"
-        JOIN "perfilAliado" pa ON pa."rfc" = pp."rfc"
-        JOIN "usuario" ua ON ua."idUsuario" = pa."idUsuario"
-        WHERE pp."cct" = $1 AND pp."rfc" = $2;
-    `;
-    const resultado = await db.query(query, [cct, rfc]);
+// Participaciones sin proyecto asignado
+const obtenerParticipacionesSinProyecto = async () => {
+    const resultado = await db.query(`
+		SELECT p.*, 
+			to_jsonb(pe.*) AS escuela,
+			to_jsonb(pa.*) AS aliado
+		FROM "participacionProyecto" p
+		LEFT JOIN "perfilEscuela" pe ON pe.cct = p.cct
+		LEFT JOIN "perfilAliado" pa ON pa.rfc = p.rfc
+		WHERE p."idProyecto" IS NULL
+	`);
+    return resultado.rows.map(row => ({ ...row, estado: "Pendiente de asignación a proyecto" }));
+};
+
+// Participación por rfc y cct
+const obtenerParticipacionPorEscuelaYAliado = async (rfc, cct) => {
+    const resultado = await db.query(`
+		SELECT p.*, 
+			to_jsonb(pe.*) AS escuela,
+			to_jsonb(pa.*) AS aliado
+		FROM "participacionProyecto" p
+		LEFT JOIN "perfilEscuela" pe ON pe.cct = p.cct
+		LEFT JOIN "perfilAliado" pa ON pa.rfc = p.rfc
+		WHERE p.rfc = $1 AND p.cct = $2
+	`, [rfc, cct]);
     return resultado.rows[0];
 };
 
-// Crear nueva participación
-const crearParticipacion = async ({ idProyecto = null, cct, rfc, aceptacionAliado, aceptacionEscuela }) => {
-    const query = `
-        INSERT INTO "participacionProyecto" ("idProyecto", "cct", "rfc", "aceptacionAliado", "aceptacionEscuela")
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING *;
-    `;
-    const valores = [idProyecto, cct, rfc, aceptacionAliado, aceptacionEscuela];
-    const resultado = await db.query(query, valores);
+// Participación por idProyecto
+const obtenerParticipacionConsolidada = async (idProyecto) => {
+    const resultado = await db.query(`
+		SELECT p.*, 
+			proyecto.descripcion, proyecto."fechaCreacion" AS "fechaProyecto", proyecto."validacionAdmin",
+			pe.*, pa.*, 
+			'Firmado por ambas partes' AS estado
+		FROM "participacionProyecto" p
+		LEFT JOIN proyecto ON p."idProyecto" = proyecto."idProyecto"
+		LEFT JOIN "perfilEscuela" pe ON p.cct = pe.cct
+		LEFT JOIN "perfilAliado" pa ON p.rfc = pa.rfc
+		WHERE p."idProyecto" = $1
+	`, [idProyecto]);
     return resultado.rows[0];
 };
 
 // Actualizar participación por cct y rfc
-const actualizarParticipacion = async (rfc, cct, params) => {
-    const campos = ['idProyecto', 'aceptacionAliado', 'aceptacionEscuela'];
-    const updates = [];
-    const values = [rfc, cct];
-    let index = 3;
-
-    campos.forEach(campo => {
-        if (params[campo] !== undefined) {
-            updates.push(`"${campo}" = $${index}`);
-            values.push(params[campo]);
-            index++;
-        }
-    });
-
-    if (updates.length === 0) return null;
-
-    const query = `
-        UPDATE "participacionProyecto"
-        SET ${updates.join(', ')}
-        WHERE "rfc" = $1 AND "cct" = $2
-        RETURNING *;
-    `;
-
-    const resultado = await db.query(query, values);
+const actualizarParticipacion = async (rfc, cct, cambios) => {
+    const resultado = await db.query(`
+		UPDATE "participacionProyecto"
+		SET "idProyecto" = $1,
+			"aceptacionAliado" = $2,
+			"aceptacionEscuela" = $3
+		WHERE rfc = $4 AND cct = $5
+		RETURNING *`,
+        [cambios.idProyecto, cambios.aceptacionAliado, cambios.aceptacionEscuela, rfc, cct]
+    );
     return resultado.rows[0];
 };
 
 module.exports = {
-    obtenerParticipacionesSinProyecto,
-    obtenerParticipacionesPorProyecto,
-    obtenerParticipacion,
     crearParticipacion,
+    obtenerParticipacionesPorProyecto,
+    obtenerParticipacionesSinProyecto,
+    obtenerParticipacionPorEscuelaYAliado,
+    obtenerParticipacionConsolidada,
     actualizarParticipacion
 };
 

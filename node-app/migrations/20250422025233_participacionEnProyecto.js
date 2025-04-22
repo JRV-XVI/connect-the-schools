@@ -6,7 +6,6 @@ exports.up = function(knex) {
 	return knex.schema.createTable('participacionProyecto', function(t) {
 		t.integer('idProyecto')
 			.unsigned()
-			.notNullable()
 			.references('idProyecto')
 			.inTable('proyecto')
 			.onDelete('CASCADE');
