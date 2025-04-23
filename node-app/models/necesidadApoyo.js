@@ -4,20 +4,22 @@ const db = require('../db');
 // ----------------- QUERYS ----------------- //
 // ------------------------------------------ //
 
+const verificarUsuarioExiste = async (idUsuario) => {
+    const resultado = await db.query('SELECT 1 FROM "usuario" WHERE "idUsuario" = $1', [idUsuario]);
+    return resultado.rowCount > 0; // Devuelve true si el usuario existe, false si no
+};
+
 const obtenerNecesidadApoyo = async () => {
     const resultado = await db.query('SELECT * FROM "necesidadApoyo"');
     return resultado.rows;
 }
 
 const necesidadApoyoPorId = async (id) => {
+    console.log('[INFO] Consultando necesidad/apoyo con ID:', id);
     const resultado = await db.query('SELECT * FROM "necesidadApoyo" WHERE "idNecesidadAPoyo" = $1', [id]);
+    console.log('[INFO] Resultado de la consulta SQL:', resultado.rows);
     return resultado.rows;
-}
-
-const necesidadApoyoPorUsuario = async (id) => {
-    const resultado = await db.query('SELECT * FROM "necesidadApoyo" WHERE "idUsuario" = $1', [id]);
-    return resultado.rows;
-}
+};
 
 const crearNecesidadApoyo = async (params) => {
     const resultado = await db.query('INSERT INTO "necesidadApoyo" ("idUsuario", "idCategoria", "idSubcategoria", descripcion, prioridad, "fechaCreacion", "estadoValidacion") VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
@@ -60,5 +62,16 @@ const actualizarNecesidadApoyo = async (idNecesidadAPoyo, params) => {
     return resultado.rows[0];
 }
 
+const necesidadApoyoPorUsuario = async (idUsuario) => {
+    const resultado = await db.query('SELECT * FROM "necesidadApoyo" WHERE "idUsuario" = $1', [idUsuario]);
+    return resultado.rows; 
+};
 
-module.exports = { obtenerNecesidadApoyo, necesidadApoyoPorId, necesidadApoyoPorUsuario, crearNecesidadApoyo, eliminarNecesidadApoyo, actualizarNecesidadApoyo }
+
+module.exports = { obtenerNecesidadApoyo, 
+                    necesidadApoyoPorId, 
+                    necesidadApoyoPorUsuario, 
+                    crearNecesidadApoyo, 
+                    eliminarNecesidadApoyo, 
+                    actualizarNecesidadApoyo,
+                    verificarUsuarioExiste }
