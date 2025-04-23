@@ -18,11 +18,11 @@ const infoProyecto = async (id) => {
 
 // Crear nuevo proyecto
 const crearProyecto = async (params) => {
-	const resultado = await db.query('INSERT INTO proyecto ("validacionAdmin", descripcion, "fechaCreacion") VALUES ($1, $2, $3)',
+	const resultado = await db.query('INSERT INTO proyecto ("validacionAdmin", descripcion, "fechaCreacion") VALUES ($1, $2, $3) RETURNING *',
 		[
-			params.validacionAdmin,
+			false,
 			params.descripcion,
-			params.fechaCreacion,
+			new Date().toISOString(),
 		]);
 	return resultado.rows;
 };
@@ -72,7 +72,7 @@ const existeProyectoEtapa = async (idEtapa, idProyecto) => {
 
 // Crear un proyecto etapa
 const crearProyectoEtapa = async (idProyecto, params) => {
-	const resultado = await db.query('INSERT INTO "proyectoEtapas" ("idProyecto", "tituloEtapa", "descripcionEtapa", orden) VALUES ($1, $2, $3, $4)',
+	const resultado = await db.query('INSERT INTO "proyectoEtapas" ("idProyecto", "tituloEtapa", "descripcionEtapa", orden) VALUES ($1, $2, $3, $4) RETURNING *',
 		[
 			idProyecto,
 			params.tituloEtapa,
@@ -107,11 +107,11 @@ const existeEtapaEntrega = async (idEtapa, idEntega) => {
 
 // Crear una nueva entrega
 const crearProyectoEntrega = async (idEtapa, params) => {
-	const resultado = await db.query('INSERT INTO "proyectoEntregas" ("idEtapa", "tituloEntrega", "fechaEntrega", descripcion, "estadoEntrega", archivo, observaciones) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+	const resultado = await db.query('INSERT INTO "proyectoEntregas" ("idEtapa", "tituloEntrega", "fechaEntrega", descripcion, "estadoEntrega", archivo, observaciones) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
 		[
 			idEtapa,
 			params.tituloEntrega,
-			params.fechaEntrega,
+			new Date().toISOString(),
 			params.descripcion,
 			params.estadoEntrega,
 			params.archivo,

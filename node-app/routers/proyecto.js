@@ -183,7 +183,7 @@ proyecto.post('/proyecto', validarCamposProyecto, async (req, res, next) => {
 		const resultado = await modelo.crearProyecto(params);
 		const nuevoProyecto = await modelo.infoProyecto(resultado.insertId || 1); // Obtener el proyecto recién creado
 
-		res.status(201).json(nuevoProyecto[0]);
+		res.status(201).send(resultado);
 	} catch (error) {
 		next(error);
 	}
@@ -242,19 +242,7 @@ proyecto.put('/proyecto/:idProyecto', verificarProyectoExiste, async (req, res, 
 proyecto.post('/proyecto/:idProyecto/etapas', verificarProyectoExiste, validarCamposEtapa, async (req, res, next) => {
 	try {
 		const resultado = await modelo.crearProyectoEtapa(req.idProyecto, req.query);
-
-		// Construir respuesta según documentación
-		const respuesta = {
-			idEtapa: resultado.insertId || 1,
-			idProyecto: req.idProyecto,
-			tituloEtapa: req.query.tituloEtapa,
-			descripcionEtapa: req.query.descripcionEtapa,
-			orden: parseInt(req.query.orden),
-			fechaCreacion: new Date().toISOString().split('T')[0],
-			mensaje: "Etapa creada exitosamente"
-		};
-
-		res.status(201).json(respuesta);
+		res.status(201).send(resultado);
 	} catch (error) {
 		next(error);
 	}
@@ -290,17 +278,11 @@ proyecto.post('/proyecto/etapas/:idEtapa/entregas', verificarEtapaExiste, valida
 		};
 
 		const resultado = await modelo.crearProyectoEntrega(req.idEtapa, params);
+		const { archivo, ...restoResultado } = resultado[0]; // O resultado.rows[0] si es el retorno directo del query
 
-		// Construir respuesta según documentación
 		const respuesta = {
-			idEntrega: resultado.insertId || 1,
-			idEtapa: req.idEtapa,
-			tituloEntrega: req.query.tituloEntrega,
-			fechaEntrega: params.fechaEntrega,
-			descripcion: req.query.descripcion,
-			estadoEntrega: parseInt(req.query.estadoEntrega),
+			...restoResultado,
 			archivo: req.file.originalname,
-			observaciones: req.query.observaciones || ""
 		};
 
 		res.status(201).json(respuesta);
