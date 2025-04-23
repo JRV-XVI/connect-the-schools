@@ -15,7 +15,7 @@ participacion.post('/participacion/:cct/:rfc', async (req, res, next) => {
     }
 });
 
-// Obtener todas las participaciones de un proyecto
+// Obtener la participacion de un proyecto
 participacion.get('/proyecto/:idProyecto/participacion', async (req, res, next) => {
     const idProyecto = Number(req.params.idProyecto);
     if (isNaN(idProyecto)) {
@@ -43,7 +43,7 @@ participacion.get('/participacion', async (req, res, next) => {
 });
 
 // Obtener participación por RFC y CCT
-participacion.get('/participacion/:cct/:rcf', async (req, res, next) => {
+participacion.get('/participacion/:cct/:rfc', async (req, res, next) => {
     const { rfc, cct } = req.params;
     try {
         const resultado = await modelo.obtenerParticipacionPorEscuelaYAliado(rfc, cct);
@@ -70,13 +70,26 @@ participacion.get('/proyecto/:idProyecto/participacion', async (req, res, next) 
     }
 });
 
-// Actualizar participación
-participacion.put('/participacion/:rfc/:cct', async (req, res, next) => {
+// Actualizar participación para validacion escuela
+participacion.put('/participacion/:cct/:rfc', async (req, res, next) => {
     const { rfc, cct } = req.params;
-    const cambios = req.query;
+    try {
+        const resultado = await modelo.actualizarParticipacion(rfc, cct);
+        if (!resultado) {
+            return res.status(404).json({ error: `No se encontró la participación en proyecto con los datos especificados` });
+        }
+        res.json(resultado);
+    } catch (error) {
+        next(error);
+    }
+});
+
+// Actualizar participación para id proyecto
+participacion.put('/participacion/:cct/:rfc/:idProyecto', async (req, res, next) => {
+    const { rfc, cct, idProyecto } = req.params;
 
     try {
-        const resultado = await modelo.actualizarParticipacion(rfc, cct, cambios);
+        const resultado = await modelo.actualizarParticipacionConProyecto(rfc, cct, idProyecto);
         if (!resultado) {
             return res.status(404).json({ error: `No se encontró la participación en proyecto con los datos especificados` });
         }
