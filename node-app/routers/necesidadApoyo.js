@@ -8,7 +8,8 @@ const necesidadApoyo = express.Router();
 
 const obtenerNecesidadPorId = async (req, res, next) => {
     try {
-        const id = Number(req.params.idNecesidadApoyo || req.params.idNecesidadApoyo);
+        const id = Number(req.params.idNecesidadApoyo);
+        console.log('[INFO] ID recibido:', id);
 
         if (isNaN(id) || id <= 0) {
             const error = new Error("El formato del ID de necesidad/apoyo no es válido");
@@ -17,6 +18,7 @@ const obtenerNecesidadPorId = async (req, res, next) => {
         }
 
         const resultado = await model.necesidadApoyoPorId(id);
+        console.log('[INFO] Resultado de la consulta:', resultado);
 
         if (!resultado || resultado.length === 0) {
             const error = new Error(`Necesidad/Apoyo con id ${id} no encontrado`);
@@ -34,7 +36,7 @@ const obtenerNecesidadPorId = async (req, res, next) => {
 
 const verificarUsuarioExiste = async (req, res, next) => {
     try {
-        const idUsuario = Number(req.query.idUsuario || req.params.idUsuario);
+        const idUsuario = Number(req.body?.idUsuario || req.params?.idUsuario);
 
         if (!idUsuario) {
             return res.status(400).json({
@@ -58,11 +60,15 @@ const verificarUsuarioExiste = async (req, res, next) => {
 
 const validarCamposObligatorios = (req, res, next) => {
     try {
-        const { descripcion, prioridad, idCategoria, idSubcategoria } = req.query;
+        const { descripcion, prioridad, idCategoria, idSubcategoria, idUsuario } = req.body;
         const camposFaltantes = [];
 
         if (!descripcion) camposFaltantes.push('descripcion');
         if (!prioridad) camposFaltantes.push('prioridad');
+        if (!idCategoria) camposFaltantes.push('idCategoria');
+        if (!idSubcategoria) camposFaltantes.push('idSubcategoria');
+        if (!idUsuario) camposFaltantes.push('idUsuario');
+
 
         if (camposFaltantes.length > 0) {
             return res.status(400).json({
@@ -83,7 +89,7 @@ const validarCamposObligatorios = (req, res, next) => {
 // Crear necesidad/apoyo (ruta notificación según documentación)
 necesidadApoyo.post('/usuarionecesidadApoyo', validarCamposObligatorios, verificarUsuarioExiste, async (req, res, next) => {
     try {
-        const resultado = await model.crearNecesidadApoyo(req.query);
+        const resultado = await model.crearNecesidadApoyo(req.body);
         res.status(201).send(resultado);
     } catch (error) {
         next(error);
@@ -104,7 +110,10 @@ necesidadApoyo.get('/necesidadApoyo', async (req, res, next) => {
 necesidadApoyo.get('/usuario/:idUsuario/necesidadApoyo', verificarUsuarioExiste, async (req, res, next) => {
     try {
         const id = Number(req.params.idUsuario);
+        console.log('[INFO] ID de usuario recibido:', id);
+
         const resultado = await model.necesidadApoyoPorUsuario(id);
+        console.log('[INFO] Resultado de la consulta:', resultado);
 
         if (resultado.length === 0) {
             return res.status(404).json({
@@ -114,6 +123,29 @@ necesidadApoyo.get('/usuario/:idUsuario/necesidadApoyo', verificarUsuarioExiste,
 
         res.status(200).send(resultado);
     } catch (error) {
+        console.error('[ERROR] Error en el controlador:', error.message);
+        next(error);
+    }
+});
+
+necesidadApoyo.get('/necesidadApoyo/:idNecesidadApoyo', async (req, res, next) => {
+    try {
+        const id = Number(req.params.idNecesidadApoyo);
+        console.log('[INFO] ID recibido:', id);
+
+        if (isNaN(id) || id <= 0) {
+            return res.status(400).json({ error: 'El ID proporcionado no es válido' });
+        }
+
+        const resultado = await model.necesidadApoyoPorId(id);
+        console.log('[INFO] Resultado de la consulta:', resultado);
+
+        if (!resultado || resultado.length === 0) {
+            return res.status(404).json({ error: `No se encontró la necesidad de apoyo con ID ${id}` });
+        }
+
+        res.status(200).json(resultado[0]);
+    } catch (error) {
         next(error);
     }
 });
@@ -121,11 +153,11 @@ necesidadApoyo.get('/usuario/:idUsuario/necesidadApoyo', verificarUsuarioExiste,
 // Actualizar una necesidad/apoyo por su ID
 necesidadApoyo.put('/necesidadApoyo/:idNecesidadApoyo', obtenerNecesidadPorId, async (req, res, next) => {
     try {
-        if (Object.keys(req.query).length === 0) {
+        if (Object.keys(req.body).length === 0) {
             return res.status(400).json({ error: "No hay campos para actualizar" });
         }
 
-        const resultado = await model.actualizarNecesidadApoyo(req.idNecesidadApoyo, req.query);
+        const resultado = await model.actualizarNecesidadApoyo(req.idNecesidadApoyo, req.body);
         res.status(200).json(resultado);
     } catch (error) {
         next(error);
@@ -162,7 +194,7 @@ necesidadApoyo.delete('/necesidadApoyo/:idNecesidadApoyo', async (req, res, next
 // Validar necesidad/apoyo (ruta separada para validación)
 necesidadApoyo.put('/necesidadApoyo/:idNecesidadApoyo/validar', obtenerNecesidadPorId, async (req, res, next) => {
     try {
-        const { estadoValidacion } = req.query;
+        const { estadoValidacion } = req.body;
 
         if (!estadoValidacion) {
             return res.status(400).json({
