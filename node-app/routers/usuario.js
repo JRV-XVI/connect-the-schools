@@ -36,6 +36,23 @@ const validarUsuarioId = (req, res, next) => {
 // ----------------- ROUTERS ----------------- //
 // ------------------------------------------- //
 
+
+// Login
+usuario.post('/login', async (req, res, next) => {
+	try {
+		const resultado = await modelo.validacionLogin(req.query);
+		res.status(200).send(resultado);
+	} catch (error) {
+		if (error.status === 500 || !error.status) {
+			return res.status(400).json({
+				error: "Faltan campos"
+			});
+		}
+		next(error);
+
+	}
+});
+
 // Crear usuario
 usuario.post('/usuario', async (req, res, next) => {
 	try {

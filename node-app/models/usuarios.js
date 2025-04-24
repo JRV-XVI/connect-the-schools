@@ -4,6 +4,11 @@ const db = require('../db');
 // ----------------- USUARIO  ------------------- // 
 // ---------------------------------------------- // 
 
+const validacionLogin = async (params) => {
+	const resultado = await db.query('SELECT "idUsuario" FROM Usuario WHERE contraseña = $1 AND correo = $2', [params.contraseña, params.correo]);
+	return resultado.rows;
+}
+
 const obtenerUsuarios = async () => {
 	const resultado = await db.query('SELECT * FROM Usuario');
 	return resultado.rows;
@@ -53,4 +58,4 @@ const eliminarUsuario = async (id) => {
 	};
 };
 
-module.exports = { obtenerUsuarios, infoUsuario, crearUsuario, eliminarUsuario, actualizarUsuario};
+module.exports = { obtenerUsuarios, infoUsuario, crearUsuario, eliminarUsuario, actualizarUsuario, validacionLogin };
