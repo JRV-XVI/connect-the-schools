@@ -3,65 +3,202 @@ import { Container, Row, Col, Card, Tab, Nav, Form, Button } from 'react-bootstr
 
 const SchoolRegistrationForm = () => {
   const [formData, setFormData] = useState({
-    schoolName: '',
-    cct: '',
     email: '',
-    phone: ''
+    password: '',
+    confirmPassword: '',
+    phone: '',
+    schoolName: '',
+    direction: '',
+    educationalLevel: '',
+    sector: '',
+    numberStudents: '',
+    nameDirector: '',
+    phoneDirector: '',
+    cct: '',
   });
+  
+  const [step, setStep] = useState(1);
+  const [passwordError, setPasswordError] = useState('');
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.id]: e.target.value
     });
+    
+    // Clear password error when user types in either password field
+    if (e.target.id === 'password' || e.target.id === 'confirmPassword') {
+      setPasswordError('');
+    }
   };
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Datos de registro escuela:', formData);
-    // Lógica para enviar datos de registro
+    
+    if (step === 1) {
+      // Verify passwords match before proceeding
+      if (formData.password !== formData.confirmPassword) {
+        setPasswordError('Las contraseñas no coinciden');
+        return;
+      }
+      
+      // Move to second step
+      setStep(2);
+    } else {
+      // Final submission
+      console.log('Datos de registro escuela:', formData);
+      // Lógica para enviar datos de registro
+    }
   };
 
   return (
     <Form className="row g-3" onSubmit={handleSubmit}>
-      <Form.Group as={Col} md={6} controlId="schoolName">
-        <Form.Label>Nombre de la institución</Form.Label>
-        <Form.Control 
-          type="text" 
-          value={formData.schoolName}
-          onChange={handleChange}
-          required 
-        />
-      </Form.Group>
-      <Form.Group as={Col} md={6} controlId="cct">
-        <Form.Label>Clave de Centro de Trabajo (CCT)</Form.Label>
-        <Form.Control 
-          type="text" 
-          value={formData.cct}
-          onChange={handleChange}
-          required 
-        />
-      </Form.Group>
-      <Form.Group as={Col} md={6} controlId="email">
-        <Form.Label>Correo electrónico institucional</Form.Label>
-        <Form.Control 
-          type="email" 
-          value={formData.email}
-          onChange={handleChange}
-          required 
-        />
-      </Form.Group>
-      <Form.Group as={Col} md={6} controlId="phone">
-        <Form.Label>Teléfono</Form.Label>
-        <Form.Control 
-          type="tel" 
-          value={formData.phone}
-          onChange={handleChange}
-          required 
-        />
-      </Form.Group>
-      <Col xs={12}>
-        <Button type="submit" variant="primary">Continuar registro</Button>
+      {step === 1 ? (
+        // Step 1 - Basic credentials
+        <>
+          <Form.Group as={Col} md={6} controlId="email">
+            <Form.Label>Correo electrónico</Form.Label>
+            <Form.Control 
+              type="email" 
+              value={formData.email}
+              onChange={handleChange}
+              required 
+            />
+          </Form.Group>
+          <Form.Group as={Col} md={6} controlId="cct">
+            <Form.Label>Clave de Centro de Trabajo (CCT)</Form.Label>
+            <Form.Control 
+              type="text" 
+              value={formData.cct}
+              onChange={handleChange}
+              required 
+            />
+          </Form.Group>
+          <Form.Group as={Col} md={6} controlId="password">
+            <Form.Label>Contraseña</Form.Label>
+            <Form.Control 
+              type="password" 
+              value={formData.password}
+              onChange={handleChange}
+              required 
+            />
+          </Form.Group>
+          <Form.Group as={Col} md={6} controlId="confirmPassword">
+            <Form.Label>Confirmar contraseña</Form.Label>
+            <Form.Control 
+              type="password" 
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required 
+              isInvalid={!!passwordError}
+            />
+            <Form.Control.Feedback type="invalid">
+              {passwordError}
+            </Form.Control.Feedback>
+          </Form.Group>
+        </>
+      ) : (
+        // Step 2 - Additional information
+        <>
+          <Form.Group as={Col} md={6} controlId="schoolName">
+            <Form.Label>Nombre de la institución</Form.Label>
+            <Form.Control 
+              type="text" 
+              value={formData.schoolName}
+              onChange={handleChange}
+              required 
+            />
+          </Form.Group>
+          <Form.Group as={Col} md={6} controlId="phone">
+            <Form.Label>Teléfono</Form.Label>
+            <Form.Control 
+              type="tel" 
+              value={formData.phone}
+              onChange={handleChange}
+              required 
+            />
+          </Form.Group>
+          <Form.Group as={Col} md={6} controlId="direction">
+            <Form.Label>Dirección</Form.Label>
+            <Form.Control 
+              type="text" 
+              value={formData.direction}
+              onChange={handleChange}
+              required 
+            />
+          </Form.Group>
+          <Form.Group as={Col} md={6} controlId="educationalLevel">
+            <Form.Label>Nivel educativo</Form.Label>
+            <Form.Select 
+              value={formData.educationalLevel}
+              onChange={handleChange}
+              required
+            >
+              <option value="" disabled>Selecciona...</option>
+              <option>Preescolar</option>
+              <option>Primaria</option>
+              <option>Secundaria</option>
+              <option>Preparatoria</option>
+              <option>Otro</option>
+            </Form.Select>
+          </Form.Group>
+          <Form.Group as={Col} md={6} controlId="sector">
+            <Form.Label>Sector</Form.Label>
+            <Form.Select 
+              value={formData.sector}
+              onChange={handleChange}
+              required
+            >
+              <option value="" disabled>Selecciona...</option>
+              <option>Público</option>
+              <option>Privado</option>
+              <option>Concertado</option>
+            </Form.Select>
+          </Form.Group>
+          <Form.Group as={Col} md={6} controlId="numberStudents">
+            <Form.Label>Número de estudiantes</Form.Label>
+            <Form.Control 
+              type="number" 
+              value={formData.numberStudents}
+              onChange={handleChange}
+              required 
+            />
+          </Form.Group>
+          <Form.Group as={Col} md={6} controlId="nameDirector">
+            <Form.Label>Nombre del director/a</Form.Label>
+            <Form.Control 
+              type="text" 
+              value={formData.nameDirector}
+              onChange={handleChange}
+              required 
+            />
+          </Form.Group>
+          <Form.Group as={Col} md={6} controlId="phoneDirector">
+            <Form.Label>Teléfono del director/a</Form.Label>
+            <Form.Control 
+              type="tel" 
+              value={formData.phoneDirector}
+              onChange={handleChange}
+              required 
+            />
+          </Form.Group>
+        </>
+      )}
+      
+      <Col xs={12} className="mt-4 d-flex justify-content-between">
+        {step === 2 && (
+          <Button 
+            type="button" 
+            variant="outline-secondary" 
+            onClick={() => setStep(1)}
+          >
+            Volver atrás
+          </Button>
+        )}
+        <Button type="submit" variant="primary">
+          {step === 1 ? "Continuar registro" : "Completar registro"}
+        </Button>
       </Col>
     </Form>
   );
@@ -69,71 +206,187 @@ const SchoolRegistrationForm = () => {
 
 const AllyRegistrationForm = () => {
   const [formData, setFormData] = useState({
-    allyType: '',
-    allyName: '',
     email: '',
-    phone: ''
+    password: '',
+    confirmPassword: '', 
+    phone: '',
+    allyName: '',
+    allyType: '',
+    direction: '',
+    rfc: '',
+    socialReason: '',
+    phoneRepresentative: '',
+    emailRepresentative: '',
   });
+  
+  const [step, setStep] = useState(1);
+  const [passwordError, setPasswordError] = useState('');
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.id]: e.target.value
     });
+    
+    // Clear password error when user types in either password field
+    if (e.target.id === 'password' || e.target.id === 'confirmPassword') {
+      setPasswordError('');
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Datos de registro aliado:', formData);
-    // Lógica para enviar datos de registro
+    
+    if (step === 1) {
+      // Verify passwords match before proceeding
+      if (formData.password !== formData.confirmPassword) {
+        setPasswordError('Las contraseñas no coinciden');
+        return;
+      }
+      
+      // Move to second step
+      setStep(2);
+    } else {
+      // Final submission
+      console.log('Datos de registro aliado:', formData);
+      // Lógica para enviar datos de registro
+    }
   };
 
   return (
     <Form className="row g-3" onSubmit={handleSubmit}>
-      <Form.Group as={Col} md={6} controlId="allyType">
-        <Form.Label>Tipo de aliado</Form.Label>
-        <Form.Select 
-          value={formData.allyType}
-          onChange={handleChange}
-          required
-        >
-          <option value="" disabled>Selecciona...</option>
-          <option>Empresa</option>
-          <option>Organización Civil</option>
-          <option>Institución Gubernamental</option>
-          <option>Universidad/Bachillerato</option>
-          <option>Persona de la comunidad</option>
-        </Form.Select>
-      </Form.Group>
-      <Form.Group as={Col} md={6} controlId="allyName">
-        <Form.Label>Nombre de la organización/persona</Form.Label>
-        <Form.Control 
-          type="text" 
-          value={formData.allyName}
-          onChange={handleChange}
-          required 
-        />
-      </Form.Group>
-      <Form.Group as={Col} md={6} controlId="email">
-        <Form.Label>Correo electrónico</Form.Label>
-        <Form.Control 
-          type="email" 
-          value={formData.email}
-          onChange={handleChange}
-          required 
-        />
-      </Form.Group>
-      <Form.Group as={Col} md={6} controlId="phone">
-        <Form.Label>Teléfono</Form.Label>
-        <Form.Control 
-          type="tel" 
-          value={formData.phone}
-          onChange={handleChange}
-          required 
-        />
-      </Form.Group>
-      <Col xs={12}>
-        <Button type="submit" variant="primary">Continuar registro</Button>
+      {step === 1 ? (
+        // Step 1 - Basic credentials
+        <>
+          <Form.Group as={Col} md={6} controlId="email">
+            <Form.Label>Correo electrónico</Form.Label>
+            <Form.Control 
+              type="email" 
+              value={formData.email}
+              onChange={handleChange}
+              required 
+            />
+          </Form.Group>
+          <Form.Group as={Col} md={6} controlId="rfc">
+            <Form.Label>RFC</Form.Label>
+            <Form.Control 
+              type="text" 
+              value={formData.rfc}
+              onChange={handleChange}
+              required 
+            />
+          </Form.Group>
+          <Form.Group as={Col} md={6} controlId="password">
+            <Form.Label>Contraseña</Form.Label>
+            <Form.Control 
+              type="password" 
+              value={formData.password}
+              onChange={handleChange}
+              required 
+            />
+          </Form.Group>
+          <Form.Group as={Col} md={6} controlId="confirmPassword">
+            <Form.Label>Confirmar contraseña</Form.Label>
+            <Form.Control 
+              type="password" 
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required 
+              isInvalid={!!passwordError}
+            />
+            <Form.Control.Feedback type="invalid">
+              {passwordError}
+            </Form.Control.Feedback>
+          </Form.Group>
+        </>
+      ) : (
+        // Step 2 - Additional information
+        <>
+          <Form.Group as={Col} md={6} controlId="allyType">
+            <Form.Label>Tipo de aliado</Form.Label>
+            <Form.Select 
+              value={formData.allyType}
+              onChange={handleChange}
+              required
+            >
+              <option value="" disabled>Selecciona...</option>
+              <option>Empresa</option>
+              <option>Organización Civil</option>
+              <option>Institución Gubernamental</option>
+              <option>Universidad/Bachillerato</option>
+              <option>Persona de la comunidad</option>
+            </Form.Select>
+          </Form.Group>
+          <Form.Group as={Col} md={6} controlId="allyName">
+            <Form.Label>Nombre de la organización/persona</Form.Label>
+            <Form.Control 
+              type="text" 
+              value={formData.allyName}
+              onChange={handleChange}
+              required 
+            />
+          </Form.Group>
+          <Form.Group as={Col} md={6} controlId="socialReason">
+            <Form.Label>Razón social</Form.Label>
+            <Form.Control 
+              type="text" 
+              value={formData.socialReason}
+              onChange={handleChange}
+              required 
+            />
+          </Form.Group>
+          <Form.Group as={Col} md={6} controlId="phone">
+            <Form.Label>Teléfono</Form.Label>
+            <Form.Control 
+              type="tel" 
+              value={formData.phone}
+              onChange={handleChange}
+              required 
+            />
+          </Form.Group>
+          <Form.Group as={Col} md={6} controlId="direction">
+            <Form.Label>Dirección</Form.Label>
+            <Form.Control 
+              type="text" 
+              value={formData.direction}
+              onChange={handleChange}
+              required 
+            />
+          </Form.Group>
+          <Form.Group as={Col} md={6} controlId="emailRepresentative">
+            <Form.Label>Correo del representante</Form.Label>
+            <Form.Control 
+              type="email" 
+              value={formData.emailRepresentative}
+              onChange={handleChange}
+              required 
+            />
+          </Form.Group>
+          <Form.Group as={Col} md={6} controlId="phoneRepresentative">
+            <Form.Label>Teléfono del representante</Form.Label>
+            <Form.Control 
+              type="tel" 
+              value={formData.phoneRepresentative}
+              onChange={handleChange}
+              required 
+            />
+          </Form.Group>
+        </>
+      )}
+      
+      <Col xs={12} className="mt-4 d-flex justify-content-between">
+        {step === 2 && (
+          <Button 
+            type="button" 
+            variant="outline-secondary" 
+            onClick={() => setStep(1)}
+          >
+            Volver atrás
+          </Button>
+        )}
+        <Button type="submit" variant="primary" className={step === 2 ? "ms-auto" : ""}>
+          {step === 1 ? "Continuar registro" : "Completar registro"}
+        </Button>
       </Col>
     </Form>
   );
