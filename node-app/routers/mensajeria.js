@@ -78,6 +78,16 @@ const obtenerMensajeriaPorId = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
+    const id = Number(req.params.idMensajeria);
+    const resultado = await model.mensajeriaPorId(id);
+    if (resultado.length === 0) {
+        const error = new Error(`Mensajeria con el id ${req.params.id} no encontrado`);
+        error.status = 404;
+        return next(error);
+    }
+    req.mensajeria = resultado[0];
+    req.id = id;
+    next();
 };
 
 const obtenerMensajeriaPorProyecto = async (req, res, next) => {
@@ -94,6 +104,25 @@ const obtenerMensajeriaPorProyecto = async (req, res, next) => {
         next();
     } catch (error) {
         next(error);
+    const id = Number(req.params.idProyecto);
+    const resultado = await model.mensajeriaPorProyecto(id);
+    if (resultado.length === 0) {
+        const error = new Error(`Mensajerias para el proyecto id ${req.params.idProyecto} no encontrada`);
+        error.status = 404;
+        return next(error);
+    }
+    req.mensajerias = resultado;
+    next();
+};
+
+const eliminarMensajeriaPorProyecto = async (req, res, next) => {
+    const id = Number(req.params.idProyecto);
+    const resultado = await model.eliminarMensajeriaPorProyecto(id);
+      
+    if (resultado.length === 0) {
+        const error = new Error(`Mensajeria con id proyecto ${id} no encontrado`);
+        error.status = 404;
+        return next(error);
     }
 };
 
@@ -115,14 +144,23 @@ mensajeria.get('/mensajeria', async (req, res, next) => {
 mensajeria.get('/proyecto/:idProyecto/mensajeria', validarIdProyecto, obtenerMensajeriaPorProyecto, (req, res) => {
     res.status(200).json(req.mensajerias);
 });
+/* // Obtener mensajeria de un proyecto por su ID
+mensajeria.get('/mensajeria/proyecto/:idProyecto', obtenerMensajeriaPorProyecto, (req, res) => {
+    res.send(req.mensajerias);
+}); */
 
 // Obtener una mensajería por su ID
 mensajeria.get('/mensajeria/:id', validarId, obtenerMensajeriaPorId, (req, res) => {
     res.status(200).json(req.mensajeria);
+// Obtener una mensajeria por su ID
+mensajeria.get('/mensajeria/:idMensajeria', obtenerMensajeriaPorId, (req, res) => {
+    res.send(req.mensajeria);
 });
 
 // Crear una mensajería ingresando ID de proyecto
 mensajeria.post('/mensajeria', validarCamposObligatorios, async (req, res, next) => {
+// Crear una mensajeria por un proyecto
+mensajeria.post('/proyecto/:idProyecto/mensajeria', obtenerMensajeriaPorId, async (req, res, next) => {
     try {
         const datos = {
             ...req.query,
