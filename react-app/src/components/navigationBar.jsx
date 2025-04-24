@@ -16,11 +16,11 @@ const NavigationBar = ({ logo }) => {
         <Navbar.Toggle aria-controls="navbarNav" />
         <Navbar.Collapse id="navbarNav">
           <Nav className="ms-auto">
-            <Nav.Link href="#sobre-nosotros">Sobre Nosotros</Nav.Link>
+            <Nav.Link href="https://www.mexicanosprimero.org/">Sobre Nosotros</Nav.Link>
             <Nav.Link href="#como-funciona">Cómo Funciona</Nav.Link>
             <Nav.Link href="#contacto">Contacto</Nav.Link>
             <Nav.Item>
-              <Button variant="outline-primary" className="ms-2" href="#registro">
+              <Button variant="primary" className="ms-2" href="#registro">
                 Registrarse
               </Button>
             </Nav.Item>

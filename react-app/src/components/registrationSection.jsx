@@ -15,6 +15,7 @@ const SchoolRegistrationForm = () => {
     nameDirector: '',
     phoneDirector: '',
     cct: '',
+    userType: 0,
   });
   
   const [step, setStep] = useState(1);
@@ -211,12 +212,12 @@ const AllyRegistrationForm = () => {
     confirmPassword: '', 
     phone: '',
     allyName: '',
-    allyType: '',
     direction: '',
     rfc: '',
     socialReason: '',
     phoneRepresentative: '',
     emailRepresentative: '',
+    typeUser: 1, 
   });
   
   const [step, setStep] = useState(1);
@@ -302,21 +303,6 @@ const AllyRegistrationForm = () => {
       ) : (
         // Step 2 - Additional information
         <>
-          <Form.Group as={Col} md={6} controlId="allyType">
-            <Form.Label>Tipo de aliado</Form.Label>
-            <Form.Select 
-              value={formData.allyType}
-              onChange={handleChange}
-              required
-            >
-              <option value="" disabled>Selecciona...</option>
-              <option>Empresa</option>
-              <option>Organización Civil</option>
-              <option>Institución Gubernamental</option>
-              <option>Universidad/Bachillerato</option>
-              <option>Persona de la comunidad</option>
-            </Form.Select>
-          </Form.Group>
           <Form.Group as={Col} md={6} controlId="allyName">
             <Form.Label>Nombre de la organización/persona</Form.Label>
             <Form.Control 
