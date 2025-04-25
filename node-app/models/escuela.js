@@ -14,18 +14,50 @@ const esceulaId = async (cct) => {
     return resultado.rows;
 }
 
-const crearEscuela = async (params) => {
-    const resultado = await db.query('INSERT INTO "perfilEscuela" (cct, "idUsuario", "nivelEducativo", sector, "numeroEstudiantes", "nombreDirector", "telefonoDirector") VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-        [
-            params.cct,
-            params.idUsuario,
-            params.nivelEducativo,
-            params.sector,
-            params.numeroEstudiantes,
-            params.nombreDirector,
-            params.telefonoDirector
-        ]);
-    return resultado.rows[0];
+async function crearEscuela(data) {
+    const {
+        email,
+        password,
+        phone,
+        schoolName,
+        direction,
+        educationalLevel,
+        sector,
+        numberStudents,
+        nameDirector,
+        phoneRepresentative,
+        cct,
+        userType
+    } = data;
+
+    const estadoCuenta = true; // Pendiente
+    const fechaCreacion = new Date();
+
+    // Insertar en Usuario
+    const idUsuario = await db.query(`INSERT INTO Usuario (correo, contraseña, "tipoPerfil", "estadoCuenta", "fechaCreacion", telefono, nombre, direccion) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING "idUsuario"`, [
+        email,
+        password,
+        userType,
+        estadoCuenta,
+        fechaCreacion,
+        phone,
+        schoolName,
+        direction
+    ]);
+    var id = idUsuario.rows[0].idUsuario;
+
+    await db.query(`INSERT INTO "perfilEscuela" ("idUsuario", cct, "nivelEducativo", sector, "numeroEstudiantes", "nombreDirector", "telefonoDirector") VALUES ($1 , $2, $3, $4, $5, $6, $7)`, [
+        id,
+        cct,
+        educationalLevel,
+        sector,
+        numberStudents,
+        nameDirector,
+        phoneRepresentative
+
+    ]);
+
+    return id;
 }
 
 const eliminarEscuelaPorId = async (cct) => {
@@ -38,9 +70,9 @@ const actualizarEscuela = async (cct, params) => {
     const camposActualizables = ['nivelEducativo', 'sector', 'numeroEstudiantes', 'nombreDirector', 'telefonoDirector'];
     const updates = [];
     const values = [cct]; // El primer parámetro es siempre el cct
-    
+
     let paramIndex = 2; // Empezamos desde $2
-    
+
     camposActualizables.forEach(campo => {
         if (params[campo] !== undefined) {
             updates.push(`"${campo}" = $${paramIndex}`);
@@ -48,10 +80,10 @@ const actualizarEscuela = async (cct, params) => {
             paramIndex++;
         }
     });
-    
+
     // Si no hay campos para actualizar, retornar
     if (updates.length === 0) return null;
-    
+
     const query = `UPDATE "perfilEscuela" SET ${updates.join(', ')} WHERE "cct" = $1 RETURNING *`;
     const resultado = await db.query(query, values);
     return resultado.rows[0];
