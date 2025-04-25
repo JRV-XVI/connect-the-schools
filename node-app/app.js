@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const usuario = require('./routers/usuario.js');
 const proyecto = require('./routers/proyecto.js');
 const admin = require('./routers/admin.js')
@@ -12,6 +13,14 @@ const notificacion = require('./routers/notificacion.js')
 
 const app = express();
 const PORT = process.env.PORT || 4001;
+
+// CORS
+app.use(cors({
+    origin: 'http://localhost:5173',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+}));
+
 
 app.use(express.json());
 app.use('/api', usuario);

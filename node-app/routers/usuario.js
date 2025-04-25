@@ -39,18 +39,23 @@ const validarUsuarioId = (req, res, next) => {
 
 // Login
 usuario.post('/login', async (req, res, next) => {
-	try {
-		const resultado = await modelo.validacionLogin(req.query);
-		res.status(200).send(resultado);
-	} catch (error) {
-		if (error.status === 500 || !error.status) {
-			return res.status(400).json({
-				error: "Faltan campos"
-			});
-		}
-		next(error);
+    try {
+        const { correo, contraseña } = req.body;
 
-	}
+        // Verifica si el usuario existe
+        const resultado = await modelo.validacionLogin({ correo, contraseña });
+        if (resultado.length === 0) {
+            return res.status(401).json({ error: 'Credenciales inválidas' });
+        }
+
+        // Devuelve los datos del usuario
+        res.status(200).json({ 
+            mensaje: 'Inicio de sesión exitoso', 
+            usuario: resultado[0]
+        });
+    } catch (error) {
+        next(error);
+    }
 });
 
 // Crear usuario

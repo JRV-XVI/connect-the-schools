@@ -16,28 +16,12 @@ function App() {
   const isDraggingRef = useRef(false);
   const offsetRef = useRef({ x: 0, y: 0 });
 
-  const handleLogin = (credentials) => {
-    console.log("Intentando iniciar sesión con:", credentials);
-    
-    if (credentials && credentials.email) {
-      let role;
-      if (credentials.email.includes('admin')) {
-        role = 'admin';
-      } else if (credentials.email.includes('aliado')) {
-        role = 'aliado';
-      } else if (credentials.email.includes('escuela')) {
-        role = 'escuela';
-      } else {
-        role = 'aliado';
-      }
+  const handleLogin = (usuario) => {
+    console.log("Usuario autenticado:", usuario);
 
-      setUserRole(role);
-      setUserData({
-        nombre: `Usuario ${role.charAt(0).toUpperCase() + role.slice(1)}`,
-        email: credentials.email
-      });
-    }
-  };
+    setUserRole(usuario.rol);
+    setUserData(usuario);
+};
 
   const handleLogout = () => {
     setUserRole(null);

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
+import axios from 'axios';
 
 const HeroSection = ({ onForgotPassword, onLogin }) => {
   const [loginData, setLoginData] = useState({
@@ -19,27 +20,30 @@ const HeroSection = ({ onForgotPassword, onLogin }) => {
     if (error) setError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!loginData.email || !loginData.password) {
       setError('Por favor complete todos los campos');
       return;
     }
-    
+
     setIsSubmitting(true);
-    
-    // Simulamos un proceso de autenticación
-    setTimeout(() => {
-      try {
-        // Llamar a la función de login del componente padre
-        onLogin(loginData);
-      } catch (err) {
-        setError('Error de autenticación. Verifique sus credenciales.');
-      } finally {
-        setIsSubmitting(false);
-      }
-    }, 1000);
+
+    try {
+      // Enviar las credenciales al backend
+      const response = await axios.post('http://localhost:4001/api/login', {
+        correo: loginData.email,
+        contraseña: loginData.password
+      });
+
+      // Llama a la función onLogin con los datos del usuario
+      onLogin(response.data.usuario);
+    } catch (err) {
+      setError('Error de autenticación. Verifique sus credenciales.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
