@@ -1,7 +1,7 @@
 import React from 'react';
 import { Container, Row, Col, Card, Button } from 'react-bootstrap';
 
-const FeatureCard = ({ icon, title, description, buttonText }) => {
+const FeatureCard = ({ icon, title, description}) => {
   return (
     <Col md={4}>
       <Card className="h-100 feature-card text-center p-4">
@@ -10,9 +10,6 @@ const FeatureCard = ({ icon, title, description, buttonText }) => {
         </div>
         <h4>{title}</h4>
         <p>{description}</p>
-        <Button variant="outline-primary" className="mt-auto" href="#">
-          {buttonText}
-        </Button>
       </Card>
     </Col>
   );
@@ -24,19 +21,16 @@ const FeatureSection = () => {
       icon: 'school',
       title: 'Para escuelas',
       description: 'Diagnostica necesidades, prioriza proyectos y conecta con aliados que pueden brindar el apoyo necesario para mejorar la calidad educativa.',
-      buttonText: 'Más información'
     },
     {
       icon: 'hands-helping',
       title: 'Para aliados',
       description: 'Ofrece tus apoyos a instituciones educativas, selecciona proyectos alineados a tus capacidades e intereses y realiza un seguimiento del impacto.',
-      buttonText: 'Más información'
     },
     {
-      icon: 'chart-line',
-      title: 'Resultados medibles',
-      description: 'Todas las intervenciones son evaluadas para medir su impacto real en indicadores educativos clave como aprendizaje y asistencia escolar.',
-      buttonText: 'Conocer impacto'
+      icon: 'users',
+      title: 'Mexicanos Primero Jalisco',
+      description: 'Todas las intervenciones son evaluadas por Mexicanos Primero Jalisco para mejorar las condiciones educativas y construir una mejor sociedad.',
     }
   ];
 
