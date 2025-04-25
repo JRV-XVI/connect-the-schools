@@ -28,6 +28,52 @@ const obtenerAliado = async (req, res, next) => {
 // ----------------- ROUTERS ----------------- //
 // ------------------------------------------- //
 
+// Mandar registro
+usuario.post('/registro/aliado', async (req, res, next) => {
+	try {
+		const {
+			email,
+			password,
+			phone,
+			allyName,
+			userType,
+			direction,
+			rfc,
+			socialReason,
+			phoneRepresentative,
+			emailRepresentative
+		} = req.query;
+
+		await modelo.crearAliado({
+			email,
+			password,
+			phone,
+			allyName,
+			userType,
+			direction,
+			rfc,
+			socialReason,
+			phoneRepresentative,
+			emailRepresentative
+		});
+
+		res.status(201).json({
+			email,
+			phone,
+			allyName,
+			userType,
+			direction,
+			rfc,
+			socialReason,
+			phoneRepresentative,
+			emailRepresentative
+		});
+	} catch (error) {
+		console.error("Error al registrar aliado:", error);
+		res.status(500).json({ error: 'Error al registrar aliado' });
+	}
+});
+
 // Crear un nuevo aliado
 usuario.post('/aliado', async (req, res, next) => {
 	try {
