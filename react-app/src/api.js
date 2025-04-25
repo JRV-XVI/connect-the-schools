@@ -1,5 +1,6 @@
+
 // Define base URL for API calls
-const URL_BASE = 'http://localhost:4001/api/'; // Replace with your actual API base URL
+const URL_BASE = 'http://localhost:4001/api'; // Replace with your actual API base URL
 
 /**
  * Performs a GET request to the specified endpoint
@@ -38,7 +39,7 @@ const post = async (endpoint, data = null) => {
     };
     
     if (data) {
-        requestOptions.query = JSON.stringify(data);
+        requestOptions.body = JSON.stringify(data);
     }
     
     try {
