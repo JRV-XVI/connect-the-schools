@@ -3,11 +3,18 @@ const db = require('../db');
 // ---------------------------------------------- //
 // ----------------- USUARIO  ------------------- // 
 // ---------------------------------------------- // 
-
 const validacionLogin = async (params) => {
-	const resultado = await db.query('SELECT "idUsuario" FROM Usuario WHERE contraseña = $1 AND correo = $2', [params.contraseña, params.correo]);
-	return resultado.rows;
-}
+    const resultado = await db.query(
+        'SELECT "idUsuario", correo, "tipoPerfil" FROM Usuario WHERE contraseña = $1 AND correo = $2',
+        [params.contraseña, params.correo]
+    );
+
+    return resultado.rows.map(usuario => ({
+        idUsuario: usuario.idUsuario,
+        correo: usuario.correo,
+        rol: usuario.tipoPerfil === 1 ? 'escuela' : usuario.tipoPerfil === 2 ? 'aliado' : 'admin'
+    }));
+};
 
 const obtenerUsuarios = async () => {
 	const resultado = await db.query('SELECT * FROM Usuario');
