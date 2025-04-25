@@ -29,49 +29,51 @@ const obtenerAliado = async (req, res, next) => {
 // ------------------------------------------- //
 
 // Mandar registro
+// Mandar registro
 usuario.post('/registro/aliado', async (req, res, next) => {
-	try {
-		const {
-			email,
-			password,
-			phone,
-			allyName,
-			userType,
-			direction,
-			rfc,
-			socialReason,
-			phoneRepresentative,
-			emailRepresentative
-		} = req.query;
+    try {
+        // FIXED: Changed from req.query to req.body
+        const {
+            correo: email,          // Match frontend field names
+            contrasena: password,
+            telefono: phone,
+            nombre_aliado: allyName,
+            tipo_usuario: userType,
+            direccion: direction,
+            rfc,
+            razon_social: socialReason,
+            telefono_representante: phoneRepresentative,
+            correo_representante: emailRepresentative
+        } = req.body;
 
-		await modelo.crearAliado({
-			email,
-			password,
-			phone,
-			allyName,
-			userType,
-			direction,
-			rfc,
-			socialReason,
-			phoneRepresentative,
-			emailRepresentative
-		});
+        await modelo.crearAliado({
+            email,
+            password,
+            phone,
+            allyName,
+            userType,
+            direction,
+            rfc,
+            socialReason,
+            phoneRepresentative,
+            emailRepresentative
+        });
 
-		res.status(201).json({
-			email,
-			phone,
-			allyName,
-			userType,
-			direction,
-			rfc,
-			socialReason,
-			phoneRepresentative,
-			emailRepresentative
-		});
-	} catch (error) {
-		console.error("Error al registrar aliado:", error);
-		res.status(500).json({ error: 'Error al registrar aliado' });
-	}
+        res.status(201).json({
+            email,
+            phone,
+            allyName,
+            userType,
+            direction,
+            rfc,
+            socialReason,
+            phoneRepresentative,
+            emailRepresentative
+        });
+    } catch (error) {
+        console.error("Error al registrar aliado:", error);
+        res.status(500).json({ error: 'Error al registrar aliado' });
+    }
 });
 
 // Crear un nuevo aliado

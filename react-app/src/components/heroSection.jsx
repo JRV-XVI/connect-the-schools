@@ -54,9 +54,6 @@ const HeroSection = ({ onForgotPassword, onLogin }) => {
             <h1 className="display-4 fw-bold mb-4">Conectando escuelas con aliados para transformar la educación</h1>
             <p className="lead mb-4">Plataforma de vinculación entre instituciones educativas y organizaciones de apoyo para mejorar la calidad educativa en Jalisco.</p>
             <div className="d-flex gap-3">
-              <Button variant="light" size="lg" href="#registro">
-                Conocer más
-              </Button>
               <Button variant="outline-light" size="lg" href="#registro">
                 Registrarse
               </Button>

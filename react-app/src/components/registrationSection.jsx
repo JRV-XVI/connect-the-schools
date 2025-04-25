@@ -342,7 +342,7 @@ const handleSubmit = async (e) => {
       console.log('Enviando datos:', dataToSend);
       
       // Send registration data to API - cambia también la ruta a una correcta
-      const response = await post('registro/aliado', dataToSend);
+      const response = await post('/registro/aliado', dataToSend);
       console.log('Registro exitoso:', response);
       setSuccess(true);
     } catch (error) {
