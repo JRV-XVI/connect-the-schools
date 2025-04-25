@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Container, Row, Col, Card, Tab, Nav, Form, Button } from 'react-bootstrap';
+import { Container, Row, Col, Card, Tab, Nav, Form, Button, Alert } from 'react-bootstrap';
+import { post } from '../api';
 
 const SchoolRegistrationForm = () => {
   const [formData, setFormData] = useState({
@@ -20,6 +21,9 @@ const SchoolRegistrationForm = () => {
   
   const [step, setStep] = useState(1);
   const [passwordError, setPasswordError] = useState('');
+  const [isLoading, setIsLoading] = useState(false); // Añadir estado de carga
+  const [apiError, setApiError] = useState(null); // Añadir estado para errores
+  const [success, setSuccess] = useState(false); // Añadir estado para éxito
 
   const handleChange = (e) => {
     setFormData({
@@ -34,27 +38,73 @@ const SchoolRegistrationForm = () => {
   };
 
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    if (step === 1) {
-      // Verify passwords match before proceeding
-      if (formData.password !== formData.confirmPassword) {
-        setPasswordError('Las contraseñas no coinciden');
-        return;
-      }
-      
-      // Move to second step
-      setStep(2);
-    } else {
-      // Final submission
-      console.log('Datos de registro escuela:', formData);
-      // Lógica para enviar datos de registro
+// En el componente SchoolRegistrationForm, actualiza el handleSubmit:
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  if (step === 1) {
+    // Verify passwords match before proceeding
+    if (formData.password !== formData.confirmPassword) {
+      setPasswordError('Las contraseñas no coinciden');
+      return;
     }
-  };
+    
+    // Move to second step
+    setStep(2);
+  } else {
+    // Reset states
+    setApiError(null);
+    setIsLoading(true);
+    
+    try {
+      // Preparamos los datos correctamente mapeados para el backend
+      const dataToSend = {
+        correo: formData.email,           // Mapear email a correo como espera el backend
+        contrasena: formData.password,    // Mapear password a contrasena
+        telefono: formData.phone,         // Mapear phone a telefono
+        nombre_escuela: formData.schoolName,
+        direccion: formData.direction,
+        nivel_educativo: formData.educationalLevel,
+        sector: formData.sector,
+        numero_estudiantes: formData.numberStudents,
+        nombre_director: formData.nameDirector,
+        telefono_director: formData.phoneDirector,
+        cct: formData.cct,
+        tipo_usuario: formData.userType
+      };
+      
+      console.log('Enviando datos:', dataToSend);
+      
+      // Send registration data to API
+      const response = await post('auth/register', dataToSend);
+      console.log('Registro exitoso:', response);
+      setSuccess(true);
+    } catch (error) {
+      console.error('Error al registrar:', error);
+      setApiError(error.message || 'Hubo un error al procesar tu registro');
+    } finally {
+      setIsLoading(false);
+    }
+  }
+};
+
+  if (success) {
+    return (
+      <Alert variant="success">
+        <Alert.Heading>¡Registro exitoso!</Alert.Heading>
+        <p>
+          Tu cuenta de escuela ha sido creada correctamente. 
+          Pronto recibirás un correo electrónico con los pasos siguientes.
+        </p>
+      </Alert>
+    );
+  }
 
   return (
     <Form className="row g-3" onSubmit={handleSubmit}>
+      {/* Mostrar error de API si existe */}
+      {apiError && <Alert variant="danger">{apiError}</Alert>}
       {step === 1 ? (
         // Step 1 - Basic credentials
         <>
@@ -193,12 +243,17 @@ const SchoolRegistrationForm = () => {
             type="button" 
             variant="outline-secondary" 
             onClick={() => setStep(1)}
+            disabled={isLoading}
           >
             Volver atrás
           </Button>
         )}
-        <Button type="submit" variant="primary">
-          {step === 1 ? "Continuar registro" : "Completar registro"}
+        <Button 
+          type="submit" 
+          variant="primary"
+          disabled={isLoading}
+        >
+          {isLoading ? 'Procesando...' : (step === 1 ? "Continuar registro" : "Completar registro")}
         </Button>
       </Col>
     </Form>
@@ -222,6 +277,9 @@ const AllyRegistrationForm = () => {
   
   const [step, setStep] = useState(1);
   const [passwordError, setPasswordError] = useState('');
+  const [isLoading, setIsLoading] = useState(false); // Añadir estado de carga
+  const [apiError, setApiError] = useState(null); // Añadir estado para errores
+  const [success, setSuccess] = useState(false); // Añadir estado para éxito
 
   const handleChange = (e) => {
     setFormData({
@@ -235,27 +293,72 @@ const AllyRegistrationForm = () => {
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    if (step === 1) {
-      // Verify passwords match before proceeding
-      if (formData.password !== formData.confirmPassword) {
-        setPasswordError('Las contraseñas no coinciden');
-        return;
-      }
-      
-      // Move to second step
-      setStep(2);
-    } else {
-      // Final submission
-      console.log('Datos de registro aliado:', formData);
-      // Lógica para enviar datos de registro
+  if (success) {
+    return (
+      <Alert variant="success">
+        <Alert.Heading>¡Registro exitoso!</Alert.Heading>
+        <p>
+          Tu cuenta de aliado ha sido creada correctamente. 
+          Pronto recibirás un correo electrónico con los pasos siguientes.
+        </p>
+      </Alert>
+    );
+  }
+
+// Actualiza la parte del handleSubmit para el componente AllyRegistrationForm
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  if (step === 1) {
+    // Verify passwords match before proceeding
+    if (formData.password !== formData.confirmPassword) {
+      setPasswordError('Las contraseñas no coinciden');
+      return;
     }
-  };
+    
+    // Move to second step
+    setStep(2);
+  } else {
+    // Reset states
+    setApiError(null);
+    setIsLoading(true);
+    
+    try {
+      // Preparamos los datos correctamente mapeados para el backend
+      const dataToSend = {
+        correo: formData.email,           // Mapear email a correo como espera el backend
+        contrasena: formData.password,    // Mapear password a contrasena
+        telefono: formData.phone,         // Mapear phone a telefono
+        nombre_aliado: formData.allyName,
+        direccion: formData.direction,
+        rfc: formData.rfc,
+        razon_social: formData.socialReason,
+        telefono_representante: formData.phoneRepresentative,
+        correo_representante: formData.emailRepresentative,
+        tipo_usuario: formData.typeUser
+      };
+      
+      console.log('Enviando datos:', dataToSend);
+      
+      // Send registration data to API - cambia también la ruta a una correcta
+      const response = await post('registro/aliado', dataToSend);
+      console.log('Registro exitoso:', response);
+      setSuccess(true);
+    } catch (error) {
+      console.error('Error al registrar:', error);
+      setApiError(error.message || 'Hubo un error al procesar tu registro');
+    } finally {
+      setIsLoading(false);
+    }
+  }
+};
+
 
   return (
     <Form className="row g-3" onSubmit={handleSubmit}>
+      {/* Mostrar error de API si existe */}
+      {apiError && <Alert variant="danger">{apiError}</Alert>}
       {step === 1 ? (
         // Step 1 - Basic credentials
         <>
@@ -366,12 +469,18 @@ const AllyRegistrationForm = () => {
             type="button" 
             variant="outline-secondary" 
             onClick={() => setStep(1)}
+            disabled={isLoading}
           >
             Volver atrás
           </Button>
         )}
-        <Button type="submit" variant="primary" className={step === 2 ? "ms-auto" : ""}>
-          {step === 1 ? "Continuar registro" : "Completar registro"}
+        <Button 
+          type="submit" 
+          variant="primary"
+          className={step === 2 ? "ms-auto" : ""}
+          disabled={isLoading}
+        >
+          {isLoading ? 'Procesando...' : (step === 1 ? "Continuar registro" : "Completar registro")}
         </Button>
       </Col>
     </Form>
