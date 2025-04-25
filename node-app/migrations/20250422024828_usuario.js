@@ -21,6 +21,8 @@ exports.up = function(knex) {
 			.notNullable();
 		t.text('nombre')
 			.notNullable();
+		t.integer('tipoPerfil').
+			notNullable();
 		t.text('direccion')
 			.notNullable();
 	});

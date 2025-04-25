@@ -4,6 +4,10 @@ const db = require('../db');
 // ----------------- ALIADO ------------------ //
 // ------------------------------------------- //
 
+const registroAliado = async () => {
+	const resultado = await db.query('SELECT * FROM ');
+};
+
 const obtenerAliados = async () => {
 	const resultado = await db.query('SELECT * FROM "perfilAliado"');
 	return resultado.rows;
@@ -14,26 +18,55 @@ const infoAliado = async (id) => {
 	return resultado.rows;
 };
 
-const crearAliado = async (params) => {
-	const resultado = await db.query('INSERT INTO "perfilAliado" (rfc, "idUsuario", "razonSocial", telefono, "correoRepresentante") VALUES ($1, $2, $3, $4, $5) RETURNING *',
-		[
-			params.rfc,
-			params.idUsuario,
-			params.razonSocial,
-			params.telefono,
-			params.correoRepresentante
-		]);
-	return resultado.rows;
-};
+async function crearAliado(data) {
+	const {
+		email,
+		password,
+		phone,
+		allyName,
+		userType,
+		direction,
+		rfc,
+		socialReason,
+		phoneRepresentative,
+		emailRepresentative
+	} = data;
+
+	const estadoCuenta = true; // Pendiente
+	const fechaCreacion = new Date();
+
+	// Insertar en Usuario
+	const idUsuario = await db.query(`INSERT INTO Usuario (correo, contraseña, "tipoPerfil", "estadoCuenta", "fechaCreacion", telefono, nombre, direccion) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING "idUsuario"`, [
+		email,
+		password,
+		userType,
+		estadoCuenta,
+		fechaCreacion,
+		phone,
+		allyName,
+		direction
+	]);
+	var id = idUsuario.rows[0].idUsuario;
+
+	await db.query(`INSERT INTO "perfilAliado" ("idUsuario", rfc, "razonSocial", telefono, "correoRepresentante") VALUES ($1 , $2, $3, $4, $5)`, [
+		id,
+		rfc,
+		socialReason,
+		phoneRepresentative,
+		emailRepresentative,
+	]);
+
+	return id;
+}
 
 const actualizarAliado = async (rfc, params) => {
 	// Construir query dinámicamente
 	const camposActualizables = ['idUsuario', 'razonSocial', 'telefono', 'correoRepresentante'];
 	const updates = [];
 	const values = [rfc]; // El primer parámetro es siempre el rfc
-	
+
 	let paramIndex = 2; // Empezamos desde $2
-	
+
 	camposActualizables.forEach(campo => {
 		if (params[campo] !== undefined) {
 			updates.push(`"${campo}" = $${paramIndex}`);
@@ -41,10 +74,10 @@ const actualizarAliado = async (rfc, params) => {
 			paramIndex++;
 		}
 	});
-	
+
 	// Si no hay campos para actualizar, retornar
 	if (updates.length === 0) return null;
-	
+
 	const query = `UPDATE "perfilAliado" SET ${updates.join(', ')} WHERE "rfc" = $1 RETURNING *`;
 	const resultado = await db.query(query, values);
 	return resultado.rows[0];
@@ -58,4 +91,4 @@ const eliminarAliado = async (id) => {
 };
 
 
-module.exports = {obtenerAliados, infoAliado, crearAliado, actualizarAliado, eliminarAliado };
+module.exports = { obtenerAliados, infoAliado, crearAliado, actualizarAliado, eliminarAliado };
