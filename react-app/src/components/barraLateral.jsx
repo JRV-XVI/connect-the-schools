@@ -13,12 +13,10 @@ const Sidebar = ({ logo, title, menuItems, isOpen, toggleSidebar }) => {
           {menuItems.map((item, index) => (
             <li
               key={index}
-              className={`nav-item ${item.marginTop ? "mt-3" : ""} ${
-                item.marginTopLarge ? "mt-5" : ""
-              }`}
+              className={`nav-item ${item.marginTop ? "mt-3" : ""} ${item.marginTopLarge ? "mt-5" : ""}`}
             >
               <a href={item.href} className={`nav-link ${item.active ? "active" : ""}`}>
-                <i className={`fas ${item.icon}`}></i> 
+                <i className={`fas ${item.icon}`}></i>
                 <span className="menu-text">{item.text}</span>
                 {item.badge && (
                   <span className={`badge ${item.badgeColor} float-end`}>
@@ -30,6 +28,7 @@ const Sidebar = ({ logo, title, menuItems, isOpen, toggleSidebar }) => {
           ))}
         </ul>
       </div>
+
       <button className="sidebar-toggle d-md-none" onClick={toggleSidebar}>
         <i className={`fas fa-${isOpen ? 'times' : 'bars'}`}></i>
       </button>

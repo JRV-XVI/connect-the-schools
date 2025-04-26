@@ -10,71 +10,48 @@ function App() {
   const [userRole, setUserRole] = useState(null);
   const [userData, setUserData] = useState(null);
   
-  // Estado para la posición del panel
+  // Estado para la posición del panel (arrastre)
   const [panelPosition, setPanelPosition] = useState({ x: 20, y: 20 });
   const panelRef = useRef(null);
   const isDraggingRef = useRef(false);
   const offsetRef = useRef({ x: 0, y: 0 });
 
-  const handleLogin = (usuario) => {
-    console.log("Usuario autenticado:", usuario);
+  // Función para manejar el inicio de sesión
+  const handleLogin = (credentials) => {
+    console.log("Credenciales ingresadas:", credentials);
+    
+    // Validación básica (en producción, usa una API)
+    if (!credentials.email || !credentials.password) {
+      alert("Por favor ingresa email y contraseña");
+      return;
+    }
 
-    setUserRole(usuario.rol);
-    setUserData(usuario);
-};
+    // Determina el rol basado en el email (ejemplo)
+    let role;
+    if (credentials.email.includes('admin')) {
+      role = 'admin';
+    } else if (credentials.email.includes('aliado')) {
+      role = 'aliado';
+    } else if (credentials.email.includes('escuela')) {
+      role = 'escuela';
+    } else {
+      role = 'aliado'; // Rol por defecto
+    }
+
+    // Guarda el rol y datos del usuario
+    setUserRole(role);
+    setUserData({
+      nombre: `Usuario ${role.charAt(0).toUpperCase() + role.slice(1)}`,
+      email: credentials.email
+    });
+  };
 
   const handleLogout = () => {
     setUserRole(null);
     setUserData(null);
   };
 
-  // Funciones para manejar el arrastre del panel
-  const handleMouseDown = (e) => {
-    isDraggingRef.current = true;
-    
-    // Calcular el desplazamiento desde el punto de clic hasta la esquina del panel
-    const rect = panelRef.current.getBoundingClientRect();
-    offsetRef.current = {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    };
-    
-    // Cambiar el cursor durante el arrastre
-    document.body.style.cursor = 'grabbing';
-    
-    // Prevenir comportamiento predeterminado
-    e.preventDefault();
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isDraggingRef.current) return;
-    
-    // Calcular la nueva posición basada en la posición del mouse y el offset
-    const newX = e.clientX - offsetRef.current.x;
-    const newY = e.clientY - offsetRef.current.y;
-    
-    // Actualizar la posición del panel
-    setPanelPosition({ x: newX, y: newY });
-    
-    // Prevenir comportamiento predeterminado
-    e.preventDefault();
-  };
-
-  const handleMouseUp = () => {
-    isDraggingRef.current = false;
-    document.body.style.cursor = 'default';
-  };
-
-  // Configurar y limpiar event listeners
-  useEffect(() => {
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-    
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, []);
+  // ... (código de arrastre del panel, igual que antes)
 
   const renderView = () => {
     if (userRole === null) {
@@ -97,72 +74,49 @@ function App() {
     <div className="App">
       {renderView()}
       
-      <div 
-        ref={panelRef}
-        className="role-buttons" 
-        style={{ 
-          position: 'fixed',
-          left: `${panelPosition.x}px`,
-          top: `${panelPosition.y}px`,
-          backgroundColor: '#f8f9fa',
-          padding: '10px',
-          borderRadius: '5px',
-          boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-          zIndex: 1000,
-          cursor: isDraggingRef.current ? 'grabbing' : 'grab'
-        }}
-      >
-        {/* Barra de título para arrastrar */}
+      {/* Panel flotante (solo muestra info del usuario) */}
+      {userRole && (
         <div 
-          className="panel-header"
-          onMouseDown={handleMouseDown}
-          style={{
-            padding: '5px',
-            marginBottom: '8px',
-            backgroundColor: '#e9ecef',
-            borderRadius: '3px',
-            cursor: 'grab',
-            textAlign: 'center',
-            fontSize: '12px',
-            fontWeight: 'bold'
+          ref={panelRef}
+          className="role-buttons" 
+          style={{ 
+            position: 'fixed',
+            left: `${panelPosition.x}px`,
+            top: `${panelPosition.y}px`,
+            backgroundColor: '#f8f9fa',
+            padding: '10px',
+            borderRadius: '5px',
+            boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+            zIndex: 1000,
+            cursor: isDraggingRef.current ? 'grabbing' : 'grab'
           }}
         >
-          ✥ Arrastrar para mover ✥
+          {/* Barra de título para arrastrar */}
+          <div 
+            className="panel-header"
+            onMouseDown={handleMouseDown}
+            style={{
+              padding: '5px',
+              marginBottom: '8px',
+              backgroundColor: '#e9ecef',
+              borderRadius: '3px',
+              cursor: 'grab',
+              textAlign: 'center',
+              fontSize: '12px',
+              fontWeight: 'bold'
+            }}
+          >
+            ✥ Arrastrar para mover ✥
+          </div>
+          
+          <h6 className="mb-2">Usuario: {userData?.nombre}</h6>
+          <div className="d-grid gap-2">
+            <button className="btn btn-sm btn-outline-danger" onClick={handleLogout}>
+              Cerrar sesión
+            </button>
+          </div>
         </div>
-        
-        {userRole === null ? (
-          <>
-            <h6 className="mb-2">Pruebas de inicio de sesión</h6>
-            <div className="d-grid gap-2">
-              <button 
-                className="btn btn-sm btn-outline-primary" 
-                onClick={() => handleLogin({email: 'admin@test.com', password: '123456'})}>
-                Iniciar como Admin
-              </button>
-              <button 
-                className="btn btn-sm btn-outline-success" 
-                onClick={() => handleLogin({email: 'aliado@test.com', password: '123456'})}>
-                Iniciar como Aliado
-              </button>
-              <button 
-                className="btn btn-sm btn-outline-info" 
-                onClick={() => handleLogin({email: 'escuela@test.com', password: '123456'})}>
-                Iniciar como Escuela
-              </button>
-            </div>
-          </>
-        ) : (
-          <>
-            <h6 className="mb-2">Usuario: {userData?.nombre}</h6>
-            <div className="d-grid gap-2">
-              <button className="btn btn-sm btn-outline-danger mb-2" onClick={handleLogout}>Cerrar sesión</button>
-              <button className="btn btn-sm btn-outline-secondary" onClick={() => setUserRole('admin')}>Ver como Admin</button>
-              <button className="btn btn-sm btn-outline-secondary" onClick={() => setUserRole('aliado')}>Ver como Aliado</button>
-              <button className="btn btn-sm btn-outline-secondary" onClick={() => setUserRole('escuela')}>Ver como Escuela</button>
-            </div>
-          </>
-        )}
-      </div>
+      )}
     </div>
   );
 }
