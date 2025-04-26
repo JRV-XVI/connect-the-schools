@@ -34,22 +34,65 @@ const DiagnosticoNecesidades = ({ necesidades, onAddNeed, onEditNeed, onViewNeed
     }
   };
 
+
+
   // Manejador para enviar el formulario
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    const categoryMap = {
+      infrastructure: 1,
+      equipment: 2,
+      training: 3,
+      materials: 4
+    };
+
+    const subcategoryMap = {
+      'Mantenimiento correctivo': 1,
+      'Rehabilitación de espacios': 2,
+      'Construcción nueva': 3,
+      'Adecuación de accesibilidad': 4,
+      'Instalaciones eléctricas': 5,
+      'Instalaciones hidráulicas': 6,
+      'Mobiliario escolar': 7,
+      'Equipo tecnológico': 8,
+      'Equipo de laboratorio': 9,
+      'Material deportivo': 10,
+      'Equipo de seguridad': 11,
+      'Competencias digitales': 12,
+      'Actualización disciplinar': 13,
+      'Estrategias pedagógicas': 14,
+      'Educación inclusiva': 15,
+      'Evaluación formativa': 16,
+      'Material bibliográfico': 17,
+      'Material didáctico': 18,
+      'Software educativo': 19,
+      'Material de papelería': 20,
+      'Material artístico': 21
+    };
+
+    const prioridadCalculada = formData.impactoAprendizaje === 'Alto' || formData.impactoAsistencia === 'Alto'
+      ? 'Alta'
+      : formData.impactoAprendizaje === 'Medio' || formData.impactoAsistencia === 'Medio'
+        ? 'Media'
+        : 'Baja';
+
     onAddNeed({
       ...formData,
       tipo: activeTab,
       estado: 'En edición',
-      fechaCreacion: new Date().toISOString()
+      fechaCreacion: new Date().toISOString(),
+      prioridad: prioridadCalculada,
+      idCategoria: categoryMap[activeTab], 
+      idSubcategoria: subcategoryMap[formData.categoriaEspecifica],
     });
     setFormData({
       titulo: '',
       descripcion: '',
       categoria: '',
       categoriaEspecifica: '',
-      impactoAprendizaje: 'Alto',
-      impactoAsistencia: 'Alto',
+      impactoAprendizaje: '',
+      impactoAsistencia: '',
       estudiantesAfectados: '',
       observaciones: '',
       evidenciasFotos: [],

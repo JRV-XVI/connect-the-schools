@@ -14,9 +14,11 @@ import { pendientesEscuela } from '../data/pendientes/pendientesEscuela.js';
 import { proyectosEscuela } from '../data/proyectos/proyectosEscuela.js';
 import { tabsNecesidades, columnasNecesidades, datosNecesidades } from '../data/necesidadApoyo/necesidades.js';
 import { necesidadesData } from '../data/necesidadesData';
+import axios from 'axios';
 import { Container } from 'react-bootstrap';
 import '../../styles/escuela.css';
 import Logo from "../assets/MPJ.png";
+
 
 const Escuela = ({ userData, onLogout }) => { 
   const usuario = navbarEscuela?.usuario || { nombre: "Escuela", foto: "" };
@@ -65,6 +67,7 @@ const Escuela = ({ userData, onLogout }) => {
   // Nuevos manejadores para necesidades escolares (componente NecesidadApoyo)
   const handleAddNecesidad = () => {
     console.log("Agregar nueva necesidad escolar");
+    setActiveSection('diagnostico');
   };
 
   const handleEditNecesidad = (item) => {
@@ -84,10 +87,34 @@ const Escuela = ({ userData, onLogout }) => {
   };
   
   // Manejadores para DiagnosticoNecesidades
-  const handleAddNeed = (newNeed) => {
-    const id = `need-${Date.now()}`;
-    setNecesidades([...necesidades, { id, ...newNeed }]);
-    console.log("Nueva necesidad agregada:", newNeed);
+  const handleAddNeed = async (newNeed) => {
+    try {
+      const payload = {
+        descripcion: newNeed.descripcion,
+        prioridad: newNeed.prioridad,
+        idCategoria: newNeed.idCategoria,
+        idSubcategoria: newNeed.idSubcategoria,
+        idUsuario: userData?.idUsuario, // <-- muy importante: ID del usuario escuela que está logueado
+      };
+  
+      console.log("[INFO] Enviando necesidad:", payload);
+  
+      const response = await axios.post('http://localhost:4001/api/usuarionecesidadApoyo', payload, {
+        withCredentials: true
+      });
+  
+      console.log("[SUCCESS] Necesidad creada:", response.data);
+  
+      // Actualizar lista local
+      const id = `need-${Date.now()}`;
+      setNecesidades([...necesidades, { id, ...newNeed }]);
+  
+      alert('¡Necesidad registrada exitosamente!');
+  
+    } catch (error) {
+      console.error("[ERROR] Al crear necesidad:", error.response?.data || error.message);
+      alert('Error al registrar necesidad. Verifica los campos.');
+    }
   };
 
   const handleEditNeed = (needId) => {
@@ -218,6 +245,7 @@ const Escuela = ({ userData, onLogout }) => {
                 onAddNeed={handleAddNeed}
                 onEditNeed={handleEditNeed}
                 onViewNeed={handleViewNeed}
+                idUsuario={userData?.idUsuario}
               />
             </>
           )}
