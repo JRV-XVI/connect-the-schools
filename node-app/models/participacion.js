@@ -42,7 +42,31 @@ const crearParticipacion = async (rfc, cct, datos = {}) => {
 	};
 };
 
+const crearVinculacion = async (data) => {
+	// Datos deafault para crear la participacion
+	const {
+		rfc,
+		cct,
+		idNecesidad,
+		idApoyo,
+		observacion
+	} = data;
 
+	const idProyecto = null
+	const aceptacionAliado = true;
+	const aceptacionEscuela = false;
+
+	const resultado = await db.query(`
+		INSERT INTO "participacionProyecto" 
+			("idProyecto", cct, rfc, "idNecesidad", "idApoyo", observacion, "aceptacionAliado", "aceptacionEscuela")
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		RETURNING *
+	`, [idProyecto, cct, rfc, idNecesidad, idApoyo, observacion, aceptacionAliado, aceptacionEscuela]);
+
+	return resultado.rows[0];
+
+
+};
 
 // Obtener todas las participaciones por idProyecto
 const obtenerParticipacionesPorProyecto = async (idProyecto) => {
@@ -135,6 +159,7 @@ module.exports = {
 	obtenerParticipacionPorEscuelaYAliado,
 	obtenerParticipacionConsolidada,
 	actualizarParticipacion,
-	actualizarParticipacionConProyecto
+	actualizarParticipacionConProyecto,
+	crearVinculacion
 };
 
