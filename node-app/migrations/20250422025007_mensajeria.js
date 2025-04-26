@@ -7,7 +7,12 @@ exports.up = function(knex) {
 		tabla.increments('idMensajeria')
 			.unsigned()
 			.primary();
-		tabla.integer('idProyecto'); // FALTA REALACIÒN FK CON PROYECTO
+		tabla.integer('idProyecto')
+			.unsigned()
+			.notNullable()
+			.references('idProyecto')
+			.inTable('proyecto')
+			.onDelete('CASCADE');
 		tabla.date('fechaCreacion')
 			.defaultTo(knex.fn.now())
 			.notNullable();
