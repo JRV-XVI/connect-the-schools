@@ -42,12 +42,11 @@ const validarIdUsuario = (req, res, next) => {
 
 const validarCamposObligatorios = (req, res, next) => {
     try {
-        const { contenido, idUsuario, idMensajeria } = req.query;
+        const { contenido, idUsuario, idMensajeria } = req.body;
         const camposFaltantes = [];
 
         if (!contenido) camposFaltantes.push('contenido');
         if (!idUsuario) camposFaltantes.push('idUsuario');
-        if (!idMensajeria) camposFaltantes.push('idMensajeria');
 
         if (camposFaltantes.length > 0) {
             return res.status(400).json({
@@ -141,14 +140,15 @@ mensaje.get('/mensajeria/:id/mensajes', validarId, obtenerMensajesPorMensajeria,
     res.status(200).json(req.mensajes);
 });
 
-// Crear un mensaje
-mensaje.post('/mensaje', validarCamposObligatorios, async (req, res, next) => {
+// Crear un mensaje por un proyecto
+mensaje.post('/mensajeria/:id/mensajes', async (req, res, next) => {
     try {
         const datos = {
-            ...req.query,
-            fechaCreacion: new Date().toISOString()
+            idMensajeria: req.params.id,  // Usar el ID de la URL (idMensajeria)
+            idUsuario: req.body.idUsuario,
+            contenido: req.body.contenido,
         };
-
+        
         const resultado = await model.crearMensaje(datos);
         res.status(201).json(resultado);
     } catch (error) {

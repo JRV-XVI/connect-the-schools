@@ -27,12 +27,13 @@ const infoUsuario = async (id) => {
 };
 
 const crearUsuario = async (params) => {
-	const resultado = await db.query('INSERT INTO Usuario (correo, contraseña, telefono, nombre, direccion) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+	const resultado = await db.query('INSERT INTO Usuario (correo, contraseña, telefono, nombre, tipoPerfil, direccion) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
 		[
 			params.correo,
 			params.contraseña,
 			params.telefono,
 			params.nombre,
+			params.tipoPerfil,
 			params.direccion
 		]);
 	return resultado.rows;
