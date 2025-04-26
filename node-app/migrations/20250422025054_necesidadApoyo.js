@@ -14,8 +14,8 @@ exports.up = function(knex) {
 			.references('idUsuario')
 			.inTable('usuario')
 			.onDelete('CASCADE');
-		tabla.integer('idCategoria').notNullable(); // FALTA RELACIÒN FK CON CATEGORIA
-		tabla.integer('idSubcategoria').notNullable(); // FALTA RELACIÒN FK CON SUBCATEGORIA
+		tabla.text('idCategoria').notNullable(); // FALTA RELACIÒN FK CON CATEGORIA
+		tabla.text('idSubcategoria').notNullable(); // FALTA RELACIÒN FK CON SUBCATEGORIA
 		tabla.text('descripcion')
 			.notNullable();
 		tabla.text('prioridad')
