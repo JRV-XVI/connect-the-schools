@@ -4,7 +4,7 @@
  */
 exports.up = function(knex) {
 	return knex.schema.createTable('necesidadApoyo', function(tabla) {
-		tabla.increments('idNecesidadAPoyo')
+		tabla.increments('idNecesidadApoyo')
 			.notNullable()
 			.unsigned()
 			.primary();
@@ -14,8 +14,8 @@ exports.up = function(knex) {
 			.references('idUsuario')
 			.inTable('usuario')
 			.onDelete('CASCADE');
-		tabla.text('idCategoria').notNullable(); // FALTA RELACIÒN FK CON CATEGORIA
-		tabla.text('idSubcategoria').notNullable(); // FALTA RELACIÒN FK CON SUBCATEGORIA
+		tabla.text('categoria').notNullable();
+		tabla.text('subcategoria').notNullable();
 		tabla.text('descripcion')
 			.notNullable();
 		tabla.text('prioridad')
