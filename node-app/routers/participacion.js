@@ -15,6 +15,28 @@ participacion.post('/participacion/:cct/:rfc', async (req, res, next) => {
     }
 });
 
+participacion.post('/participacion', async (req, res, next) => {
+    try {
+
+    } catch (error) {
+        next(error);
+    }
+});
+
+participacion.get('/participacion', async (req, res, next) => {
+    try {
+        const resultado = await modelo.obtenerParticipacionesSinProyecto();
+        res.status(200).send(resultado);
+    } catch (error) {
+        if (error.status === 500 || !error.status) {
+            return res.status(400).json({
+                error: "Fallo al obtener la informacion"
+            });
+        }
+        next(error);
+    }
+});
+
 // Obtener la participacion de un proyecto
 participacion.get('/proyecto/:idProyecto/participacion', async (req, res, next) => {
     const idProyecto = Number(req.params.idProyecto);
@@ -32,15 +54,15 @@ participacion.get('/proyecto/:idProyecto/participacion', async (req, res, next) 
     }
 });
 
-// Participaciones sin proyecto asignado
-participacion.get('/participacion', async (req, res, next) => {
-    try {
-        const resultado = await modelo.obtenerParticipacionesSinProyecto();
-        res.json(resultado);
-    } catch (error) {
-        next(error);
-    }
-});
+//// Participaciones sin proyecto asignado
+//participacion.get('/participacion', async (req, res, next) => {
+//    try {
+//        const resultado = await modelo.obtenerParticipacionesSinProyecto();
+//        res.json(resultado);
+//    } catch (error) {
+//        next(error);
+//    }
+//});
 
 // Obtener participación por RFC y CCT
 participacion.get('/participacion/:cct/:rfc', async (req, res, next) => {
