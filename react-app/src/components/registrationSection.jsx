@@ -12,13 +12,13 @@ const SchoolRegistrationForm = () => {
     direction: '',
     educationalLevel: '',
     sector: '',
-    numberStudents: '',
+    numberStudents: 0,
     nameDirector: '',
     phoneDirector: '',
     cct: '',
     userType: 0,
   });
-  
+
   const [step, setStep] = useState(1);
   const [passwordError, setPasswordError] = useState('');
   const [isLoading, setIsLoading] = useState(false); // Añadir estado de carga
@@ -30,7 +30,7 @@ const SchoolRegistrationForm = () => {
       ...formData,
       [e.target.id]: e.target.value
     });
-    
+
     // Clear password error when user types in either password field
     if (e.target.id === 'password' || e.target.id === 'confirmPassword') {
       setPasswordError('');
@@ -38,63 +38,63 @@ const SchoolRegistrationForm = () => {
   };
 
 
-// En el componente SchoolRegistrationForm, actualiza el handleSubmit:
+  // En el componente SchoolRegistrationForm, actualiza el handleSubmit:
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  
-  if (step === 1) {
-    // Verify passwords match before proceeding
-    if (formData.password !== formData.confirmPassword) {
-      setPasswordError('Las contraseñas no coinciden');
-      return;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (step === 1) {
+      // Verify passwords match before proceeding
+      if (formData.password !== formData.confirmPassword) {
+        setPasswordError('Las contraseñas no coinciden');
+        return;
+      }
+
+      // Move to second step
+      setStep(2);
+    } else {
+      // Reset states
+      setApiError(null);
+      setIsLoading(true);
+
+      try {
+        // Preparamos los datos correctamente mapeados para el backend
+        const dataToSend = {
+          correo: formData.email,           // Mapear email a correo como espera el backend
+          contrasena: formData.password,    // Mapear password a contrasena
+          telefono: formData.phone,         // Mapear phone a telefono
+          nombre_escuela: formData.schoolName,
+          direccion: formData.direction,
+          nivel_educativo: formData.educationalLevel,
+          sector: formData.sector,
+          numero_estudiantes: Number(formData.numberStudents),
+          nombre_director: formData.nameDirector,
+          telefono_director: formData.phoneDirector,
+          cct: formData.cct,
+          tipo_usuario: formData.userType
+        };
+
+        console.log('Enviando datos:', dataToSend);
+
+        // Send registration data to API
+        const response = await post('/registro/escuela', dataToSend);
+        console.log('Registro exitoso:', response);
+        setSuccess(true);
+      } catch (error) {
+        console.error('Error al registrar:', error);
+        setApiError(error.message || 'Hubo un error al procesar tu registro');
+      } finally {
+        setIsLoading(false);
+      }
     }
-    
-    // Move to second step
-    setStep(2);
-  } else {
-    // Reset states
-    setApiError(null);
-    setIsLoading(true);
-    
-    try {
-      // Preparamos los datos correctamente mapeados para el backend
-      const dataToSend = {
-        correo: formData.email,           // Mapear email a correo como espera el backend
-        contrasena: formData.password,    // Mapear password a contrasena
-        telefono: formData.phone,         // Mapear phone a telefono
-        nombre_escuela: formData.schoolName,
-        direccion: formData.direction,
-        nivel_educativo: formData.educationalLevel,
-        sector: formData.sector,
-        numero_estudiantes: formData.numberStudents,
-        nombre_director: formData.nameDirector,
-        telefono_director: formData.phoneDirector,
-        cct: formData.cct,
-        tipo_usuario: formData.userType
-      };
-      
-      console.log('Enviando datos:', dataToSend);
-      
-      // Send registration data to API
-      const response = await post('auth/register', dataToSend);
-      console.log('Registro exitoso:', response);
-      setSuccess(true);
-    } catch (error) {
-      console.error('Error al registrar:', error);
-      setApiError(error.message || 'Hubo un error al procesar tu registro');
-    } finally {
-      setIsLoading(false);
-    }
-  }
-};
+  };
 
   if (success) {
     return (
       <Alert variant="success">
         <Alert.Heading>¡Registro exitoso!</Alert.Heading>
         <p>
-          Tu cuenta de escuela ha sido creada correctamente. 
+          Tu cuenta de escuela ha sido creada correctamente.
           Pronto recibirás un correo electrónico con los pasos siguientes.
         </p>
       </Alert>
@@ -110,38 +110,38 @@ const handleSubmit = async (e) => {
         <>
           <Form.Group as={Col} md={6} controlId="email">
             <Form.Label>Correo electrónico</Form.Label>
-            <Form.Control 
-              type="email" 
+            <Form.Control
+              type="email"
               value={formData.email}
               onChange={handleChange}
-              required 
+              required
             />
           </Form.Group>
           <Form.Group as={Col} md={6} controlId="cct">
             <Form.Label>Clave de Centro de Trabajo (CCT)</Form.Label>
-            <Form.Control 
-              type="text" 
+            <Form.Control
+              type="text"
               value={formData.cct}
               onChange={handleChange}
-              required 
+              required
             />
           </Form.Group>
           <Form.Group as={Col} md={6} controlId="password">
             <Form.Label>Contraseña</Form.Label>
-            <Form.Control 
-              type="password" 
+            <Form.Control
+              type="password"
               value={formData.password}
               onChange={handleChange}
-              required 
+              required
             />
           </Form.Group>
           <Form.Group as={Col} md={6} controlId="confirmPassword">
             <Form.Label>Confirmar contraseña</Form.Label>
-            <Form.Control 
-              type="password" 
+            <Form.Control
+              type="password"
               value={formData.confirmPassword}
               onChange={handleChange}
-              required 
+              required
               isInvalid={!!passwordError}
             />
             <Form.Control.Feedback type="invalid">
@@ -154,34 +154,34 @@ const handleSubmit = async (e) => {
         <>
           <Form.Group as={Col} md={6} controlId="schoolName">
             <Form.Label>Nombre de la institución</Form.Label>
-            <Form.Control 
-              type="text" 
+            <Form.Control
+              type="text"
               value={formData.schoolName}
               onChange={handleChange}
-              required 
+              required
             />
           </Form.Group>
           <Form.Group as={Col} md={6} controlId="phone">
             <Form.Label>Teléfono</Form.Label>
-            <Form.Control 
-              type="tel" 
+            <Form.Control
+              type="tel"
               value={formData.phone}
               onChange={handleChange}
-              required 
+              required
             />
           </Form.Group>
           <Form.Group as={Col} md={6} controlId="direction">
             <Form.Label>Dirección</Form.Label>
-            <Form.Control 
-              type="text" 
+            <Form.Control
+              type="text"
               value={formData.direction}
               onChange={handleChange}
-              required 
+              required
             />
           </Form.Group>
           <Form.Group as={Col} md={6} controlId="educationalLevel">
             <Form.Label>Nivel educativo</Form.Label>
-            <Form.Select 
+            <Form.Select
               value={formData.educationalLevel}
               onChange={handleChange}
               required
@@ -196,7 +196,7 @@ const handleSubmit = async (e) => {
           </Form.Group>
           <Form.Group as={Col} md={6} controlId="sector">
             <Form.Label>Sector</Form.Label>
-            <Form.Select 
+            <Form.Select
               value={formData.sector}
               onChange={handleChange}
               required
@@ -209,47 +209,47 @@ const handleSubmit = async (e) => {
           </Form.Group>
           <Form.Group as={Col} md={6} controlId="numberStudents">
             <Form.Label>Número de estudiantes</Form.Label>
-            <Form.Control 
-              type="number" 
+            <Form.Control
+              type="number"
               value={formData.numberStudents}
               onChange={handleChange}
-              required 
+              required
             />
           </Form.Group>
           <Form.Group as={Col} md={6} controlId="nameDirector">
             <Form.Label>Nombre del director/a</Form.Label>
-            <Form.Control 
-              type="text" 
+            <Form.Control
+              type="text"
               value={formData.nameDirector}
               onChange={handleChange}
-              required 
+              required
             />
           </Form.Group>
           <Form.Group as={Col} md={6} controlId="phoneDirector">
             <Form.Label>Teléfono del director/a</Form.Label>
-            <Form.Control 
-              type="tel" 
+            <Form.Control
+              type="tel"
               value={formData.phoneDirector}
               onChange={handleChange}
-              required 
+              required
             />
           </Form.Group>
         </>
       )}
-      
+
       <Col xs={12} className="mt-4 d-flex justify-content-between">
         {step === 2 && (
-          <Button 
-            type="button" 
-            variant="outline-secondary" 
+          <Button
+            type="button"
+            variant="outline-secondary"
             onClick={() => setStep(1)}
             disabled={isLoading}
           >
             Volver atrás
           </Button>
         )}
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           variant="primary"
           disabled={isLoading}
         >
@@ -264,7 +264,7 @@ const AllyRegistrationForm = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    confirmPassword: '', 
+    confirmPassword: '',
     phone: '',
     allyName: '',
     direction: '',
@@ -272,9 +272,9 @@ const AllyRegistrationForm = () => {
     socialReason: '',
     phoneRepresentative: '',
     emailRepresentative: '',
-    typeUser: 1, 
+    typeUser: 1,
   });
-  
+
   const [step, setStep] = useState(1);
   const [passwordError, setPasswordError] = useState('');
   const [isLoading, setIsLoading] = useState(false); // Añadir estado de carga
@@ -286,7 +286,7 @@ const AllyRegistrationForm = () => {
       ...formData,
       [e.target.id]: e.target.value
     });
-    
+
     // Clear password error when user types in either password field
     if (e.target.id === 'password' || e.target.id === 'confirmPassword') {
       setPasswordError('');
@@ -298,61 +298,61 @@ const AllyRegistrationForm = () => {
       <Alert variant="success">
         <Alert.Heading>¡Registro exitoso!</Alert.Heading>
         <p>
-          Tu cuenta de aliado ha sido creada correctamente. 
+          Tu cuenta de aliado ha sido creada correctamente.
           Pronto recibirás un correo electrónico con los pasos siguientes.
         </p>
       </Alert>
     );
   }
 
-// Actualiza la parte del handleSubmit para el componente AllyRegistrationForm
+  // Actualiza la parte del handleSubmit para el componente AllyRegistrationForm
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  
-  if (step === 1) {
-    // Verify passwords match before proceeding
-    if (formData.password !== formData.confirmPassword) {
-      setPasswordError('Las contraseñas no coinciden');
-      return;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (step === 1) {
+      // Verify passwords match before proceeding
+      if (formData.password !== formData.confirmPassword) {
+        setPasswordError('Las contraseñas no coinciden');
+        return;
+      }
+
+      // Move to second step
+      setStep(2);
+    } else {
+      // Reset states
+      setApiError(null);
+      setIsLoading(true);
+
+      try {
+        // Preparamos los datos correctamente mapeados para el backend
+        const dataToSend = {
+          correo: formData.email,           // Mapear email a correo como espera el backend
+          contrasena: formData.password,    // Mapear password a contrasena
+          telefono: formData.phone,         // Mapear phone a telefono
+          nombre_aliado: formData.allyName,
+          direccion: formData.direction,
+          rfc: formData.rfc,
+          razon_social: formData.socialReason,
+          telefono_representante: formData.phoneRepresentative,
+          correo_representante: formData.emailRepresentative,
+          tipo_usuario: formData.typeUser
+        };
+
+        console.log('Enviando datos:', dataToSend);
+
+        // Send registration data to API - cambia también la ruta a una correcta
+        const response = await post('/registro/aliado', dataToSend);
+        console.log('Registro exitoso:', response);
+        setSuccess(true);
+      } catch (error) {
+        console.error('Error al registrar:', error);
+        setApiError(error.message || 'Hubo un error al procesar tu registro');
+      } finally {
+        setIsLoading(false);
+      }
     }
-    
-    // Move to second step
-    setStep(2);
-  } else {
-    // Reset states
-    setApiError(null);
-    setIsLoading(true);
-    
-    try {
-      // Preparamos los datos correctamente mapeados para el backend
-      const dataToSend = {
-        correo: formData.email,           // Mapear email a correo como espera el backend
-        contrasena: formData.password,    // Mapear password a contrasena
-        telefono: formData.phone,         // Mapear phone a telefono
-        nombre_aliado: formData.allyName,
-        direccion: formData.direction,
-        rfc: formData.rfc,
-        razon_social: formData.socialReason,
-        telefono_representante: formData.phoneRepresentative,
-        correo_representante: formData.emailRepresentative,
-        tipo_usuario: formData.typeUser
-      };
-      
-      console.log('Enviando datos:', dataToSend);
-      
-      // Send registration data to API - cambia también la ruta a una correcta
-      const response = await post('/registro/aliado', dataToSend);
-      console.log('Registro exitoso:', response);
-      setSuccess(true);
-    } catch (error) {
-      console.error('Error al registrar:', error);
-      setApiError(error.message || 'Hubo un error al procesar tu registro');
-    } finally {
-      setIsLoading(false);
-    }
-  }
-};
+  };
 
 
   return (
@@ -364,38 +364,38 @@ const handleSubmit = async (e) => {
         <>
           <Form.Group as={Col} md={6} controlId="email">
             <Form.Label>Correo electrónico</Form.Label>
-            <Form.Control 
-              type="email" 
+            <Form.Control
+              type="email"
               value={formData.email}
               onChange={handleChange}
-              required 
+              required
             />
           </Form.Group>
           <Form.Group as={Col} md={6} controlId="rfc">
             <Form.Label>RFC</Form.Label>
-            <Form.Control 
-              type="text" 
+            <Form.Control
+              type="text"
               value={formData.rfc}
               onChange={handleChange}
-              required 
+              required
             />
           </Form.Group>
           <Form.Group as={Col} md={6} controlId="password">
             <Form.Label>Contraseña</Form.Label>
-            <Form.Control 
-              type="password" 
+            <Form.Control
+              type="password"
               value={formData.password}
               onChange={handleChange}
-              required 
+              required
             />
           </Form.Group>
           <Form.Group as={Col} md={6} controlId="confirmPassword">
             <Form.Label>Confirmar contraseña</Form.Label>
-            <Form.Control 
-              type="password" 
+            <Form.Control
+              type="password"
               value={formData.confirmPassword}
               onChange={handleChange}
-              required 
+              required
               isInvalid={!!passwordError}
             />
             <Form.Control.Feedback type="invalid">
@@ -408,74 +408,74 @@ const handleSubmit = async (e) => {
         <>
           <Form.Group as={Col} md={6} controlId="allyName">
             <Form.Label>Nombre de la organización/persona</Form.Label>
-            <Form.Control 
-              type="text" 
+            <Form.Control
+              type="text"
               value={formData.allyName}
               onChange={handleChange}
-              required 
+              required
             />
           </Form.Group>
           <Form.Group as={Col} md={6} controlId="socialReason">
             <Form.Label>Razón social</Form.Label>
-            <Form.Control 
-              type="text" 
+            <Form.Control
+              type="text"
               value={formData.socialReason}
               onChange={handleChange}
-              required 
+              required
             />
           </Form.Group>
           <Form.Group as={Col} md={6} controlId="phone">
             <Form.Label>Teléfono</Form.Label>
-            <Form.Control 
-              type="tel" 
+            <Form.Control
+              type="tel"
               value={formData.phone}
               onChange={handleChange}
-              required 
+              required
             />
           </Form.Group>
           <Form.Group as={Col} md={6} controlId="direction">
             <Form.Label>Dirección</Form.Label>
-            <Form.Control 
-              type="text" 
+            <Form.Control
+              type="text"
               value={formData.direction}
               onChange={handleChange}
-              required 
+              required
             />
           </Form.Group>
           <Form.Group as={Col} md={6} controlId="emailRepresentative">
             <Form.Label>Correo del representante</Form.Label>
-            <Form.Control 
-              type="email" 
+            <Form.Control
+              type="email"
               value={formData.emailRepresentative}
               onChange={handleChange}
-              required 
+              required
             />
           </Form.Group>
           <Form.Group as={Col} md={6} controlId="phoneRepresentative">
             <Form.Label>Teléfono del representante</Form.Label>
-            <Form.Control 
-              type="tel" 
+            <Form.Control
+              type="tel"
               value={formData.phoneRepresentative}
               onChange={handleChange}
-              required 
+              required
             />
           </Form.Group>
         </>
       )}
-      
+
       <Col xs={12} className="mt-4 d-flex justify-content-between">
         {step === 2 && (
-          <Button 
-            type="button" 
-            variant="outline-secondary" 
+          <Button
+            type="button"
+            variant="outline-secondary"
             onClick={() => setStep(1)}
             disabled={isLoading}
           >
             Volver atrás
           </Button>
         )}
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           variant="primary"
           className={step === 2 ? "ms-auto" : ""}
           disabled={isLoading}

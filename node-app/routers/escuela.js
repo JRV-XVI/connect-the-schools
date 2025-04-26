@@ -45,6 +45,58 @@ const eliminarEscuela = async (req, res, next) => {
 // ----------------- ROUTERS ----------------- //
 // ------------------------------------------- //
 
+escuela.post('/registro/escuela', async (req, res, next) => {
+    try {
+        const {
+            correo: email,          // Match frontend field names
+            contrasena: password,
+            telefono: phone,
+            nombre_escuela: schoolName,
+            direccion: direction,
+            nivel_educativo: educationalLevel,
+            sector,
+            numero_estudiantes: numberStudents,
+            nombre_director: nameDirector,
+            telefono_director: phoneRepresentative,
+            cct,
+            tipo_usuario: userType
+        } = req.body;
+
+        await model.crearEscuela({
+            email,
+            password,
+            phone,
+            schoolName,
+            direction,
+            educationalLevel,
+            sector,
+            numberStudents,
+            nameDirector,
+            phoneRepresentative,
+            cct,
+            userType
+        });
+
+        res.status(201).json({
+            email,
+            phone,
+            schoolName,
+            direction,
+            educationalLevel,
+            sector,
+            numberStudents,
+            nameDirector,
+            phoneRepresentative,
+            cct,
+            userType
+        });
+    } catch (error) {
+        console.error("Error al registrar escuela:", error);
+        res.status(500).json({ error: 'Error al registrar escuela' });
+    }
+});
+
+
 // Crear una escuela
 escuela.post('/escuela', async (req, res, next) => {
     const resultado = await model.crearEscuela(req.query);
