@@ -19,6 +19,13 @@ exports.up = function(knex) {
 			.references('rfc')
 			.inTable('perfilAliado')
 			.onDelete('CASCADE');
+		t.text('idNecesidadApoyo')
+			.notNullable()
+			.references('idNecesidadApoyo')
+			.inTable('necesidadApoyo')
+			.onDelete('CASCADE');
+		t.text('observacion')
+			.notNullable()
 		t.boolean('aceptacionAliado')
 			.defaultTo(true)
 			.notNullable();
