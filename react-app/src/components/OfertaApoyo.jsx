@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Tab, Nav, Alert, Button, Form, Badge, Table, Card, Modal } from 'react-bootstrap';
-import PropTypes from 'prop-types';
 
-const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNecesidad = () => {}, onViewNecesidad = () => {} }) => {
-  const [activeTab, setActiveTab] = useState('infraestructura');
-  const [showNewNeedForm, setShowNewNeedForm] = useState(false);
+const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {}, onViewApoyo = () => {} }) => {
+  const [activeTab, setActiveTab] = useState('material');
+  const [showNewOfferForm, setShowNewOfferForm] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
   
@@ -12,87 +11,78 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [currentNecesidad, setCurrentNecesidad] = useState(null);
+  const [currentApoyo, setCurrentApoyo] = useState(null);
   
-  // Estado del formulario para crear/editar necesidades
+  // Estado del formulario para crear/editar apoyos (simplificado)
   const [formData, setFormData] = useState({
     titulo: '',
     descripcion: '',
-    tipo: 'infraestructura',
+    tipo: 'material',
     subcategoria: '',
-    prioridad: 'Media',
-    estado: 'Activa'
+    estado: 'Disponible'
   });
   
   // Actualizar tipo y subcategoría cuando cambia la pestaña activa
   useEffect(() => {
-    if (showNewNeedForm) {
+    if (showNewOfferForm) {
       setFormData(prevData => ({
         ...prevData,
         tipo: activeTab,
         subcategoria: categoriasConfig[activeTab]?.subcategorias[0] || ''
       }));
     }
-  }, [activeTab, showNewNeedForm]);
+  }, [activeTab, showNewOfferForm]);
   
   // Estado para los filtros
   const [filtro, setFiltro] = useState({
     subcategoria: "Todas",
     estado: "Todos",
-    prioridad: "Todas",
     busqueda: ""
   });
   
-  // Definición de categorías y subcategorías para necesidades escolares
+  // Definición de categorías y subcategorías
   const categoriasConfig = {
-    infraestructura: {
-      nombre: "Infraestructura",
-      subcategorias: [
-        'Aulas',
-        'Áreas recreativas',
-        'Instalaciones deportivas',
-        'Sanitarios',
-        'Instalaciones eléctricas'
-      ]
-    },
-    equipamiento: {
-      nombre: "Equipamiento Tecnológico",
-      subcategorias: [
-        'Computadoras',
-        'Proyectores',
-        'Pizarrones interactivos',
-        'Internet',
-        'Tabletas'
-      ]
-    },
     material: {
-      nombre: "Material Didáctico",
+      nombre: "Apoyo Material",
       subcategorias: [
-        'Libros',
+        'Mobiliario',
+        'Equipamiento tecnológico',
+        'Material didáctico',
         'Material bibliográfico',
-        'Material de laboratorio',
-        'Material artístico',
         'Material deportivo'
       ]
     },
-    capacitacion: {
-      nombre: "Capacitación",
+    servicios: {
+      nombre: "Servicios",
       subcategorias: [
-        'Formación docente',
-        'Talleres para estudiantes',
-        'Cursos para personal',
-        'Educación especial',
-        'Programas educativos'
+        'Capacitación docente',
+        'Mantenimiento',
+        'Rehabilitación de espacios',
+        'Servicios tecnológicos',
+        'Servicios de consultoría'
+      ]
+    },
+    economico: {
+      nombre: "Apoyo Económico",
+      subcategorias: [
+        'Becas estudiantiles',
+        'Apoyo a proyectos escolares',
+        'Financiamiento de mejoras',
+        'Patrocinios',
+        'Donaciones monetarias'
+      ]
+    },
+    voluntariado: {
+      nombre: "Voluntariado",
+      subcategorias: [
+        'Clases y talleres',
+        'Asesoría académica',
+        'Actividades culturales',
+        'Mantenimiento y limpieza',
+        'Mentorías'
       ]
     }
   };
-
-  // Opciones de prioridad
-  const prioridadesOptions = [
-    { value: 'Alta', color: 'danger' },
-    { value: 'Media', color: 'warning' },
-    { value: 'Baja', color: 'info' }
-  ];
 
   // Función para manejar cambios en los filtros
   const handleFiltroChange = (e) => {
@@ -108,31 +98,27 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
     setFiltro({
       subcategoria: "Todas",
       estado: "Todos",
-      prioridad: "Todas",
       busqueda: ""
     });
   };
   
-  // Aplicar filtros a la lista de necesidades
-  const filtrarNecesidades = (listaNecesidades) => {
-    return listaNecesidades.filter(necesidad => {
+  // Aplicar filtros a la lista de apoyos
+  const filtrarApoyos = (listaApoyos) => {
+    return listaApoyos.filter(apoyo => {
       // Filtrar por tipo (tab activo)
-      if (necesidad.tipo !== activeTab) return false;
+      if (apoyo.tipo !== activeTab) return false;
       
       // Filtrar por subcategoría
-      if (filtro.subcategoria !== "Todas" && necesidad.subcategoria !== filtro.subcategoria) return false;
+      if (filtro.subcategoria !== "Todas" && apoyo.subcategoria !== filtro.subcategoria) return false;
       
       // Filtrar por estado
-      if (filtro.estado !== "Todos" && necesidad.estado !== filtro.estado) return false;
-      
-      // Filtrar por prioridad
-      if (filtro.prioridad !== "Todas" && necesidad.prioridad !== filtro.prioridad) return false;
+      if (filtro.estado !== "Todos" && apoyo.estado !== filtro.estado) return false;
       
       // Filtrar por búsqueda en título o descripción
       if (filtro.busqueda.trim() !== "") {
         const searchTerm = filtro.busqueda.toLowerCase();
-        if (!necesidad.titulo.toLowerCase().includes(searchTerm) && 
-            !necesidad.descripcion.toLowerCase().includes(searchTerm)) {
+        if (!apoyo.titulo.toLowerCase().includes(searchTerm) && 
+            !apoyo.descripcion.toLowerCase().includes(searchTerm)) {
           return false;
         }
       }
@@ -141,7 +127,7 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
     });
   };
 
-  // Manejador para cambios en el formulario
+  // Manejador para cambios en el formulario (simplificado)
   const handleFormChange = (e) => {
     const { name, value } = e.target;
     
@@ -160,16 +146,16 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
     }
   };
 
-  // Manejador para enviar el formulario de nueva necesidad
+  // Manejador para enviar el formulario de nueva oferta
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    const nuevaNecesidad = {
+    const nuevaOferta = {
       ...formData,
       fechaCreacion: new Date().toISOString()
     };
     
-    onAddNecesidad(nuevaNecesidad);
+    onAddApoyo(nuevaOferta);
     
     // Reiniciar formulario, manteniendo la categoría actual
     setFormData({
@@ -177,100 +163,92 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
       descripcion: '',
       tipo: activeTab,
       subcategoria: categoriasConfig[activeTab]?.subcategorias[0] || '',
-      prioridad: 'Media',
-      estado: 'Activa'
+      estado: 'Disponible'
     });
     
-    setShowNewNeedForm(false);
+    setShowNewOfferForm(false);
   };
   
   // Manejador para guardar cambios en edición
   const handleSaveEdit = () => {
-    if (!currentNecesidad) return;
+    if (!currentApoyo) return;
     
-    const necesidadActualizada = {
-      ...currentNecesidad,
+    const apoyoActualizado = {
+      ...currentApoyo,
       ...formData
     };
     
     // Llamar al método de edición pasado por props
-    onEditNecesidad(necesidadActualizada.id, necesidadActualizada);
+    onEditApoyo(apoyoActualizado.id, apoyoActualizado);
     
     setShowEditModal(false);
-    setCurrentNecesidad(null);
+    setCurrentApoyo(null);
   };
   
-  // Manejador para borrar necesidad
-  const handleDeleteNecesidad = () => {
-    if (!currentNecesidad) return;
+  // Manejador para borrar apoyo
+  const handleDeleteApoyo = () => {
+    if (!currentApoyo) return;
     
-    // Llamamos a onEditNecesidad con un flag para indicar eliminación
-    onEditNecesidad(currentNecesidad.id, { ...currentNecesidad, _delete: true });
+    // Llamamos a onEditApoyo con un flag para indicar eliminación
+    onEditApoyo(currentApoyo.id, { ...currentApoyo, _delete: true });
     
     setShowDeleteModal(false);
-    setCurrentNecesidad(null);
+    setCurrentApoyo(null);
   };
   
-  // Manejador para cambiar estado 
-  const handleToggleStatus = (necesidad) => {
-    const nuevoEstado = necesidad.estado === 'Activa' ? 'Inactiva' : 'Activa';
+  // Manejador para cambiar estado (disponible/no disponible)
+  const handleToggleStatus = (apoyo) => {
+    const nuevoEstado = apoyo.estado === 'Disponible' ? 'No disponible' : 'Disponible';
     
-    onEditNecesidad(necesidad.id, {
-      ...necesidad,
+    onEditApoyo(apoyo.id, {
+      ...apoyo,
       estado: nuevoEstado
     });
   };
   
   // Manejador para abrir modal de visualización
-  const handleViewDetails = (necesidad) => {
-    setCurrentNecesidad(necesidad);
+  const handleViewDetails = (apoyo) => {
+    setCurrentApoyo(apoyo);
     setShowViewModal(true);
     
     // También podemos llamar al manejador pasado por props si necesita hacer algo específico
-    onViewNecesidad(necesidad.id);
+    onViewApoyo(apoyo.id);
   };
   
   // Manejador para abrir modal de edición
-  const handleEdit = (necesidad) => {
-    setCurrentNecesidad(necesidad);
+  const handleEdit = (apoyo) => {
+    setCurrentApoyo(apoyo);
     
-    // Inicializar el formulario con los datos de la necesidad
+    // Inicializar el formulario con los datos del apoyo (simplificado)
     setFormData({
-      titulo: necesidad.titulo || '',
-      descripcion: necesidad.descripcion || '',
-      tipo: necesidad.tipo || activeTab,
-      subcategoria: necesidad.subcategoria || '',
-      prioridad: necesidad.prioridad || 'Media',
-      estado: necesidad.estado || 'Activa'
+      titulo: apoyo.titulo || '',
+      descripcion: apoyo.descripcion || '',
+      tipo: apoyo.tipo || activeTab,
+      subcategoria: apoyo.subcategoria || '',
+      estado: apoyo.estado || 'Disponible'
     });
     
     setShowEditModal(true);
   };
   
   // Manejador para confirmar eliminación
-  const handleConfirmDelete = (necesidad) => {
-    setCurrentNecesidad(necesidad);
+  const handleConfirmDelete = (apoyo) => {
+    setCurrentApoyo(apoyo);
     setShowDeleteModal(true);
   };
 
-  // Función para obtener color según prioridad
-  const getPrioridadColor = (prioridad) => {
-    const prioridadItem = prioridadesOptions.find(p => p.value === prioridad);
-    return prioridadItem ? prioridadItem.color : 'secondary';
-  };
-
-  // Función para renderizar la tabla de necesidades
-  const renderNecesidadesTable = (tipo) => {
+  // Función para renderizar la tabla de apoyos
+  const renderApoyosTable = (tipo) => {
     // Aplicar filtros y paginación
-    const necesidadesFiltradas = filtrarNecesidades(necesidades);
+    const apoyosFiltrados = filtrarApoyos(apoyos);
     
     // Aplicar paginación
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = necesidadesFiltradas.slice(indexOfFirstItem, indexOfLastItem);
+    const currentItems = apoyosFiltrados.slice(indexOfFirstItem, indexOfLastItem);
     
     // Actualizar el conteo de páginas después de filtrar
-    const newPageCount = Math.ceil(necesidadesFiltradas.length / itemsPerPage);
+    const newPageCount = Math.ceil(apoyosFiltrados.length / itemsPerPage);
     if (currentPage > newPageCount && newPageCount > 0) {
       setCurrentPage(1);
     }
@@ -283,40 +261,34 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
               <th>Título</th>
               <th>Descripción</th>
               <th>Subcategoría</th>
-              <th>Prioridad</th>
               <th>Estado</th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
             {currentItems.length > 0 ? (
-              currentItems.map((necesidad, index) => (
+              currentItems.map((apoyo, index) => (
                 <tr key={index}>
-                  <td>{necesidad.titulo}</td>
-                  <td>{necesidad.descripcion.length > 50 ? 
-                      `${necesidad.descripcion.substring(0, 50)}...` : necesidad.descripcion}</td>
+                  <td>{apoyo.titulo}</td>
+                  <td>{apoyo.descripcion.length > 50 ? 
+                      `${apoyo.descripcion.substring(0, 50)}...` : apoyo.descripcion}</td>
                   <td>
-                    <Badge bg="info">{necesidad.subcategoria}</Badge>
-                  </td>
-                  <td>
-                    <Badge bg={getPrioridadColor(necesidad.prioridad)}>
-                      {necesidad.prioridad}
-                    </Badge>
+                    <Badge bg="info">{apoyo.subcategoria}</Badge>
                   </td>
                   <td>
                     <div className="d-flex align-items-center">
                       <Badge 
-                        bg={necesidad.estado === 'Activa' ? 'success' : 
-                           necesidad.estado === 'En proceso' ? 'primary' : 
-                           necesidad.estado === 'Resuelta' ? 'secondary' : 'secondary'}>
-                        {necesidad.estado}
+                        bg={apoyo.estado === 'Disponible' ? 'success' : 
+                           apoyo.estado === 'En proceso' ? 'primary' : 
+                           apoyo.estado === 'Vinculado' ? 'warning' : 'secondary'}>
+                        {apoyo.estado}
                       </Badge>
                       <div className="form-check form-switch ms-2">
                         <input 
                           className="form-check-input" 
                           type="checkbox" 
-                          checked={necesidad.estado === 'Activa'} 
-                          onChange={() => handleToggleStatus(necesidad)}
+                          checked={apoyo.estado === 'Disponible'} 
+                          onChange={() => handleToggleStatus(apoyo)}
                         />
                       </div>
                     </div>
@@ -327,7 +299,7 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
                         variant="outline-primary" 
                         size="sm" 
                         className="me-1" 
-                        onClick={() => handleEdit(necesidad)}
+                        onClick={() => handleEdit(apoyo)}
                         title="Editar"
                       >
                         <i className="fas fa-edit"></i>
@@ -336,7 +308,7 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
                         variant="outline-info" 
                         size="sm"
                         className="me-1"
-                        onClick={() => handleViewDetails(necesidad)}
+                        onClick={() => handleViewDetails(apoyo)}
                         title="Ver detalles"
                       >
                         <i className="fas fa-eye"></i>
@@ -345,7 +317,7 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
                         variant="outline-danger" 
                         size="sm" 
                         title="Eliminar"
-                        onClick={() => handleConfirmDelete(necesidad)}
+                        onClick={() => handleConfirmDelete(apoyo)}
                       >
                         <i className="fas fa-trash"></i>
                       </Button>
@@ -355,8 +327,8 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="text-center py-3">
-                  No hay necesidades registradas en esta categoría
+                <td colSpan="5" className="text-center py-3">
+                  No hay ofertas de apoyo registradas en esta categoría
                 </td>
               </tr>
             )}
@@ -380,30 +352,30 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
   const getFormTitle = () => {
     const tipoForm = formData.tipo || activeTab;
     switch (tipoForm) {
-      case 'infraestructura':
-        return 'Registrar Nueva Necesidad de Infraestructura';
-      case 'equipamiento':
-        return 'Registrar Nueva Necesidad de Equipamiento Tecnológico';
       case 'material':
-        return 'Registrar Nueva Necesidad de Material Didáctico';
-      case 'capacitacion':
-        return 'Registrar Nueva Necesidad de Capacitación';
+        return 'Registrar Nueva Oferta de Apoyo Material';
+      case 'servicios':
+        return 'Registrar Nueva Oferta de Servicios';
+      case 'economico':
+        return 'Registrar Nueva Oferta de Apoyo Económico';
+      case 'voluntariado':
+        return 'Registrar Nueva Oferta de Voluntariado';
       default:
-        return 'Registrar Nueva Necesidad';
+        return 'Registrar Nueva Oferta de Apoyo';
     }
   };
 
   // Obtener descripción de la sección según el tipo activo
   const getSectionDescription = () => {
     switch (activeTab) {
-      case 'infraestructura':
-        return 'Registre las necesidades de construcción, remodelación o mantenimiento de instalaciones escolares.';
-      case 'equipamiento':
-        return 'Registre las necesidades de equipos tecnológicos como computadoras, proyectores, internet o dispositivos multimedia.';
       case 'material':
-        return 'Registre las necesidades de material didáctico, libros, material deportivo u otros recursos educativos.';
-      case 'capacitacion':
-        return 'Registre las necesidades de capacitación docente, talleres para estudiantes o programas educativos especiales.';
+        return 'Registre sus ofertas de donación o préstamo de recursos materiales como equipos, mobiliario, libros o materiales didácticos para escuelas.';
+      case 'servicios':
+        return 'Registre los servicios profesionales que puede ofrecer a las escuelas, como capacitación, mantenimiento, asesoría o servicios tecnológicos.';
+      case 'economico':
+        return 'Registre sus opciones de apoyo económico, patrocinio o financiamiento para proyectos escolares o mejoras en instituciones educativas.';
+      case 'voluntariado':
+        return 'Registre las actividades de voluntariado que puede ofrecer, como talleres, clases, tutorías o participación en eventos escolares.';
       default:
         return '';
     }
@@ -411,12 +383,12 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
 
   // Obtener título de sección según el tipo activo
   const getSectionTitle = () => {
-    return categoriasConfig[activeTab]?.nombre || 'Necesidades';
+    return categoriasConfig[activeTab]?.nombre || 'Ofertas de Apoyo';
   };
   
   // Cálculo y renderizado de la paginación
-  const necesidadesFiltradas = filtrarNecesidades(necesidades);
-  const pageCount = Math.ceil(necesidadesFiltradas.length / itemsPerPage);
+  const apoyosFiltrados = filtrarApoyos(apoyos);
+  const pageCount = Math.ceil(apoyosFiltrados.length / itemsPerPage);
   
   const renderPagination = () => {
     if (pageCount <= 1) return null;
@@ -450,44 +422,44 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
   const getTitlePlaceholder = () => {
     const tipo = formData.tipo || activeTab;
     switch (tipo) {
-      case 'infraestructura':
-        return 'Ej: Reparación de techos en aulas';
-      case 'equipamiento':
-        return 'Ej: Necesidad de 15 computadoras';
       case 'material':
-        return 'Ej: Libros de texto para 3er grado';
-      case 'capacitacion':
-        return 'Ej: Capacitación en métodos educativos';
+        return 'Ej: Donación de 10 computadoras';
+      case 'servicios':
+        return 'Ej: Taller de programación';
+      case 'economico':
+        return 'Ej: Becas para estudiantes destacados';
+      case 'voluntariado':
+        return 'Ej: Voluntariado en clases de inglés';
       default:
-        return 'Título de la necesidad';
+        return 'Título de la oferta';
     }
   };
 
   const getDescriptionPlaceholder = () => {
     const tipo = formData.tipo || activeTab;
     switch (tipo) {
-      case 'infraestructura':
-        return 'Describa con detalle la necesidad de infraestructura...';
-      case 'equipamiento':
-        return 'Describa con detalle la necesidad de equipamiento tecnológico...';
       case 'material':
-        return 'Describa con detalle la necesidad de material didáctico...';
-      case 'capacitacion':
-        return 'Describa con detalle la necesidad de capacitación...';
+        return 'Describa con detalle su oferta de apoyo material...';
+      case 'servicios':
+        return 'Describa con detalle su oferta de servicios...';
+      case 'economico':
+        return 'Describa con detalle su oferta de apoyo económico...';
+      case 'voluntariado':
+        return 'Describa con detalle su oferta de voluntariado...';
       default:
-        return 'Describa con detalle la necesidad...';
+        return 'Describa con detalle su oferta...';
     }
   };
 
   return (
-    <div id="necesidades-escolares" className="mt-5 pt-3">
+    <div id="ofertas-apoyo" className="mt-5 pt-3">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h4>Gestión de Necesidades Escolares</h4>
+        <h4>Gestión de Ofertas de Apoyo</h4>
         <Button 
           variant="primary" 
-          onClick={() => setShowNewNeedForm(!showNewNeedForm)}
+          onClick={() => setShowNewOfferForm(!showNewOfferForm)}
         >
-          <i className="fas fa-plus me-2"></i> Nueva Necesidad
+          <i className="fas fa-plus me-2"></i> Nueva Oferta de Apoyo
         </Button>
       </div>
       
@@ -504,7 +476,7 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
         <Card.Body>
           {/* Sección de filtros */}
           <div className="border-bottom pb-3 mb-3">
-            <h6>Filtros de necesidades</h6>
+            <h6>Filtros de ofertas</h6>
             <div className="row g-3 align-items-end">
               <div className="col-md">
                 <Form.Label>Subcategoría</Form.Label>
@@ -528,24 +500,10 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
                   onChange={handleFiltroChange}
                 >
                   <option value="Todos">Todos</option>
-                  <option value="Activa">Activa</option>
+                  <option value="Disponible">Disponible</option>
                   <option value="En proceso">En proceso</option>
-                  <option value="Resuelta">Resuelta</option>
-                  <option value="Inactiva">Inactiva</option>
-                </Form.Select>
-              </div>
-              
-              <div className="col-md">
-                <Form.Label>Prioridad</Form.Label>
-                <Form.Select 
-                  name="prioridad" 
-                  value={filtro.prioridad} 
-                  onChange={handleFiltroChange}
-                >
-                  <option value="Todas">Todas</option>
-                  {prioridadesOptions.map((p, idx) => (
-                    <option key={idx} value={p.value}>{p.value}</option>
-                  ))}
+                  <option value="Vinculado">Vinculado</option>
+                  <option value="No disponible">No disponible</option>
                 </Form.Select>
               </div>
               
@@ -580,8 +538,8 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
                 
                 <h5 className="mb-3">{getSectionTitle()}</h5>
                 
-                {/* Tabla de necesidades */}
-                {renderNecesidadesTable(activeTab)}
+                {/* Tabla de ofertas de apoyo */}
+                {renderApoyosTable(activeTab)}
                 
                 {/* Paginación */}
                 <div className="mt-3">
@@ -589,13 +547,13 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
                 </div>
                 
                 {/* Mostrar botón o formulario según el estado */}
-                {!showNewNeedForm ? (
+                {!showNewOfferForm ? (
                   <Button 
                     variant="primary" 
                     className="mt-3"
-                    onClick={() => setShowNewNeedForm(true)}
+                    onClick={() => setShowNewOfferForm(true)}
                   >
-                    <i className="fas fa-plus me-2"></i> Nueva Necesidad de {getSectionTitle()}
+                    <i className="fas fa-plus me-2"></i> Nueva Oferta de {getSectionTitle()}
                   </Button>
                 ) : (
                   <Card className="mt-4">
@@ -641,7 +599,7 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
                         <div className="row mb-3">
                           <div className="col-md-12">
                             <Form.Group>
-                              <Form.Label>Título de la necesidad</Form.Label>
+                              <Form.Label>Título de la oferta</Form.Label>
                               <Form.Control
                                 type="text"
                                 name="titulo"
@@ -671,49 +629,30 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
                           </div>
                         </div>
                         
-                        <div className="row mb-3">
-                          <div className="col-md-6">
-                            <Form.Group>
-                              <Form.Label>Prioridad</Form.Label>
-                              <Form.Select
-                                name="prioridad"
-                                value={formData.prioridad}
-                                onChange={handleFormChange}
-                                required
-                              >
-                                {prioridadesOptions.map((p, idx) => (
-                                  <option key={idx} value={p.value}>{p.value}</option>
-                                ))}
-                              </Form.Select>
-                            </Form.Group>
-                          </div>
-                          <div className="col-md-6">
-                            <Form.Group>
-                              <Form.Label>Estado</Form.Label>
-                              <Form.Select
-                                name="estado"
-                                value={formData.estado}
-                                onChange={handleFormChange}
-                                required
-                              >
-                                <option value="Activa">Activa</option>
-                                <option value="Inactiva">Inactiva</option>
-                              </Form.Select>
-                            </Form.Group>
-                          </div>
-                        </div>
+                        <Form.Group className="mb-3">
+                          <Form.Label>Estado</Form.Label>
+                          <Form.Select
+                            name="estado"
+                            value={formData.estado}
+                            onChange={handleFormChange}
+                            required
+                          >
+                            <option value="Disponible">Disponible</option>
+                            <option value="No disponible">No disponible</option>
+                          </Form.Select>
+                        </Form.Group>
                         
                         <div className="text-end">
                           <Button 
                             type="button" 
                             variant="light" 
                             className="me-2" 
-                            onClick={() => setShowNewNeedForm(false)}
+                            onClick={() => setShowNewOfferForm(false)}
                           >
                             Cancelar
                           </Button>
                           <Button type="submit" variant="primary">
-                            <i className="fas fa-save me-2"></i>Guardar Necesidad
+                            <i className="fas fa-save me-2"></i>Guardar Oferta
                           </Button>
                         </div>
                       </Form>
@@ -730,38 +669,36 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
       <Modal show={showViewModal} onHide={() => setShowViewModal(false)} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>
-            Detalles de necesidad escolar
+            Detalles de oferta de apoyo
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {currentNecesidad && (
+          {currentApoyo && (
             <div>
-              <h4>{currentNecesidad.titulo}</h4>
+              <h4>{currentApoyo.titulo}</h4>
               
               <div className="mb-3">
                 <Badge 
                   bg="secondary"
                   className="me-2">
-                  {categoriasConfig[currentNecesidad.tipo]?.nombre || "Categoría no especificada"}
+                  {categoriasConfig[currentApoyo.tipo]?.nombre || "Categoría no especificada"}
                 </Badge>
-                <Badge bg={getPrioridadColor(currentNecesidad.prioridad)} className="me-2">
-                  Prioridad: {currentNecesidad.prioridad}
+                <Badge bg={currentApoyo.estado === 'Disponible' ? 'success' : 
+                           currentApoyo.estado === 'En proceso' ? 'primary' : 
+                           currentApoyo.estado === 'Vinculado' ? 'warning' : 'secondary'}
+                      className="me-2">
+                  {currentApoyo.estado}
                 </Badge>
-                <Badge bg={currentNecesidad.estado === 'Activa' ? 'success' : 
-                         currentNecesidad.estado === 'En proceso' ? 'primary' : 
-                         'secondary'} className="me-2">
-                  {currentNecesidad.estado}
-                </Badge>
-                <Badge bg="info">{currentNecesidad.subcategoria}</Badge>
+                <Badge bg="info">{currentApoyo.subcategoria}</Badge>
               </div>
               
               <h6>Descripción:</h6>
-              <p>{currentNecesidad.descripcion}</p>
+              <p>{currentApoyo.descripcion}</p>
               
-              {currentNecesidad.fechaCreacion && (
+              {currentApoyo.fechaCreacion && (
                 <div className="text-muted mt-3">
                   <small>
-                    Fecha de registro: {new Date(currentNecesidad.fechaCreacion).toLocaleDateString()}
+                    Fecha de creación: {new Date(currentApoyo.fechaCreacion).toLocaleDateString()}
                   </small>
                 </div>
               )}
@@ -771,14 +708,14 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
         <Modal.Footer>
           <Button variant="outline-danger" onClick={() => {
             setShowViewModal(false);
-            handleConfirmDelete(currentNecesidad);
+            handleConfirmDelete(currentApoyo);
           }}>
             <i className="fas fa-trash me-2"></i>
             Eliminar
           </Button>
           <Button variant="outline-primary" onClick={() => {
             setShowViewModal(false);
-            handleEdit(currentNecesidad);
+            handleEdit(currentApoyo);
           }}>
             <i className="fas fa-edit me-2"></i>
             Editar
@@ -792,14 +729,14 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
       {/* Modal para editar */}
       <Modal show={showEditModal} onHide={() => setShowEditModal(false)} size="lg">
         <Modal.Header closeButton>
-          <Modal.Title>Editar necesidad escolar</Modal.Title>
+          <Modal.Title>Editar oferta de apoyo</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
             <div className="row mb-3">
               <div className="col-md-6">
                 <Form.Group>
-                  <Form.Label>Título de la necesidad</Form.Label>
+                  <Form.Label>Título de la oferta</Form.Label>
                   <Form.Control
                     type="text"
                     name="titulo"
@@ -811,7 +748,7 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
               </div>
               <div className="col-md-6">
                 <Form.Group>
-                  <Form.Label>Tipo de necesidad</Form.Label>
+                  <Form.Label>Tipo de apoyo</Form.Label>
                   <Form.Select
                     name="tipo"
                     value={formData.tipo}
@@ -845,24 +782,6 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
               </div>
               <div className="col-md-6">
                 <Form.Group>
-                  <Form.Label>Prioridad</Form.Label>
-                  <Form.Select
-                    name="prioridad"
-                    value={formData.prioridad}
-                    onChange={handleFormChange}
-                    required
-                  >
-                    {prioridadesOptions.map((p, idx) => (
-                      <option key={idx} value={p.value}>{p.value}</option>
-                    ))}
-                  </Form.Select>
-                </Form.Group>
-              </div>
-            </div>
-            
-            <div className="row mb-3">
-              <div className="col-md-12">
-                <Form.Group>
                   <Form.Label>Estado</Form.Label>
                   <Form.Select
                     name="estado"
@@ -870,10 +789,10 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
                     onChange={handleFormChange}
                     required
                   >
-                    <option value="Activa">Activa</option>
-                    <option value="Inactiva">Inactiva</option>
+                    <option value="Disponible">Disponible</option>
+                    <option value="No disponible">No disponible</option>
                     <option value="En proceso">En proceso</option>
-                    <option value="Resuelta">Resuelta</option>
+                    <option value="Vinculado">Vinculado</option>
                   </Form.Select>
                 </Form.Group>
               </div>
@@ -895,7 +814,7 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
         <Modal.Footer>
           <Button variant="danger" className="me-auto" onClick={() => {
             setShowEditModal(false);
-            handleConfirmDelete(currentNecesidad);
+            handleConfirmDelete(currentApoyo);
           }}>
             <i className="fas fa-trash me-2"></i>
             Eliminar
@@ -916,12 +835,12 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
           <Modal.Title>Confirmar eliminación</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {currentNecesidad && (
+          {currentApoyo && (
             <div>
-              <p>¿Está seguro que desea eliminar la siguiente necesidad escolar?</p>
+              <p>¿Está seguro que desea eliminar la siguiente oferta?</p>
               <div className="alert alert-warning">
-                <strong>{currentNecesidad.titulo}</strong>
-                <p className="mb-0">{currentNecesidad.subcategoria} - Prioridad: {currentNecesidad.prioridad}</p>
+                <strong>{currentApoyo.titulo}</strong>
+                <p className="mb-0">{currentApoyo.subcategoria}</p>
               </div>
               <p className="text-danger">Esta acción no se puede deshacer.</p>
             </div>
@@ -931,9 +850,9 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
           <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
             Cancelar
           </Button>
-          <Button variant="danger" onClick={handleDeleteNecesidad}>
+          <Button variant="danger" onClick={handleDeleteApoyo}>
             <i className="fas fa-trash me-2"></i>
-            Eliminar Necesidad
+            Eliminar Oferta
           </Button>
         </Modal.Footer>
       </Modal>
@@ -941,11 +860,4 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
   );
 };
 
-NecesidadApoyo.propTypes = {
-  necesidades: PropTypes.array,
-  onAddNecesidad: PropTypes.func,
-  onEditNecesidad: PropTypes.func,
-  onViewNecesidad: PropTypes.func
-};
-
-export default NecesidadApoyo;
+export default OfertaApoyo;

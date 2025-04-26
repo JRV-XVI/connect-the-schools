@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap'; // Asegúrate de tener react-bootstrap instalado
+import axios from 'axios';
 
 const Busqueda = ({
   titulo = "Búsqueda de Escuelas",
@@ -132,24 +133,82 @@ const Busqueda = ({
     
     setIsSubmitting(true);
     
-    // Aquí simularíamos el envío a la API
+    // Encontrar la necesidad seleccionada para obtener su ID y otros detalles
+    const necesidadSeleccionada = escuelaSeleccionada.necesidades.find(
+      n => (n.id || n.idNecesidad) == formData.necesidadSeleccionada
+    );
+    
+    // Encontrar el apoyo seleccionado para obtener su ID y otros detalles
+    const apoyoSeleccionado = apoyosDisponibles.find(
+      a => (a.id || a.idApoyo) == formData.apoyoSeleccionado
+    );
+    
+    // Construir un objeto con toda la información necesaria para el backend
+    const solicitudData = {
+      // Datos de la escuela
+      escuela: {
+        id: escuelaSeleccionada.id,
+        cct: escuelaSeleccionada.cct, // Asumiendo que el resultado tiene el CCT
+        nombre: escuelaSeleccionada.nombre
+      },
+      // Datos de la necesidad
+      necesidad: {
+        id: formData.necesidadSeleccionada,
+        nombre: necesidadSeleccionada?.nombre || '',
+        tipo: necesidadSeleccionada?.tipo || '',
+        idNecesidadApoyo: necesidadSeleccionada?.idNecesidadApoyo || formData.necesidadSeleccionada
+      },
+      // Datos del apoyo
+      apoyo: {
+        id: formData.apoyoSeleccionado,
+        titulo: apoyoSeleccionado?.titulo || '',
+        tipo: apoyoSeleccionado?.tipo || '',
+        idApoyo: apoyoSeleccionado?.idApoyo || formData.apoyoSeleccionado
+      },
+      // Datos del aliado (asumiendo que están disponibles en el contexto o props)
+      aliado: {
+        rfc: apoyoSeleccionado?.rfc || localStorage.getItem('aliadoRFC') || '',
+        nombre: localStorage.getItem('aliadoNombre') || ''
+      },
+      // Detalles adicionales de la solicitud
+      detalles: {
+        mensajeInteres: formData.mensajeInteres,
+        descripcionServicios: formData.descripcionServicios,
+        fechaSolicitud: new Date().toISOString()
+      },
+      // Archivos adjuntos (en una implementación real, se subirían los archivos)
+      documentos: formData.documentos.map(doc => ({
+        nombre: doc.name,
+        tipo: doc.type,
+        tamano: doc.size
+      }))
+    };
+    
+    console.log("Enviando solicitud de vinculación:", solicitudData);
+    
+    // Aquí harías la llamada real a la API usando axios
+    axios.post('/api/vinculaciones', solicitudData)
+      .then(response => {
+        console.log("Respuesta exitosa:", response.data);
+        // Notificar al componente padre
+        onVincular(escuelaSeleccionada, solicitudData);
+        // Cerrar modal y resetear
+        handleCloseVinculacionModal();
+      })
+      .catch(error => {
+        console.error("Error al enviar solicitud:", error);
+        // Manejar el error (mostrar mensaje, etc.)
+        setValidationErrors({ 
+          submit: "Error al enviar la solicitud. Intente nuevamente." 
+        });
+      })
+      .finally(() => {
+        setIsSubmitting(false);
+      });
+  
+    // Simulación temporal - Eliminar cuando uses axios realmente
     setTimeout(() => {
-      // Datos a enviar
-      const solicitudData = {
-        escuelaId: escuelaSeleccionada.id,
-        necesidadId: formData.necesidadSeleccionada,
-        mensaje: formData.mensajeInteres,
-        apoyoId: formData.apoyoSeleccionado,
-        descripcion: formData.descripcionServicios,
-        documentos: formData.documentos.map(doc => doc.name) // En una implementación real, aquí se subirían los archivos
-      };
-      
-      console.log("Enviando solicitud de vinculación:", solicitudData);
-      
-      // Notificar al componente padre
       onVincular(escuelaSeleccionada, solicitudData);
-      
-      // Cerrar modal y resetear
       handleCloseVinculacionModal();
       setIsSubmitting(false);
     }, 1000);

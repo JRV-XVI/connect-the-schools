@@ -18,8 +18,7 @@ exports.up = function(knex) {
 		tabla.text('subcategoria').notNullable();
 		tabla.text('descripcion')
 			.notNullable();
-		tabla.text('prioridad')
-			.notNullable();
+		tabla.text('prioridad');
 		tabla.date('fechaCreacion')
 			.defaultTo(knex.fn.now())
 			.notNullable();
