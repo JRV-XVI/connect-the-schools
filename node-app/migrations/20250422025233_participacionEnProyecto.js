@@ -19,7 +19,7 @@ exports.up = function(knex) {
 			.references('rfc')
 			.inTable('perfilAliado')
 			.onDelete('CASCADE');
-		t.text('idNecesidadApoyo')
+		t.integer('idNecesidadApoyo')
 			.notNullable()
 			.references('idNecesidadApoyo')
 			.inTable('necesidadApoyo')
