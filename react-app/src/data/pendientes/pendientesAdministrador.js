@@ -1,6 +1,5 @@
 export const pendientesAdministrador = {
   titulo: "Validaciones Pendientes",
-  textoBoton: "Ver todos los pendientes",
   items: [
     {
       titulo: "Validación de Proyectos",

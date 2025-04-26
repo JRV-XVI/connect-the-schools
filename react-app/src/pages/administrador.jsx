@@ -265,7 +265,6 @@ const Administrador = () => {
           
           {/* Sección de Proyectos y Validaciones Pendientes */}
           <section className="mb-4">
-            <h4 className="mb-3">Proyectos y Validaciones</h4>
             <div className="row">
               <div className="col-xl-8 col-lg-7">
                 <Proyecto 

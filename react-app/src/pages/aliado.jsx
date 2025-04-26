@@ -1,22 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../components/barraLateral.jsx";
 import Navbar from "../components/barraNavegacion.jsx";
 import Pendientes from "../components/pendientes.jsx";
 import Proyecto from "../components/proyectos.jsx";
-import NecesidadApoyo from "../components/necesidadApoyo.jsx";
+// Reemplazamos NecesidadApoyo por el nuevo componente
+import OfertaApoyo from "../components/OfertaApoyo.jsx";
 import Busqueda from "../components/busqueda.jsx";
-import ProyectoDetallado from "../components/proyectoDetallado.jsx"; // Nueva importación
+import ProyectoDetallado from "../components/proyectoDetallado.jsx";
 import { StatCardGroup } from "../components/cartas.jsx"; 
 import { sidebarAliado } from "../data/barraLateral/barraLateralAliado.js";
 import { navbarAliado } from "../data/barraNavegacion/barraNavegacionAliado.js";
 import { cartasAliado } from "../data/cartas/cartasAliado.js"; 
 import { pendientesAliado } from '../data/pendientes/pendientesAliado.js';
 import { proyectosAliado } from '../data/proyectos/proyectosAliado.js';
-// Importación de los datos para el componente NecesidadApoyo
+// Mantenemos la importación para migrar los datos iniciales
 import { tabsApoyos, columnasApoyos, datosApoyos } from '../data/necesidadApoyo/apoyos.js';
-// Importación de los datos para el componente Busqueda
 import { escuelasData, opcionesFiltros, apoyosDisponiblesAliado } from '../data/busqueda/busquedaEscuelas.js';
-// Importación de los datos para el componente ProyectoDetallado
 import { proyectoDetallado } from '../data/proyectoDetallado/proyectoDetallado.js';
 import Logo from "../assets/MPJ.png";
 
@@ -27,13 +26,13 @@ const Aliado = () => {
 
   // Obtenemos todos los pendientes y los limitamos a 4 para el dashboard
   const pendientesTodos = pendientesAliado?.items || [];
-  const pendientesItems = pendientesTodos.slice(0, 5); // Limitamos a 5 pendientes
+  const pendientesItems = pendientesTodos.slice(0, 5);
   const pendientesTitulo = pendientesAliado?.titulo || "Validaciones Pendientes";
   const pendientesTextoBoton = pendientesAliado?.textoBoton || "Ver todos los pendientes";
 
   // Obtenemos todos los proyectos y los limitamos a 3 para el dashboard
   const proyectosTodos = proyectosAliado?.proyectos || [];
-  const proyectosItems = proyectosTodos.slice(0, 3); // Limitamos a 3 proyectos
+  const proyectosItems = proyectosTodos.slice(0, 3);
   const proyectosTitulo = proyectosAliado?.titulo || "Proyectos Recientes";
   const proyectosTextoBoton = proyectosAliado?.textoBoton || "Ver todos";
 
@@ -52,29 +51,130 @@ const Aliado = () => {
     paginaActual * escuelasPorPagina
   );
 
-  // NUEVO: Estados para el componente ProyectoDetallado
+  // Estados para el componente ProyectoDetallado
   const [mostrarProyectoDetallado, setMostrarProyectoDetallado] = useState(false);
   const [proyectoSeleccionado, setProyectoSeleccionado] = useState(null);
   const { proyecto, fases, evidencias, mensajes, documentos } = proyectoDetallado;
 
-  // Manejadores para pendientes y proyectos
+  // MODIFICADO: Función auxiliar para mapear categorías antiguas a nuevos tipos
+  const mapearCategoriaATipo = (categoria) => {
+    switch(categoria) {
+      case "Infraestructura": return "material";
+      case "Formación": return "servicios";
+      case "Materiales": return "material";
+      case "Financiero": return "economico";
+      case "Voluntariado": return "voluntariado";
+      default: return "material";
+    }
+  };
+
+  // SIMPLIFICADO: Procesamiento de datos de apoyos eliminando campos no necesarios
+  const procesarDatosApoyos = () => {
+    // Verificar si datosApoyos es un array
+    if (Array.isArray(datosApoyos)) {
+      // Usar flatMap si datosApoyos es un array
+      return datosApoyos.flatMap(categoria => {
+        if (categoria && Array.isArray(categoria.items)) {
+          return categoria.items.map(item => ({
+            id: item.id || Math.random().toString(36).substr(2, 9),
+            titulo: item.titulo || item.nombre || "Apoyo sin título",
+            descripcion: item.descripcion || "Sin descripción",
+            tipo: mapearCategoriaATipo(categoria.categoria || "material"),
+            subcategoria: item.subcategoria || "General",
+            estado: item.estado || "Disponible",
+            fechaCreacion: item.fecha || new Date().toISOString()
+          }));
+        }
+        return [];
+      });
+    } 
+    // Si datosApoyos es un objeto con propiedades
+    else if (datosApoyos && typeof datosApoyos === 'object') {
+      const resultado = [];
+      
+      // Intentar iterar sobre las propiedades del objeto
+      Object.keys(datosApoyos).forEach(key => {
+        const categoria = datosApoyos[key];
+        if (categoria && Array.isArray(categoria.items)) {
+          categoria.items.forEach(item => {
+            resultado.push({
+              id: item.id || Math.random().toString(36).substr(2, 9),
+              titulo: item.titulo || item.nombre || "Apoyo sin título",
+              descripcion: item.descripcion || "Sin descripción",
+              tipo: mapearCategoriaATipo(categoria.categoria || key || "material"),
+              subcategoria: item.subcategoria || "General",
+              estado: item.estado || "Disponible",
+              fechaCreacion: item.fecha || new Date().toISOString()
+            });
+          });
+        }
+      });
+      
+      return resultado;
+    }
+    
+    // Si nada funciona, devolver datos de muestra simplificados
+    return [
+      {
+        id: 1,
+        titulo: "Donación de equipos informáticos",
+        descripcion: "10 computadoras de escritorio para laboratorio de cómputo",
+        tipo: "material",
+        subcategoria: "Equipamiento tecnológico",
+        estado: "Disponible",
+        fechaCreacion: new Date().toISOString()
+      },
+      {
+        id: 2,
+        titulo: "Taller de programación básica",
+        descripcion: "Curso de introducción a la programación para estudiantes",
+        tipo: "servicios",
+        subcategoria: "Capacitación docente",
+        estado: "Disponible",
+        fechaCreacion: new Date().toISOString()
+      }
+    ];
+  };
+
+  // CORREGIDO: Usar el método de procesamiento seguro
+  const apoyosIniciales = procesarDatosApoyos();
+
+  // Estado para gestionar las ofertas de apoyo
+  const [apoyos, setApoyos] = useState(apoyosIniciales);
+
+  // Estado para sincronizar con el componente de búsqueda
+  const [apoyosDisponibles, setApoyosDisponibles] = useState(apoyosDisponiblesAliado);
+
+  // Efecto para mantener sincronizados los apoyos disponibles
+  useEffect(() => {
+    // Transformar apoyos al formato esperado por el componente Búsqueda
+    const apoyosFormateados = apoyos
+      .filter(a => a.estado === "Disponible")
+      .map(a => ({
+        id: a.id,
+        titulo: a.titulo,
+        tipo: a.tipo,
+        descripcion: a.descripcion
+      }));
+    
+    setApoyosDisponibles(apoyosFormateados);
+  }, [apoyos]);
+
+  // Resto del código permanece igual...
   const handleVerPendientes = () => {
     console.log("Ver todos los pendientes");
   };
 
   const handleVerProyectos = () => {
     console.log("Ver todos los proyectos");
-    // Ocultar los detalles del proyecto si están siendo mostrados
     setMostrarProyectoDetallado(false);
   };
 
-  // MODIFICADO: Ahora muestra los detalles del proyecto
   const handleVerDetallesProyecto = (proyecto) => {
     console.log("Ver detalles del proyecto:", proyecto.nombre);
     setProyectoSeleccionado(proyecto);
     setMostrarProyectoDetallado(true);
     
-    // Opcional: Hacer scroll hacia la sección de detalles
     setTimeout(() => {
       const seccionDetalles = document.getElementById('seccionProyectoDetallado');
       if (seccionDetalles) {
@@ -87,37 +187,53 @@ const Aliado = () => {
     console.log("Acción en proyecto:", proyecto.nombre, "Estado:", proyecto.estado);
   };
   
-  // Manejadores para ofertas de apoyo
-  const handleAddOferta = () => {
-    console.log("Agregar nueva oferta de apoyo");
+  // Manejadores para ofertas de apoyo - Ya compatible con la versión simplificada
+  const handleAddApoyo = (nuevaOferta) => {
+    console.log("Agregando nueva oferta:", nuevaOferta);
+    // Añadir ID y otros campos necesarios
+    const ofertaCompleta = {
+      ...nuevaOferta,
+      id: apoyos.length + 1,
+      fechaCreacion: new Date().toISOString()
+    };
+    
+    // Actualizar estado
+    setApoyos([...apoyos, ofertaCompleta]);
+    
+    // Mostrar notificación de éxito
+    alert(`Oferta de apoyo "${ofertaCompleta.titulo}" registrada correctamente`);
   };
 
-  const handleEditOferta = (item) => {
-    console.log("Editar oferta de apoyo:", item);
+  const handleEditApoyo = (id, apoyoActualizado) => {
+    console.log("Editando oferta de apoyo con ID:", id);
+    
+    // Verificar si se debe eliminar el apoyo
+    if (apoyoActualizado._delete) {
+      setApoyos(apoyos.filter(apoyo => apoyo.id !== id));
+      alert("Oferta de apoyo eliminada correctamente");
+      return;
+    }
+    
+    // Actualizar el apoyo en el estado
+    setApoyos(apoyos.map(apoyo => 
+      apoyo.id === id ? {...apoyo, ...apoyoActualizado} : apoyo
+    ));
+    
+    alert(`Oferta de apoyo "${apoyoActualizado.titulo}" actualizada correctamente`);
   };
 
-  const handleViewOferta = (item) => {
-    console.log("Ver detalles de oferta de apoyo:", item);
-  };
-
-  const handleToggleStatus = (item) => {
-    console.log("Cambiar estado de oferta de apoyo:", item);
-  };
-
-  const handleVerHistorial = () => {
-    console.log("Ver historial de ofertas de apoyo");
+  const handleViewApoyo = (id) => {
+    console.log("Viendo detalles de oferta con ID:", id);
+    // Lógica para mostrar detalles
   };
 
   // Manejadores para el componente de búsqueda
   const handleFilterChange = (filtros) => {
     console.log("Filtros aplicados:", filtros);
     
-    // Simular carga
     setCargandoBusqueda(true);
     
-    // Simular llamada a API
     setTimeout(() => {
-      // Aplicar filtros
       let resultadosFiltrados = [...escuelasData];
       
       if (filtros.soloCompatibles) {
@@ -142,15 +258,10 @@ const Aliado = () => {
     console.log("Ver mapa de escuelas");
   };
 
-  // ACTUALIZADO: Ahora maneja los datos del formulario de vinculación
   const handleVincular = (escuela, formData) => {
     console.log("Vinculando con escuela:", escuela.nombre);
     console.log("Datos del formulario:", formData);
     
-    // Aquí implementarías la lógica para enviar los datos al backend
-    // Por ejemplo, llamar a una API con axios
-    
-    // Mostrar notificación de éxito (puedes usar un toast o alert)
     alert(`Solicitud de vinculación con ${escuela.nombre} enviada correctamente`);
   };
 
@@ -166,7 +277,7 @@ const Aliado = () => {
     }
   };
 
-  // NUEVO: Manejadores para el componente ProyectoDetallado
+  // Manejadores para el componente ProyectoDetallado
   const handleExportReport = () => {
     console.log("Exportando reporte del proyecto");
   };
@@ -287,7 +398,7 @@ const Aliado = () => {
             </div>
           </section>
           
-          {/* NUEVA SECCIÓN: Detalle de Proyecto (condicional) */}
+          {/* Detalle de Proyecto (condicional) */}
           {mostrarProyectoDetallado && (
             <section id="seccionProyectoDetallado" className="mb-4">
               <ProyectoDetallado
@@ -311,19 +422,13 @@ const Aliado = () => {
             </section>
           )}
           
-          {/* Gestión de ofertas de apoyo */}
+          {/* COMPONENTE REEMPLAZADO: Gestión de ofertas de apoyo */}
           <section className="mb-4">
-            <NecesidadApoyo 
-              tipo="apoyo"
-              titulo="Gestión de Ofertas de Apoyo"
-              tabs={tabsApoyos}
-              datos={datosApoyos}
-              columnas={columnasApoyos}
-              onAdd={handleAddOferta}
-              onEdit={handleEditOferta}
-              onView={handleViewOferta}
-              onToggleStatus={handleToggleStatus}
-              onHistory={handleVerHistorial}
+            <OfertaApoyo
+              apoyos={apoyos}
+              onAddApoyo={handleAddApoyo}
+              onEditApoyo={handleEditApoyo}
+              onViewApoyo={handleViewApoyo}
             />
           </section>
 
@@ -341,7 +446,7 @@ const Aliado = () => {
               paginaActual={paginaActual}
               totalPaginas={totalPaginas}
               cargando={cargandoBusqueda}
-              apoyosDisponibles={apoyosDisponiblesAliado}  // NUEVO: Pasar los apoyos del aliado
+              apoyosDisponibles={apoyosDisponibles}  // Ahora usa el estado sincronizado
             />
           </section>
         </div>
