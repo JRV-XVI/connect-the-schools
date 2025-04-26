@@ -2,13 +2,13 @@ import React, { useState } from "react";
 import Sidebar from "../components/barraLateral.jsx";
 import Navbar from "../components/barraNavegacion.jsx";
 import Pendientes from "../components/pendientes.jsx";
+import { pendientesAdministrador, proyectosPendientes } from '../data/pendientes/pendientesAdministrador.js';
 import Proyecto from "../components/proyectos.jsx";
 import Gestiones from "../components/gestiones.jsx";
 import { StatCardGroup } from "../components/cartas.jsx"; 
 import { sidebarAdministrador } from "../data/barraLateral/barraLateralAdministrador.js";
 import { navbarAdministrador } from "../data/barraNavegacion/barraNavegacionAdministrador.js";
 import { cartasAdministrador } from "../data/cartas/cartasAdministrador.js"; 
-import { pendientesAdministrador } from '../data/pendientes/pendientesAdministrador.js';
 import { proyectosAdministrador } from '../data/proyectos/proyectosAdministrador.js';
 // Removemos las importaciones que pueden estar causando problemas
 // import { gestionUsuarios } from '../data/gestiones/gestionUsuarios.js';
@@ -18,6 +18,9 @@ import { proyectosAdministrador } from '../data/proyectos/proyectosAdministrador
 import Logo from "../assets/MPJ.png";
 
 const Administrador = () => { 
+  // Estado para controlar qué tipo de validación se está mostrando (proyecto, usuario, etc.)
+  const [validacionActiva, setValidacionActiva] = useState(null);
+
   const usuario = navbarAdministrador?.usuario || { nombre: "Administrador", foto: "" };
   const notificaciones = navbarAdministrador?.notificaciones || [];
   const menuItems = navbarAdministrador?.menuItems || [];
@@ -147,21 +150,20 @@ const Administrador = () => {
     ]
   };
 
-  // Obtenemos todos los pendientes y los limitamos a 4 para el dashboard
+// Obtenemos todos los pendientes para el dashboard
   const pendientesTodos = pendientesAdministrador?.items || [];
-  const pendientesItems = pendientesTodos.slice(0, 5); // Limitamos a 5 pendientes
-  const pendientesTitulo = pendientesAdministrador?.titulo || "Validaciones Pendientes";
-  const pendientesTextoBoton = pendientesAdministrador?.textoBoton || "Ver todos los pendientes";
 
   // Obtenemos todos los proyectos y los limitamos a 3 para el dashboard
   const proyectosTodos = proyectosAdministrador?.proyectos || [];
-  const proyectosItems = proyectosTodos.slice(0, 3); // Limitamos a 3 proyectos
+  const proyectosItems = proyectosTodos.slice(0, 3);
   const proyectosTitulo = proyectosAdministrador?.titulo || "Proyectos Recientes";
   const proyectosTextoBoton = proyectosAdministrador?.textoBoton || "Ver todos";
 
   // Manejadores para pendientes y proyectos
   const handleVerPendientes = () => {
     console.log("Ver todos los pendientes");
+    // Al hacer clic en "Ver todos los pendientes", mostrar la sección de validación
+    setMostrarValidacionProyectos(true);
   };
 
   const handleVerProyectos = () => {
@@ -174,6 +176,30 @@ const Administrador = () => {
 
   const handleActionProyecto = (proyecto) => {
     console.log("Acción en proyecto:", proyecto.nombre, "Estado:", proyecto.estado);
+  };
+  
+  // Manejadores para validaciones de pendientes
+  const handlePendienteClick = (item, index) => {
+    if (item.tipo === 'proyecto') {
+      // Si ya está activo, lo desactivamos (toggle)
+      setValidacionActiva(validacionActiva === 'proyecto' ? null : 'proyecto');
+    } else if (item.tipo === 'usuario') {
+      setValidacionActiva(validacionActiva === 'usuario' ? null : 'usuario');
+    } else if (item.tipo === 'documento') {
+      setValidacionActiva(validacionActiva === 'documento' ? null : 'documento');
+    }
+    // Puedes agregar más tipos según sea necesario
+  };
+
+  // Cerrar la sección de validación activa
+  const cerrarValidacion = () => {
+    setValidacionActiva(null);
+  };
+
+  // Manejador para validación de proyectos
+  const handleProyectoValidado = (data, isApproved) => {
+    console.log(`Proyecto ${isApproved ? 'aprobado' : 'rechazado'}:`, data);
+    // Aquí podrías actualizar la lista de proyectos pendientes después de validar
   };
   
   // Nuevos manejadores para gestiones
@@ -211,9 +237,8 @@ const Administrador = () => {
         toggleSidebar={toggleSidebar}
       />
       
-      {/* Contenido principal */}
+      {/* Contenido del dashboard */}
       <div className="main-content">
-        {/* Barra de navegación superior */}
         <Navbar 
           tipoUsuario="Administrador"
           usuario={usuario}
@@ -230,7 +255,6 @@ const Administrador = () => {
           <i className="fas fa-bars"></i>
         </button>
         
-        {/* Contenido del dashboard */}
         <div className="content px-3 py-3">
           <h2 className="mb-4">Dashboard Administrador</h2>
           
@@ -239,9 +263,8 @@ const Administrador = () => {
             <StatCardGroup cards={cartasAdministrador} />
           </section>
           
-          {/* Sección de Proyectos y Pendientes */}
+          {/* Sección de Proyectos y Validaciones Pendientes */}
           <section className="mb-4">
-            <h4 className="mb-3">Proyectos y Validaciones</h4>
             <div className="row">
               <div className="col-xl-8 col-lg-7">
                 <Proyecto 
@@ -256,17 +279,96 @@ const Administrador = () => {
                 />
               </div>
               <div className="col-xl-4 col-lg-5">
-                <Pendientes 
-                  titulo={pendientesTitulo}
-                  items={pendientesItems}
-                  tipo="admin"
-                  textoBoton={pendientesTextoBoton}
-                  onButtonClick={handleVerPendientes}
-                  allItems={pendientesTodos}
-                />
+                {/* Componente de validaciones pendientes actualizado */}
+                <div className="card h-100">
+                  <div className="card-header d-flex justify-content-between align-items-center">
+                    <h5 className="mb-0">Validaciones Pendientes</h5>
+                    {pendientesAdministrador?.textoBoton && (
+                      <button 
+                        className="btn btn-sm btn-primary"
+                        onClick={() => console.log("Ver todas las validaciones")}
+                      >
+                        {pendientesAdministrador.textoBoton}
+                      </button>
+                    )}
+                  </div>
+                  <div className="card-body">
+                    <ul className="list-group list-group-flush">
+                      {pendientesTodos.map((item, index) => (
+                        <li 
+                          className="list-group-item px-0 cursor-pointer" 
+                          key={index}
+                          onClick={() => handlePendienteClick(item, index)}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <div className="d-flex justify-content-between align-items-center">
+                            <div>
+                              <h6 className="mb-0">{item.titulo}</h6>
+                              <small className="text-muted">{item.descripcion}</small>
+                            </div>
+                            <span className={`badge bg-${item.color || 'primary'} rounded-pill`}>{item.cantidad}</span>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
               </div>
             </div>
           </section>
+          
+          {/* Sección expandible de Validación de Proyectos */}
+          {validacionActiva === 'proyecto' && (
+            <section className="mb-4">
+              <div className="card">
+                <div className="card-header d-flex justify-content-between align-items-center">
+                  <h5 className="mb-0">Validación de Proyectos</h5>
+                  <button 
+                    className="btn btn-sm btn-outline-secondary" 
+                    onClick={cerrarValidacion}
+                  >
+                    <i className="fas fa-times me-1"></i> Cerrar
+                  </button>
+                </div>
+                <div className="card-body">
+                  <Pendientes 
+                    titulo={proyectosPendientes.titulo}
+                    items={proyectosPendientes.items}
+                    tipo="proyecto"
+                    badgeText={proyectosPendientes.badgeText}
+                    badgeColor={proyectosPendientes.badgeColor}
+                    textoBoton={proyectosPendientes.textoBoton}
+                    onButtonClick={() => console.log("Ver todos los proyectos pendientes")}
+                    apiUrl={proyectosPendientes.apiUrl || "/api/v1"}
+                    onValidate={handleProyectoValidado}
+                    fullHeight={false}
+                    hideTitulo={true} // Ocultar título ya que está en el card-header
+                  />
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Implementar otras secciones de validación según sea necesario */}
+          {validacionActiva === 'usuario' && (
+            <section className="mb-4">
+              <div className="card">
+                <div className="card-header d-flex justify-content-between align-items-center">
+                  <h5 className="mb-0">Validación de Usuarios</h5>
+                  <button 
+                    className="btn btn-sm btn-outline-secondary" 
+                    onClick={cerrarValidacion}
+                  >
+                    <i className="fas fa-times me-1"></i> Cerrar
+                  </button>
+                </div>
+                <div className="card-body">
+                  {/* Aquí se implementaría el componente para validar usuarios */}
+                  <p>Contenido para validación de usuarios...</p>
+                </div>
+              </div>
+            </section>
+          )}
           
           {/* GESTIONES - Cada gestión en su propia sección */}
           <h4 className="mb-3 mt-5">Gestiones del Sistema</h4>
