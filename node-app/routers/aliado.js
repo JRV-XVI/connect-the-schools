@@ -29,51 +29,66 @@ const obtenerAliado = async (req, res, next) => {
 // ------------------------------------------- //
 
 // Mandar registro
-// Mandar registro
 usuario.post('/registro/aliado', async (req, res, next) => {
-    try {
-        // FIXED: Changed from req.query to req.body
-        const {
-            correo: email,          // Match frontend field names
-            contrasena: password,
-            telefono: phone,
-            nombre_aliado: allyName,
-            tipo_usuario: userType,
-            direccion: direction,
-            rfc,
-            razon_social: socialReason,
-            telefono_representante: phoneRepresentative,
-            correo_representante: emailRepresentative
-        } = req.body;
+	try {
+		// FIXED: Changed from req.query to req.body
+		const {
+			correo: email,          // Match frontend field names
+			contrasena: password,
+			telefono: phone,
+			nombre_aliado: allyName,
+			tipo_usuario: userType,
+			direccion: direction,
+			rfc,
+			razon_social: socialReason,
+			telefono_representante: phoneRepresentative,
+			correo_representante: emailRepresentative
+		} = req.body;
 
-        await modelo.crearAliado({
-            email,
-            password,
-            phone,
-            allyName,
-            userType,
-            direction,
-            rfc,
-            socialReason,
-            phoneRepresentative,
-            emailRepresentative
-        });
+		await modelo.crearAliado({
+			email,
+			password,
+			phone,
+			allyName,
+			userType,
+			direction,
+			rfc,
+			socialReason,
+			phoneRepresentative,
+			emailRepresentative
+		});
 
-        res.status(201).json({
-            email,
-            phone,
-            allyName,
-            userType,
-            direction,
-            rfc,
-            socialReason,
-            phoneRepresentative,
-            emailRepresentative
-        });
-    } catch (error) {
-        console.error("Error al registrar aliado:", error);
-        res.status(500).json({ error: 'Error al registrar aliado' });
-    }
+		res.status(201).json({
+			email,
+			phone,
+			allyName,
+			userType,
+			direction,
+			rfc,
+			socialReason,
+			phoneRepresentative,
+			emailRepresentative
+		});
+	} catch (error) {
+		console.error("Error al registrar aliado:", error);
+		res.status(500).json({ error: 'Error al registrar aliado' });
+	}
+});
+
+usuario.get('/lista/necesidad', async (req, res, next) => {
+	try {
+		const { idUsuario } = req.body;
+		const resultado = await modelo.necesidadesCompatibles(idUsuario);
+		res.status(200).send(resultado);
+	} catch (error) {
+		if (error.status === 500 || !error.status) {
+			console.error("Error al obtener lista de necesidades", error);
+			return res.status(400).json({
+				error: "No se puedo obtener informacion"
+			});
+		}
+		next(error);
+	}
 });
 
 // Crear un nuevo aliado

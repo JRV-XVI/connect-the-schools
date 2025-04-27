@@ -2,6 +2,7 @@ import Logo from '../../assets/Aliado.jpeg';
 
 export const navbarAliado = {
     usuario: {
+      idUsuario: 1,
       nombre: "Aliado",
       foto: Logo
     },

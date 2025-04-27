@@ -845,3 +845,29 @@ input:checked + .toggle-slider:before {
   transform: translateX(20px);
 }
 
+.message-wrapper {
+    width: 100%;
+  }
+  
+.message-content {
+    max-width: 80%;
+    display: inline-block;
+}
+
+.message.incoming .message-content {
+    float: left;
+}
+
+.message.outgoing .message-content {
+    float: right;
+}
+
+.message.incoming .message-header,
+.message.incoming .message-footer {
+    text-align: left;
+}
+
+.message.outgoing .message-header,
+.message.outgoing .message-footer {
+    text-align: right;
+}
