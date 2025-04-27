@@ -34,12 +34,24 @@ const ProyectoDetallado = ({
 
   // Función auxiliar para formatear fechas (YYYY-MM-DD a DD/MM/YYYY)
   const formatDate = (dateString) => {
-    if (!dateString) return '';
+    if (!dateString) return '00:00';
+  
     const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', { 
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
+    return date.toLocaleTimeString('es-ES', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: false // Usar formato 24h
+    });
+  };
+
+  const formatTime = (dateString) => {
+    if (!dateString) return '00:00';
+    
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('es-ES', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: false // Usar formato 24h
     });
   };
 
@@ -302,12 +314,24 @@ const ProyectoDetallado = ({
                           className={`message ${mensaje.esPropio ? 'outgoing' : 'incoming'} mb-3`} 
                           key={index}
                         >
-                          <div className="message-header d-flex justify-content-between mb-1">
-                            <small><strong>{mensaje.remitente}</strong>{mensaje.esPropio && " (Usted)"}</small>
-                            <small className="text-muted">{formatDate(mensaje.fecha)} {mensaje.hora}</small>
-                          </div>
-                          <div className={`message-content p-3 ${mensaje.esPropio ? 'bg-primary text-white' : 'bg-light'} rounded`}>
-                            <p className="mb-0">{mensaje.contenido}</p>
+                          <div className={`message-wrapper ${mensaje.esPropio ? 'text-end' : 'text-start'} w-100`}>
+                            <div className="message-header mb-1">
+                              {mensaje.esPropio ? (
+                                <small className="text-muted">{mensaje.hora || '00:00'}</small>
+                              ) : (
+                                <small><strong>{mensaje.remitente}</strong></small>
+                              )}
+                            </div>
+                            <div className={`message-content p-3 ${mensaje.esPropio ? 'bg-primary text-white ms-auto' : 'bg-light me-auto'} rounded`}>
+                              <p className="mb-0">{mensaje.contenido}</p>
+                            </div>
+                            <div className="message-footer mt-1">
+                              {mensaje.esPropio ? (
+                                <small><strong>Tú</strong></small>
+                              ) : (
+                                <small className="text-muted">{mensaje.hora || '00:00'}</small>
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))}

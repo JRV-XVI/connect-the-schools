@@ -299,7 +299,20 @@ const Aliado = () => {
         // Paso 2: Obtener los mensajes usando el idMensajeria
         const idMensajeria = mensajerias[0].idMensajeria;
         const respuestaMensajes = await get(`/mensajeria/${idMensajeria}/mensajes`);
-        setMensajes(respuestaMensajes);
+
+        // Paso 3: Transformar los mensajes para la UI
+        const mensajesFormateados = respuestaMensajes.map(mensaje => {
+          const fecha = new Date(mensaje.fechaEnvio);
+          return {
+            esPropio: mensaje.idUsuario === usuario.idUsuario,
+            remitente: mensaje.idUsuario === usuario.idUsuario,
+            hora: fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+            contenido: mensaje.contenido
+          };
+        });
+
+        setMensajes(mensajesFormateados);
+        console.log(mensajesFormateados);
       } else {
         setMensajes([]);
       }
