@@ -5,6 +5,8 @@
 exports.seed = async function(knex) {
   // Borra todos los registros existentes
   await knex('usuario').del();
+  await knex('perfilEscuela').del()
+  await knex('perfilAliado').del()
 
   // Inserta los usuarios de prueba
   await knex('usuario').insert([
@@ -40,6 +42,31 @@ exports.seed = async function(knex) {
       nombre: 'Admin Test',
       tipoPerfil: 3,
       direccion: 'Dirección Admin'
+    }
+  ]);
+
+
+  // Inserta los perfiles aliados después de los usuarios
+  await knex('perfilAliado').insert([
+    {
+      rfc: "RFC800207",
+      idUsuario: 2,
+      razonSocial: 'Primaria',
+      telefono: '3347194761',
+      correoRepresentante: 'ceo@outlook.com'
+    }
+  ]);
+
+
+  await knex('perfilEscuela').insert([
+    {
+      cct: "CCT00900D",
+      idUsuario: 1,
+      nivelEducativo: 'Primaria',
+      sector: 'Publico',
+      numeroEstudiantes: 100,
+      nombreDirector: 'Jose Ramos',
+      telefonoDirector: '4457391047',
     }
   ]);
 };

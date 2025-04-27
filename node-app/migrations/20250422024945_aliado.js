@@ -15,8 +15,7 @@ exports.up = function(knex) {
 			.onDelete('CASCADE');
 		t.text('razonSocial')
 			.notNullable();
-		t.integer('telefono')
-			.unsigned()
+		t.text('telefono')
 			.notNullable();
 		t.text('correoRepresentante')
 			.notNullable();
