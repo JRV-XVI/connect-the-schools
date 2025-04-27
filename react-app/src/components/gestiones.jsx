@@ -15,6 +15,7 @@ const Gestiones = ({
   items = [],
   textoBoton = "Ver todos",
   onButtonClick = () => { },
+  onVerDetalles,
   tipo = "admin"
 }) => {
   // Estado para la paginación
@@ -123,7 +124,11 @@ const Gestiones = ({
             </td>
             <td>
               <div className="btn-group btn-group-sm">
-                <button className="btn btn-outline-primary" title="Ver detalles">
+
+                <button
+                  className="btn btn-outline-primary"
+                  title="Ver detalles"
+                  onClick={() => onVerDetalles(item.datosOriginales)}>
                   <i className="fas fa-eye"></i>
                 </button>
                 <button className="btn btn-outline-success" title="Aprobar">

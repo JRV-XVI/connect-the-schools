@@ -27,8 +27,7 @@ const Administrador = () => {
   const menuItems = navbarAdministrador?.menuItems || [];
   const [datosGestionNecesidades, setDatosGestionNecesidades] = useState({});
   const [datosGestionApoyos, setDatosGestionApoyos] = useState({});
-  const [datosGestionUsuarios, setDatosGestionUsuarios] = useState({});
-
+  const [datosGestionVinculaciones, setDatosGestionVinculaciones] = useState({});
 
   useEffect(() => {
     async function fetchDatosNecesidades() {
@@ -83,38 +82,33 @@ const Administrador = () => {
   }, []); // Este useEffect también solo se ejecuta una vez al cargar el componente
 
 
+  // Vinculaciones
+  useEffect(() => {
+    async function fetchDatosVinculaciones() {
+      try {
+        const datos = await get("/vinculaciones");
 
+        const datosAdaptados = {
+          titulo: "Vinculaciones",
+          textoBoton: "Ver todas las vinculaciones",
+          items: datos.map(item => ({
+            titulo: item.necesidad.categoria || "Sin categoría",
+            descripcion: item.observacion || "Sin descripción",
+            categoria: item.necesidad.subcategoria,
+            cantidad: item.prioridad != null ? String(item.prioridad) : "0", // lo convierto a string para mantener mismo tipo que tus dummys
+            color: "secondary", // Aquí también puedes mapear colores si lo deseas
+            datosOriginales: item
+          }))
+        };
 
-  const datosGestionVinculaciones = {
-    titulo: "Vinculaciones",
-    textoBoton: "Gestionar vinculaciones",
-    items: [
-      {
-        titulo: "Pendientes de Aprobación",
-        descripcion: "Vinculaciones en espera de validación",
-        cantidad: "6",
-        color: "warning"
-      },
-      {
-        titulo: "En Implementación",
-        descripcion: "Proyectos actualmente en curso",
-        cantidad: "15",
-        color: "primary"
-      },
-      {
-        titulo: "Finalizadas Recientemente",
-        descripcion: "Vinculaciones completadas este mes",
-        cantidad: "4",
-        color: "success"
-      },
-      {
-        titulo: "Con Retrasos",
-        descripcion: "Proyectos con retrasos críticos",
-        cantidad: "3",
-        color: "danger"
+        setDatosGestionVinculaciones(datosAdaptados);
+      } catch (error) {
+        console.error("Error al obtener datos de apoyos:", error);
       }
-    ]
-  };
+    }
+
+    fetchDatosVinculaciones();
+  }, []); // Este useEffect también solo se ejecuta una vez al cargar el componente
 
   // Obtenemos todos los pendientes para el dashboard
   const pendientesTodos = pendientesAdministrador?.items || [];
@@ -124,6 +118,13 @@ const Administrador = () => {
   const proyectosItems = proyectosTodos.slice(0, 3);
   const proyectosTitulo = proyectosAdministrador?.titulo || "Proyectos Recientes";
   const proyectosTextoBoton = proyectosAdministrador?.textoBoton || "Ver todos";
+
+  const [detalleSeleccionado, setDetalleSeleccionado] = useState(null);
+  const [mostrarModal, setMostrarModal] = useState(false);
+  const handleVerDetalles = (item) => {
+    setDetalleSeleccionado(item);
+    setMostrarModal(true);
+  };
 
   // Manejadores para pendientes y proyectos
   const handleVerPendientes = () => {
@@ -377,8 +378,61 @@ const Administrador = () => {
                   items={datosGestionVinculaciones.items}
                   textoBoton={datosGestionVinculaciones.textoBoton}
                   onButtonClick={handleVerVinculaciones}
+                  onVerDetalles={handleVerDetalles} // <-- Nueva prop que le pasas
                   tipo="admin"
                 />
+
+                {mostrarModal && detalleSeleccionado && (
+                  <div className="modal fade show d-block" tabIndex="-1" role="dialog" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+                    <div className="modal-dialog" role="document">
+                      <div className="modal-content">
+
+                        <div className="modal-header">
+                          <h5 className="modal-title">Detalle de Vinculación</h5>
+                          <button type="button" className="btn-close" onClick={() => setMostrarModal(false)}></button>
+                        </div>
+
+                        {/* INFORMACION DE LA VINCULACION*/}
+                        <div className="modal-body">
+                          {/* Escuela */}
+                          <h6>Escuela</h6>
+                          <p><strong>CCT:</strong> {detalleSeleccionado.escuela?.cct}</p>
+                          <p><strong>Nivel Educativo:</strong> {detalleSeleccionado.escuela?.nivelEducativo}</p>
+                          <p><strong>Sector:</strong> {detalleSeleccionado.escuela?.sector}</p>
+                          <p><strong>Estudiantes:</strong> {detalleSeleccionado.escuela?.numeroEstudiantes}</p>
+                          <p><strong>Director:</strong> {detalleSeleccionado.escuela?.nombreDirector}</p>
+
+                          {/* Aliado */}
+                          <h6>Aliado</h6>
+                          <p><strong>RFC:</strong> {detalleSeleccionado.aliado?.rfc}</p>
+                          <p><strong>Razón Social:</strong> {detalleSeleccionado.aliado?.razonSocial}</p>
+
+                          {/* Necesidad */}
+                          <h6>Necesidad</h6>
+                          <p><strong>Categoría:</strong> {detalleSeleccionado.necesidad?.categoria}</p>
+                          <p><strong>Subcategoría:</strong> {detalleSeleccionado.necesidad?.subcategoria}</p>
+                          <p><strong>Descripción:</strong> {detalleSeleccionado.necesidad?.descripcion}</p>
+
+                          {/* Apoyo */}
+                          <h6>Apoyo</h6>
+                          <p><strong>Categoría:</strong> {detalleSeleccionado.apoyo?.categoria}</p>
+                          <p><strong>Subcategoría:</strong> {detalleSeleccionado.apoyo?.subcategoria}</p>
+                          <p><strong>Descripción:</strong> {detalleSeleccionado.apoyo?.descripcion}</p>
+
+                          {/* Observación */}
+                          <h6>Observación</h6>
+                          <p>{detalleSeleccionado.observacion}</p>
+                        </div>
+
+                        <div className="modal-footer">
+                          <button type="button" className="btn btn-secondary" onClick={() => setMostrarModal(false)}>Cerrar</button>
+                        </div>
+
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {/*FIN DE LA INFORMACION*/}
               </div>
             </div>
           </section>

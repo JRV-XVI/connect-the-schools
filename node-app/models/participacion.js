@@ -68,21 +68,64 @@ const crearVinculacion = async (data) => {
 
 };
 
-// Obtener todas las participaciones por idProyecto
-const obtenerParticipacionesPorProyecto = async (idProyecto) => {
-	const resultado = await db.query(`
-		SELECT p.*, 
-			to_jsonb(proyecto.*) AS proyecto,
-			to_jsonb(pe.*) AS escuela,
-			to_jsonb(pa.*) AS aliado
-		FROM "participacionProyecto" p
-		LEFT JOIN proyecto ON proyecto."idProyecto" = p."idProyecto"
-		LEFT JOIN "perfilEscuela" pe ON pe.cct = p.cct
-		LEFT JOIN "perfilAliado" pa ON pa.rfc = p.rfc
-		WHERE p."idProyecto" = $1
-	`, [idProyecto]);
-	return resultado.rows;
+// Obtener todas las vinculaciones
+const obtenerVinculaciones = async () => {
+	const vinculaciones = await db.query(`
+	SELECT 
+	  pp.cct,
+	  e."nivelEducativo",
+	  e.sector,
+	  e."numeroEstudiantes",
+	  e."nombreDirector",
+	  e."telefonoDirector",
+
+	  pp.rfc,
+	  a."razonSocial",
+	  a.telefono,
+	  a."correoRepresentante",
+
+	  pp."idNecesidad",
+	  n.categoria AS "necesidadCategoria",
+	  n.subcategoria AS "necesidadSubcategoria",
+	  n.descripcion AS "necesidadDescripcion",
+	  n.prioridad AS "necesidadPrioridad",
+
+	  pp."idApoyo",
+	  ap.categoria AS "apoyoCategoria",
+	  ap.subcategoria AS "apoyoSubcategoria",
+	  ap.descripcion AS "apoyoDescripcion",
+
+	  pp.observacion
+
+	FROM "participacionProyecto" pp
+	JOIN "perfilEscuela" e ON pp.cct = e.cct
+	JOIN "perfilAliado" a ON pp.rfc = a.rfc
+	JOIN "necesidadApoyo" n ON pp."idNecesidad" = n."idNecesidadApoyo"
+	JOIN "necesidadApoyo" ap ON pp."idApoyo" = ap."idNecesidadApoyo"
+	WHERE pp."aceptacionEscuela" IS TRUE
+		AND pp."aceptacionAliado" IS TRUE
+		AND pp."idProyecto" IS NULL
+	`);
+	return vinculaciones.rows;
 };
+
+const crearProyecto = async (data) => {
+	const {
+		descripcion,
+		etapas
+	} = data;
+	const idProyecto = await db.query(`
+	INSERT INTO proyecto (descripcion) VALUES ($1)
+		RETURNING "idProyecto"
+	`, [descripcion]);
+
+	for (let nEtapas = 0; nEtapas < etapas; nEtapas++) {
+		await db.query(`
+		INSERT INTO proyecto (descripcion) VALUES ($1)
+		RETURNING "idProyecto"
+		`)
+	}
+}
 
 // Participaciones sin proyecto asignado
 const obtenerParticipacionesSinProyecto = async () => {
@@ -154,12 +197,12 @@ const actualizarParticipacionConProyecto = async (rfc, cct, idProyecto) => {
 
 module.exports = {
 	crearParticipacion,
-	obtenerParticipacionesPorProyecto,
 	obtenerParticipacionesSinProyecto,
 	obtenerParticipacionPorEscuelaYAliado,
 	obtenerParticipacionConsolidada,
 	actualizarParticipacion,
 	actualizarParticipacionConProyecto,
-	crearVinculacion
+	crearVinculacion,
+	obtenerVinculaciones
 };
 
