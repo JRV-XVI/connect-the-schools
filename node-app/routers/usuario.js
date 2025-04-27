@@ -39,23 +39,20 @@ const validarUsuarioId = (req, res, next) => {
 
 // Login
 usuario.post('/login', async (req, res, next) => {
-    try {
-        const { correo, contraseña } = req.body;
+	try {
+		const { correo, contraseña } = req.body;
 
-        // Verifica si el usuario existe
-        const resultado = await modelo.validacionLogin({ correo, contraseña });
-        if (resultado.length === 0) {
-            return res.status(401).json({ error: 'Credenciales inválidas' });
-        }
+		// Verifica si el usuario existe
+		const resultado = await modelo.validacionLogin({ correo, contraseña });
+		if (resultado.length === 0) {
+			return res.status(401).json({ error: 'Credenciales inválidas' });
+		}
 
-        // Devuelve los datos del usuario
-        res.status(200).json({ 
-            mensaje: 'Inicio de sesión exitoso', 
-            usuario: resultado[0]
-        });
-    } catch (error) {
-        next(error);
-    }
+		// Devuelve los datos del usuario
+		res.status(200).send(resultado);
+	} catch (error) {
+		next(error);
+	}
 });
 
 // Crear usuario
