@@ -86,6 +86,24 @@ const validarCamposObligatorios = (req, res, next) => {
 // ----------------- ROUTERS ----------------- //
 // ------------------------------------------- //
 
+necesidadApoyo.get('/necesidades', async (req, res, next) => {
+    try {
+        const resultado = await model.obtenerNecesidades();
+        res.status(200).send(resultado);
+    } catch (error) {
+        next(error);
+    }
+});
+
+necesidadApoyo.get('/apoyos', async (req, res, next) => {
+    try {
+        const resultado = await model.obtenerApoyos();
+        res.status(200).send(resultado);
+    } catch (error) {
+        next(error);
+    }
+});
+
 // Crear necesidad/apoyo (ruta notificación según documentación)
 necesidadApoyo.post('/usuarionecesidadApoyo', validarCamposObligatorios, verificarUsuarioExiste, async (req, res, next) => {
     try {
@@ -105,6 +123,8 @@ necesidadApoyo.get('/necesidadApoyo', async (req, res, next) => {
         next(error);
     }
 });
+
+
 
 // Obtener necesidades/apoyo por Usuario ID
 necesidadApoyo.get('/usuario/:idUsuario/necesidadApoyo', verificarUsuarioExiste, async (req, res, next) => {
