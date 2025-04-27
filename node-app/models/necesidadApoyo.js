@@ -93,12 +93,14 @@ const necesidadApoyoPorUsuario = async (idUsuario) => { // Corregido: sin coma a
     }
 }; // Corregido: cierre correcto
 
-module.exports = { 
-    obtenerNecesidadApoyo, 
-    necesidadApoyoPorId, 
-    necesidadApoyoPorUsuario, 
-    crearNecesidadApoyo, 
-    eliminarNecesidadApoyo, 
+module.exports = {
+    obtenerNecesidadApoyo,
+    necesidadApoyoPorId,
+    necesidadApoyoPorUsuario,
+    crearNecesidadApoyo,
+    eliminarNecesidadApoyo,
     actualizarNecesidadApoyo,
-    verificarUsuarioExiste 
+    verificarUsuarioExiste,
+    obtenerApoyos,
+    obtenerNecesidades
 };

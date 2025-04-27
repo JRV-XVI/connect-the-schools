@@ -107,18 +107,18 @@ necesidadApoyo.get('/apoyos', async (req, res, next) => {
 // Crear necesidad/apoyo (ruta notificación según documentación)
 necesidadApoyo.post('/necesidadApoyo', async (req, res, next) => {
     try {
-      const resultado = await model.crearNecesidadApoyo(req.body);
-      res.status(201).send(resultado);
+        const resultado = await model.crearNecesidadApoyo(req.body);
+        res.status(201).send(resultado);
     } catch (error) {
-      console.error('[ERROR] Al crear necesidad de apoyo:', error);
-      res.status(500).send({ error: 'Error al crear necesidad de apoyo' });
+        console.error('[ERROR] Al crear necesidad de apoyo:', error);
+        res.status(500).send({ error: 'Error al crear necesidad de apoyo' });
     }
-  });
+});
 ;
 
 
 
-  // Obtener necesidades/apoyo por Usuario ID
+// Obtener necesidades/apoyo por Usuario ID
 necesidadApoyo.get('/necesidades-escuela/:idUsuario', async (req, res, next) => {
     try {
         const id = Number(req.params.idUsuario);

@@ -113,7 +113,6 @@ const obtenerVinculaciones = async () => {
 const crearProyecto = async (data) => {
 	const { descripcion, fechaFin, etapas } = data;
 
-	// Primero crear el proyecto
 	const result = await db.query(`
 	    INSERT INTO proyecto (descripcion, "fechaFin")
 	    VALUES ($1, $2)
@@ -122,7 +121,6 @@ const crearProyecto = async (data) => {
 
 	const idProyecto = result.rows[0].idProyecto;
 
-	// Ahora insertar cada etapa ligada a ese proyecto
 	for (let etapa of etapas) {
 		const { tituloEtapa, descripcionEtapa, orden } = etapa;
 
@@ -134,7 +132,7 @@ const crearProyecto = async (data) => {
 			tituloEtapa,
 			descripcionEtapa,
 			orden,
-			'pendiente' // estadoEntrega inicial
+			false // estadoEntrega inicial
 		]);
 	}
 
@@ -218,6 +216,7 @@ module.exports = {
 	actualizarParticipacion,
 	actualizarParticipacionConProyecto,
 	crearVinculacion,
-	obtenerVinculaciones
+	obtenerVinculaciones,
+	crearProyecto
 };
 
