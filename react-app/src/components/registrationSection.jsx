@@ -16,29 +16,29 @@ const SchoolRegistrationForm = () => {
     nameDirector: '',
     phoneDirector: '',
     cct: '',
-    userType: 0,
+    userType: 1,
   });
 
   const [step, setStep] = useState(1);
   const [passwordError, setPasswordError] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // Añadir estado de carga
-  const [apiError, setApiError] = useState(null); // Añadir estado para errores
-  const [success, setSuccess] = useState(false); // Añadir estado para éxito
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState(null);
+  const [success, setSuccess] = useState(false);
 
   const handleChange = (e) => {
+    // Extraer el nombre del campo eliminando el prefijo 'school-'
+    const fieldName = e.target.id.replace('school-', '');
+    
     setFormData({
       ...formData,
-      [e.target.id]: e.target.value
+      [fieldName]: e.target.value
     });
 
     // Clear password error when user types in either password field
-    if (e.target.id === 'password' || e.target.id === 'confirmPassword') {
+    if (fieldName === 'password' || fieldName === 'confirmPassword') {
       setPasswordError('');
     }
   };
-
-
-  // En el componente SchoolRegistrationForm, actualiza el handleSubmit:
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -60,9 +60,9 @@ const SchoolRegistrationForm = () => {
       try {
         // Preparamos los datos correctamente mapeados para el backend
         const dataToSend = {
-          correo: formData.email,           // Mapear email a correo como espera el backend
-          contrasena: formData.password,    // Mapear password a contrasena
-          telefono: formData.phone,         // Mapear phone a telefono
+          correo: formData.email,
+          contrasena: formData.password,
+          telefono: formData.phone,
           nombre_escuela: formData.schoolName,
           direccion: formData.direction,
           nivel_educativo: formData.educationalLevel,
@@ -103,12 +103,10 @@ const SchoolRegistrationForm = () => {
 
   return (
     <Form className="row g-3" onSubmit={handleSubmit}>
-      {/* Mostrar error de API si existe */}
       {apiError && <Alert variant="danger">{apiError}</Alert>}
       {step === 1 ? (
-        // Step 1 - Basic credentials
         <>
-          <Form.Group as={Col} md={6} controlId="email">
+          <Form.Group as={Col} md={6} controlId="school-email">
             <Form.Label>Correo electrónico</Form.Label>
             <Form.Control
               type="email"
@@ -117,7 +115,7 @@ const SchoolRegistrationForm = () => {
               required
             />
           </Form.Group>
-          <Form.Group as={Col} md={6} controlId="cct">
+          <Form.Group as={Col} md={6} controlId="school-cct">
             <Form.Label>Clave de Centro de Trabajo (CCT)</Form.Label>
             <Form.Control
               type="text"
@@ -126,7 +124,7 @@ const SchoolRegistrationForm = () => {
               required
             />
           </Form.Group>
-          <Form.Group as={Col} md={6} controlId="password">
+          <Form.Group as={Col} md={6} controlId="school-password">
             <Form.Label>Contraseña</Form.Label>
             <Form.Control
               type="password"
@@ -135,7 +133,7 @@ const SchoolRegistrationForm = () => {
               required
             />
           </Form.Group>
-          <Form.Group as={Col} md={6} controlId="confirmPassword">
+          <Form.Group as={Col} md={6} controlId="school-confirmPassword">
             <Form.Label>Confirmar contraseña</Form.Label>
             <Form.Control
               type="password"
@@ -152,7 +150,7 @@ const SchoolRegistrationForm = () => {
       ) : (
         // Step 2 - Additional information
         <>
-          <Form.Group as={Col} md={6} controlId="schoolName">
+          <Form.Group as={Col} md={6} controlId="school-schoolName">
             <Form.Label>Nombre de la institución</Form.Label>
             <Form.Control
               type="text"
@@ -161,7 +159,7 @@ const SchoolRegistrationForm = () => {
               required
             />
           </Form.Group>
-          <Form.Group as={Col} md={6} controlId="phone">
+          <Form.Group as={Col} md={6} controlId="school-phone">
             <Form.Label>Teléfono</Form.Label>
             <Form.Control
               type="tel"
@@ -170,7 +168,8 @@ const SchoolRegistrationForm = () => {
               required
             />
           </Form.Group>
-          <Form.Group as={Col} md={6} controlId="direction">
+          {/* Resto de campos actualizando los IDs con el prefijo "school-" */}
+          <Form.Group as={Col} md={6} controlId="school-direction">
             <Form.Label>Dirección</Form.Label>
             <Form.Control
               type="text"
@@ -179,7 +178,7 @@ const SchoolRegistrationForm = () => {
               required
             />
           </Form.Group>
-          <Form.Group as={Col} md={6} controlId="educationalLevel">
+          <Form.Group as={Col} md={6} controlId="school-educationalLevel">
             <Form.Label>Nivel educativo</Form.Label>
             <Form.Select
               value={formData.educationalLevel}
@@ -194,7 +193,7 @@ const SchoolRegistrationForm = () => {
               <option>Otro</option>
             </Form.Select>
           </Form.Group>
-          <Form.Group as={Col} md={6} controlId="sector">
+          <Form.Group as={Col} md={6} controlId="school-sector">
             <Form.Label>Sector</Form.Label>
             <Form.Select
               value={formData.sector}
@@ -207,7 +206,7 @@ const SchoolRegistrationForm = () => {
               <option>Concertado</option>
             </Form.Select>
           </Form.Group>
-          <Form.Group as={Col} md={6} controlId="numberStudents">
+          <Form.Group as={Col} md={6} controlId="school-numberStudents">
             <Form.Label>Número de estudiantes</Form.Label>
             <Form.Control
               type="number"
@@ -216,7 +215,7 @@ const SchoolRegistrationForm = () => {
               required
             />
           </Form.Group>
-          <Form.Group as={Col} md={6} controlId="nameDirector">
+          <Form.Group as={Col} md={6} controlId="school-nameDirector">
             <Form.Label>Nombre del director/a</Form.Label>
             <Form.Control
               type="text"
@@ -225,7 +224,7 @@ const SchoolRegistrationForm = () => {
               required
             />
           </Form.Group>
-          <Form.Group as={Col} md={6} controlId="phoneDirector">
+          <Form.Group as={Col} md={6} controlId="school-phoneDirector">
             <Form.Label>Teléfono del director/a</Form.Label>
             <Form.Control
               type="tel"
@@ -272,23 +271,26 @@ const AllyRegistrationForm = () => {
     socialReason: '',
     phoneRepresentative: '',
     emailRepresentative: '',
-    typeUser: 1,
+    typeUser: 2,
   });
 
   const [step, setStep] = useState(1);
   const [passwordError, setPasswordError] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // Añadir estado de carga
-  const [apiError, setApiError] = useState(null); // Añadir estado para errores
-  const [success, setSuccess] = useState(false); // Añadir estado para éxito
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState(null);
+  const [success, setSuccess] = useState(false);
 
   const handleChange = (e) => {
+    // Extraer el nombre del campo eliminando el prefijo 'ally-'
+    const fieldName = e.target.id.replace('ally-', '');
+    
     setFormData({
       ...formData,
-      [e.target.id]: e.target.value
+      [fieldName]: e.target.value
     });
 
     // Clear password error when user types in either password field
-    if (e.target.id === 'password' || e.target.id === 'confirmPassword') {
+    if (fieldName === 'password' || fieldName === 'confirmPassword') {
       setPasswordError('');
     }
   };
@@ -357,12 +359,10 @@ const AllyRegistrationForm = () => {
 
   return (
     <Form className="row g-3" onSubmit={handleSubmit}>
-      {/* Mostrar error de API si existe */}
       {apiError && <Alert variant="danger">{apiError}</Alert>}
       {step === 1 ? (
-        // Step 1 - Basic credentials
         <>
-          <Form.Group as={Col} md={6} controlId="email">
+          <Form.Group as={Col} md={6} controlId="ally-email">
             <Form.Label>Correo electrónico</Form.Label>
             <Form.Control
               type="email"
@@ -371,7 +371,7 @@ const AllyRegistrationForm = () => {
               required
             />
           </Form.Group>
-          <Form.Group as={Col} md={6} controlId="rfc">
+          <Form.Group as={Col} md={6} controlId="ally-rfc">
             <Form.Label>RFC</Form.Label>
             <Form.Control
               type="text"
@@ -380,7 +380,7 @@ const AllyRegistrationForm = () => {
               required
             />
           </Form.Group>
-          <Form.Group as={Col} md={6} controlId="password">
+          <Form.Group as={Col} md={6} controlId="ally-password">
             <Form.Label>Contraseña</Form.Label>
             <Form.Control
               type="password"
@@ -389,7 +389,7 @@ const AllyRegistrationForm = () => {
               required
             />
           </Form.Group>
-          <Form.Group as={Col} md={6} controlId="confirmPassword">
+          <Form.Group as={Col} md={6} controlId="ally-confirmPassword">
             <Form.Label>Confirmar contraseña</Form.Label>
             <Form.Control
               type="password"
@@ -406,7 +406,7 @@ const AllyRegistrationForm = () => {
       ) : (
         // Step 2 - Additional information
         <>
-          <Form.Group as={Col} md={6} controlId="allyName">
+          <Form.Group as={Col} md={6} controlId="ally-allyName">
             <Form.Label>Nombre de la organización/persona</Form.Label>
             <Form.Control
               type="text"
