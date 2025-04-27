@@ -59,6 +59,38 @@ async function crearAliado(data) {
 	return id;
 }
 
+const necesidadesCompatibles = async (idUsuario) => {
+	const resultado = await db.query(
+		`SELECT 
+			"necesidadApoyo"."idNecesidadApoyo",
+			"necesidadApoyo"."idUsuario",
+			"necesidadApoyo".categoria,
+			"necesidadApoyo".subcategoria,
+			"necesidadApoyo".descripcion,
+			"necesidadApoyo".prioridad,
+			"necesidadApoyo"."fechaCreacion",
+			"necesidadApoyo"."estadoValidacion",
+			"perfilEscuela".cct,
+			"perfilEscuela"."nivelEducativo",
+			"perfilEscuela"."nombreDirector",
+			"perfilEscuela"."telefonoDirector",
+			"perfilEscuela"."numeroEstudiantes",
+			"perfilEscuela".sector
+		FROM "necesidadApoyo"
+		INNER JOIN "necesidadApoyo" AS apoyo
+		  ON "necesidadApoyo".categoria = apoyo.categoria
+		INNER JOIN "perfilEscuela"
+		  ON "perfilEscuela"."idUsuario" = "necesidadApoyo"."idUsuario"
+		WHERE apoyo."idUsuario" = $1
+		  AND "necesidadApoyo".prioridad IS NOT NULL
+		  AND "necesidadApoyo"."estadoValidacion" = 3
+		  AND apoyo.prioridad IS NULL
+		  AND apoyo."estadoValidacion" = 3`,
+		[idUsuario]
+	);
+
+	return resultado.rows;
+}
 const actualizarAliado = async (rfc, params) => {
 	// Construir query dinámicamente
 	const camposActualizables = ['idUsuario', 'razonSocial', 'telefono', 'correoRepresentante'];
@@ -91,4 +123,5 @@ const eliminarAliado = async (id) => {
 };
 
 
-module.exports = { obtenerAliados, infoAliado, crearAliado, actualizarAliado, eliminarAliado };
+module.exports = { obtenerAliados, infoAliado, crearAliado, actualizarAliado, eliminarAliado, necesidadesCompatibles };
+
