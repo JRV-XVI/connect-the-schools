@@ -131,6 +131,143 @@ exports.seed = async function(knex) {
     }
   ];
 
+  // NUEVO: Crear etapas para cada proyecto
+  // Proyecto 1: Todas las etapas completadas (100%)
+  const etapasProyecto1 = [
+    {
+      idProyecto: proyectosInsertados[0].idProyecto,
+      tituloEtapa: 'Planeación y diseño',
+      descripcionEtapa: 'Elaboración de planos y diseño del auditorio renovado',
+      estadoEntrega: true,
+      orden: 1,
+      archivo: Buffer.from('Archivo de planos y diseño', 'utf8')
+    },
+    {
+      idProyecto: proyectosInsertados[0].idProyecto,
+      tituloEtapa: 'Demolición de estructuras existentes',
+      descripcionEtapa: 'Remoción de butacas, tarima y acabados deteriorados',
+      estadoEntrega: true,
+      orden: 2,
+      archivo: Buffer.from('Reportes de demolición', 'utf8')
+    },
+    {
+      idProyecto: proyectosInsertados[0].idProyecto,
+      tituloEtapa: 'Construcción de nuevas estructuras',
+      descripcionEtapa: 'Instalación de soportes, tarima y sistema acústico',
+      estadoEntrega: true,
+      orden: 3,
+      archivo: Buffer.from('Documentación de construcción', 'utf8')
+    },
+    {
+      idProyecto: proyectosInsertados[0].idProyecto,
+      tituloEtapa: 'Instalación de equipamiento',
+      descripcionEtapa: 'Colocación de butacas, sistema de sonido e iluminación',
+      estadoEntrega: true,
+      orden: 4,
+      archivo: Buffer.from('Reporte de instalación', 'utf8')
+    },
+    {
+      idProyecto: proyectosInsertados[0].idProyecto,
+      tituloEtapa: 'Pruebas finales',
+      descripcionEtapa: 'Verificación de acústica, iluminación y funcionalidad general',
+      estadoEntrega: true,
+      orden: 5,
+      archivo: Buffer.from('Resultados de pruebas', 'utf8')
+    }
+  ];
+
+  // Proyecto 2: Algunas etapas completadas (60%)
+  const etapasProyecto2 = [
+    {
+      idProyecto: proyectosInsertados[1].idProyecto,
+      tituloEtapa: 'Evaluación de necesidades tecnológicas',
+      descripcionEtapa: 'Diagnóstico de equipos y software requeridos',
+      estadoEntrega: true,
+      orden: 1,
+      archivo: Buffer.from('Reporte de evaluación', 'utf8')
+    },
+    {
+      idProyecto: proyectosInsertados[1].idProyecto,
+      tituloEtapa: 'Adquisición de equipos',
+      descripcionEtapa: 'Compra de computadoras, periféricos y accesorios',
+      estadoEntrega: true,
+      orden: 2,
+      archivo: Buffer.from('Facturas de compra', 'utf8')
+    },
+    {
+      idProyecto: proyectosInsertados[1].idProyecto,
+      tituloEtapa: 'Instalación de red y cableado',
+      descripcionEtapa: 'Configuración de infraestructura de red y conectividad',
+      estadoEntrega: true,
+      orden: 3,
+      archivo: Buffer.from('Diagrama de red implementada', 'utf8')
+    },
+    {
+      idProyecto: proyectosInsertados[1].idProyecto,
+      tituloEtapa: 'Configuración de equipos',
+      descripcionEtapa: 'Instalación de sistemas operativos y software educativo',
+      estadoEntrega: false,
+      orden: 4,
+      archivo: Buffer.from('Pendiente', 'utf8')
+    },
+    {
+      idProyecto: proyectosInsertados[1].idProyecto,
+      tituloEtapa: 'Capacitación a personal',
+      descripcionEtapa: 'Talleres para docentes sobre uso del equipamiento',
+      estadoEntrega: false,
+      orden: 5,
+      archivo: Buffer.from('Pendiente', 'utf8')
+    }
+  ];
+
+  // Proyecto 3: Pocas etapas completadas (40%)
+  const etapasProyecto3 = [
+    {
+      idProyecto: proyectosInsertados[2].idProyecto,
+      tituloEtapa: 'Diseño del programa',
+      descripcionEtapa: 'Desarrollo de contenidos y metodología de capacitación',
+      estadoEntrega: true,
+      orden: 1,
+      archivo: Buffer.from('Programa formativo', 'utf8')
+    },
+    {
+      idProyecto: proyectosInsertados[2].idProyecto,
+      tituloEtapa: 'Selección de materiales',
+      descripcionEtapa: 'Definición de recursos didácticos y plataformas tecnológicas',
+      estadoEntrega: true,
+      orden: 2,
+      archivo: Buffer.from('Catálogo de recursos', 'utf8')
+    },
+    {
+      idProyecto: proyectosInsertados[2].idProyecto,
+      tituloEtapa: 'Capacitación de capacitadores',
+      descripcionEtapa: 'Formación de instructores que impartirán los talleres',
+      estadoEntrega: false,
+      orden: 3,
+      archivo: Buffer.from('Pendiente', 'utf8')
+    },
+    {
+      idProyecto: proyectosInsertados[2].idProyecto,
+      tituloEtapa: 'Implementación de talleres',
+      descripcionEtapa: 'Desarrollo de sesiones de capacitación para docentes',
+      estadoEntrega: false,
+      orden: 4,
+      archivo: Buffer.from('Pendiente', 'utf8')
+    },
+    {
+      idProyecto: proyectosInsertados[2].idProyecto,
+      tituloEtapa: 'Evaluación y seguimiento',
+      descripcionEtapa: 'Medición de resultados y acompañamiento continuo',
+      estadoEntrega: false,
+      orden: 5,
+      archivo: Buffer.from('Pendiente', 'utf8')
+    }
+  ];
+
+  // Insertar todas las etapas
+  const todasLasEtapas = [...etapasProyecto1, ...etapasProyecto2, ...etapasProyecto3];
+  await knex('proyectoEtapas').insert(todasLasEtapas);
+
   // Insertar todas las participaciones
   await knex('participacionProyecto').insert(participaciones);
 
@@ -139,5 +276,5 @@ exports.seed = async function(knex) {
     proyectosInsertados.map(proyecto => ({ idProyecto: proyecto.idProyecto }))
   );
 
-  console.log(`Se insertaron ${proyectosInsertados.length} proyectos, ${participaciones.length} participaciones y ${proyectosInsertados.length} mensajerías`);
+  console.log(`Se insertaron ${proyectosInsertados.length} proyectos, ${participaciones.length} participaciones, ${proyectosInsertados.length} mensajerías y ${todasLasEtapas.length} etapas de proyectos`);
 };
