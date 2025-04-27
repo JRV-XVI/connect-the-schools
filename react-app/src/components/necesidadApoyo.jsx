@@ -177,9 +177,11 @@ const NecesidadApoyo = ({ necesidades =[], setNecesidades = () => { }, onAddNece
     };
   
     try {
-      const response = await axios.post('http://localhost:4001/api/necesidadApoyo', nuevaNecesidad, {
-        withCredentials: true,
-      });
+      const response = await axios.post(
+        'http://localhost:4001/api/necesidadApoyo',
+        nuevaNecesidad,
+        { withCredentials: true }
+    );
   
       console.log('[SUCCESS] Necesidad de apoyo creada:', response.data);
   
