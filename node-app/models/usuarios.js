@@ -42,7 +42,7 @@ const validacionLogin = async (params) => {
 		idUsuario,
 		correo: usuario.correo,
 		rol: tipoPerfil === 1 ? 'escuela' : tipoPerfil === 2 ? 'aliado' : 'admin',
-		perfil: perfilCompleto
+		...perfilCompleto
 	};
 };
 
