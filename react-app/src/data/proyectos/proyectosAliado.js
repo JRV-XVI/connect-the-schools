@@ -3,6 +3,7 @@ export const proyectosAliado = {
     textoBoton: "Ver todos",
     proyectos: [
       {
+        id: 1,
         nombre: "Equipamiento de aula de cómputo",
         escuela: "Esc. Prim. Benito Juárez",
         fechaInicio: "15/02/2025",
@@ -11,6 +12,7 @@ export const proyectosAliado = {
         estado: "En tiempo"
       },
       {
+        id: 2,
         nombre: "Dotación de material Deportivo",
         escuela: "Esc. Sec. Técnica #45",
         fechaInicio: "01/03/2025",
@@ -19,6 +21,7 @@ export const proyectosAliado = {
         estado: "En tiempo"
       },
       {
+        id: 3,
         nombre: "Pintura y rehabilitación",
         escuela: "Esc. Prim. Miguel Hidalgo",
         fechaInicio: "03/03/2025",

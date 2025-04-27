@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { get, post } from "../api.js";
 import Sidebar from "../components/barraLateral.jsx";
 import Navbar from "../components/barraNavegacion.jsx";
 import Pendientes from "../components/pendientes.jsx";
@@ -20,7 +21,7 @@ import { proyectoDetallado } from '../data/proyectoDetallado/proyectoDetallado.j
 import Logo from "../assets/MPJ.png";
 
 const Aliado = () => { 
-  const usuario = navbarAliado?.usuario || { nombre: "Aliado", foto: "" };
+  const usuario = navbarAliado?.usuario || {idUsuario: 1, nombre: "Aliado", foto: "" };
   const notificaciones = navbarAliado?.notificaciones || [];
   const menuItems = navbarAliado?.menuItems || [];
 
@@ -54,7 +55,7 @@ const Aliado = () => {
   // Estados para el componente ProyectoDetallado
   const [mostrarProyectoDetallado, setMostrarProyectoDetallado] = useState(false);
   const [proyectoSeleccionado, setProyectoSeleccionado] = useState(null);
-  const { proyecto, fases, evidencias, mensajes, documentos } = proyectoDetallado;
+  const { proyecto, fases, evidencias, documentos } = proyectoDetallado; // Datos Dummie
 
   // MODIFICADO: Función auxiliar para mapear categorías antiguas a nuevos tipos
   const mapearCategoriaATipo = (categoria) => {
@@ -175,6 +176,10 @@ const Aliado = () => {
     setProyectoSeleccionado(proyecto);
     setMostrarProyectoDetallado(true);
     
+    // Obtener mensajes del proyecto
+    console.log("Ver id del proyecto:", proyectoSeleccionado.id);
+    fetchMensajes(proyectoSeleccionado.id);
+    
     setTimeout(() => {
       const seccionDetalles = document.getElementById('seccionProyectoDetallado');
       if (seccionDetalles) {
@@ -278,6 +283,79 @@ const Aliado = () => {
   };
 
   // Manejadores para el componente ProyectoDetallado
+  // NUEVO: Manejadores para el componente ProyectoDetallado
+
+  // Todos los mensajes
+  const [mensajes, setMensajes] = useState([]);
+
+  // Obtener todos los mensajes por proyecto
+  const fetchMensajes = async (idProyecto) => {
+    try {
+      // Obtener la mensajería asociada al proyecto
+      const mensajerias = await get(`/proyecto/${idProyecto}/mensajeria`);
+      
+      // Verificar si se encontraron mensajerías
+      if (mensajerias && mensajerias.length > 0) {
+        // Paso 2: Obtener los mensajes usando el idMensajeria
+        const idMensajeria = mensajerias[0].idMensajeria;
+        const respuestaMensajes = await get(`/mensajeria/${idMensajeria}/mensajes`);
+
+        // Paso 3: Transformar los mensajes para la UI
+        const mensajesFormateados = respuestaMensajes.map(mensaje => {
+          const fecha = new Date(mensaje.fechaEnvio);
+          return {
+            esPropio: mensaje.idUsuario === usuario.idUsuario,
+            remitente: mensaje.idUsuario === usuario.idUsuario,
+            hora: fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+            contenido: mensaje.contenido
+          };
+        });
+
+        setMensajes(mensajesFormateados);
+        console.log(mensajesFormateados);
+      } else {
+        setMensajes([]);
+      }
+    } catch (error) {
+      console.error("Error al obtener mensajes:", error);
+      setMensajes([]);
+    }
+  };
+
+  const handleSendMessage = async ( mensaje, idUsuario) => {
+    try {
+
+      const idProyecto = proyectoSeleccionado.id;
+  
+      // Obtener la mensajería asociada al proyecto
+      const mensajerias = await get(`/proyecto/${idProyecto}/mensajeria`);
+      
+      if (mensajerias && mensajerias.length > 0) {
+        const idMensajeria = mensajerias[0].idMensajeria;
+        
+        // Enviar el mensaje con los datos requeridos
+        const datosEnvio = {
+          idUsuario: usuario.idUsuario, // ID del usuario actual
+          contenido: mensaje
+        };
+        
+        console.log("Mensaje:", datosEnvio)
+        const respuestaEnvio = await post(`/mensajeria/${idMensajeria}/mensajes`, datosEnvio);
+        console.log("Mensaje enviado:", respuestaEnvio);
+        
+        // Actualizar la lista de mensajes
+        fetchMensajes(idProyecto);
+        
+        return respuestaEnvio;
+      } else {
+        throw new Error("No se encontró una mensajería asociada a este proyecto");
+      }
+    } catch (error) {
+      console.error("Error al enviar mensaje:", error);
+      throw error;
+    }
+  };
+
   const handleExportReport = () => {
     console.log("Exportando reporte del proyecto");
   };
@@ -292,10 +370,6 @@ const Aliado = () => {
 
   const handleUploadEvidence = () => {
     console.log("Subiendo nueva evidencia para el proyecto");
-  };
-
-  const handleSendMessage = (mensaje) => {
-    console.log("Enviando mensaje:", mensaje);
   };
 
   const handleUploadDocument = () => {
