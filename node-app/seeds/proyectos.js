@@ -176,5 +176,5 @@ exports.seed = async function(knex) {
     { idProyecto: 3 }
   ]);
 
-  console.log('Se insertaron 3 proyectos, 11 participaciones y 3 mensajerías');
+  console.log('Se insertaron 3 proyectos, 11 participaciones y 3 mensajeríasLOL');
 };
