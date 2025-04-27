@@ -57,6 +57,18 @@ const Aliado = () => {
   const [proyectoSeleccionado, setProyectoSeleccionado] = useState(null);
   const { proyecto, fases, evidencias, documentos } = proyectoDetallado; // Datos Dummie
 
+  //-------------------------------//
+  //---------RENDER DATOS---------//
+  //-----------------------------//
+
+  useEffect(() => {
+    fetchProyectos();
+  }, [usuario.idUsuario]);
+
+  //-------------------------------//
+  //------------------------------//
+  //-----------------------------//
+
   // MODIFICADO: Función auxiliar para mapear categorías antiguas a nuevos tipos
   const mapearCategoriaATipo = (categoria) => {
     switch(categoria) {
@@ -166,6 +178,32 @@ const Aliado = () => {
     console.log("Ver todos los pendientes");
   };
 
+  //--------------------------//
+  //---------PROYECTO---------//
+  //--------------------------//
+
+  const [proyectos, setProyectos] = useState([]);
+
+  // Función para obtener proyectos
+  const fetchProyectos = async () => {
+    try {
+      // Obtener proyectos con el ID real del usuario
+      const respuesta = await get(`/proyecto/usuario/${usuario.idUsuario}`);
+      
+      // Comprobar si hay proyectos y actualizar el estado
+      if (respuesta && Array.isArray(respuesta)) {
+        setProyectos(respuesta);
+        console.log("Proyectos obtenidos:", respuesta);
+      } else {
+        setProyectos([]);
+        console.log("No se encontraron proyectos");
+      }
+    } catch (error) {
+      console.error("Error al obtener proyectos:", error);
+      setProyectos([]); // Actualiza proyectos, no mensajes
+    }
+  };
+
   const handleVerProyectos = () => {
     console.log("Ver todos los proyectos");
     setMostrarProyectoDetallado(false);
@@ -191,6 +229,10 @@ const Aliado = () => {
   const handleActionProyecto = (proyecto) => {
     console.log("Acción en proyecto:", proyecto.nombre, "Estado:", proyecto.estado);
   };
+
+  //--------------------------//
+  //--------------------------//
+  //--------------------------//
   
   // Manejadores para ofertas de apoyo - Ya compatible con la versión simplificada
   const handleAddApoyo = (nuevaOferta) => {
@@ -282,16 +324,17 @@ const Aliado = () => {
     }
   };
 
-  // Manejadores para el componente ProyectoDetallado
-  // NUEVO: Manejadores para el componente ProyectoDetallado
+  //----------------------------//
+  //---------MENSAJERIA---------//
+  //----------------------------//
 
-  // Todos los mensajes
+  //Variable para odos los mensajes
   const [mensajes, setMensajes] = useState([]);
 
   // Obtener todos los mensajes por proyecto
   const fetchMensajes = async (idProyecto) => {
     try {
-      // Obtener la mensajería asociada al proyecto
+      // Paso 1: Obtener la mensajería asociada al proyecto
       const mensajerias = await get(`/proyecto/${idProyecto}/mensajeria`);
       
       // Verificar si se encontraron mensajerías
@@ -322,6 +365,7 @@ const Aliado = () => {
     }
   };
 
+  // Crear mensajes
   const handleSendMessage = async ( mensaje, idUsuario) => {
     try {
 
@@ -355,6 +399,10 @@ const Aliado = () => {
       throw error;
     }
   };
+
+  //----------------------------//
+  //----------------------------//
+  //----------------------------//
 
   const handleExportReport = () => {
     console.log("Exportando reporte del proyecto");
