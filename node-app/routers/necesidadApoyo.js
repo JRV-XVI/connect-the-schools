@@ -87,14 +87,15 @@ const validarCamposObligatorios = (req, res, next) => {
 // ------------------------------------------- //
 
 // Crear necesidad/apoyo (ruta notificación según documentación)
-necesidadApoyo.post('/usuarionecesidadApoyo', validarCamposObligatorios, verificarUsuarioExiste, async (req, res, next) => {
+necesidadApoyo.post('/necesidadApoyo', async (req, res, next) => {
     try {
-        const resultado = await model.crearNecesidadApoyo(req.body);
-        res.status(201).send(resultado);
+      const resultado = await model.crearNecesidadApoyo(req.body);
+      res.status(201).send(resultado);
     } catch (error) {
-        next(error);
+      console.error('[ERROR] Al crear necesidad de apoyo:', error);
+      res.status(500).send({ error: 'Error al crear necesidad de apoyo' });
     }
-});
+  });
 
 // Obtener todas las necesidades/apoyo
 necesidadApoyo.get('/necesidadApoyo', async (req, res, next) => {

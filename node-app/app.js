@@ -11,6 +11,7 @@ const aliado = require('./routers/aliado.js')
 const participacion = require('./routers/participacion.js')
 const notificacion = require('./routers/notificacion.js')
 
+
 const app = express();
 const PORT = process.env.PORT || 4001;
 

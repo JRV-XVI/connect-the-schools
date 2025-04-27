@@ -221,16 +221,12 @@ const Escuela = ({ userData, onLogout }) => {
               {/* NUEVA SECCIÓN: Gestión de necesidades escolares */}
               <section>
                 <NecesidadApoyo 
-                  tipo="necesidad"
-                  titulo="Gestión de Necesidades Escolares"
-                  tabs={tabsNecesidades}
-                  datos={datosNecesidades}
-                  columnas={columnasNecesidades}
-                  onAdd={handleAddNecesidad}
-                  onEdit={handleEditNecesidad}
-                  onView={handleViewNecesidad}
-                  onToggleStatus={handleToggleStatus}
-                  onHistory={handleVerHistorial}
+                  necesidades={necesidades}
+                  setNecesidades={setNecesidades}
+                  onAddNecesidad={handleAddNecesidad}
+                  onEditNecesidad={handleEditNecesidad}
+                  onViewNecesidad={handleViewNecesidad}
+                  userData={userData}
                 />
               </section>
             </>

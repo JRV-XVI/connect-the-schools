@@ -22,18 +22,20 @@ const necesidadApoyoPorId = async (id) => {
 };
 
 const crearNecesidadApoyo = async (params) => {
-    const resultado = await db.query('INSERT INTO "necesidadApoyo" ("idUsuario", "idCategoria", "idSubcategoria", descripcion, prioridad, "fechaCreacion", "estadoValidacion") VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-        [
-            params.idUsuario,
-            params.idCategoria,
-            params.idSubcategoria,
-            params.descripcion,
-            params.prioridad,
-            params.fechaCreacion || new Date(),
-            params.estadoValidacion || 0
-        ]);
+    const resultado = await db.query(
+      'INSERT INTO "necesidadApoyo" ("idUsuario", "categoria", "subcategoria", descripcion, prioridad, "fechaCreacion", "estadoValidacion") VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+      [
+        params.idUsuario,
+        params.categoria,
+        params.subcategoria,
+        params.descripcion,
+        params.prioridad,
+        params.fechaCreacion || new Date(),
+        params.estadoValidacion || 0
+      ]
+    );
     return resultado.rows[0];
-}
+  };
 
 const eliminarNecesidadApoyo = async (id) => {
     const resultado = await db.query('DELETE FROM "necesidadApoyo" WHERE "idNecesidadAPoyo" = $1 RETURNING *', [id]);
