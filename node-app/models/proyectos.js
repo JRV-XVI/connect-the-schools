@@ -16,6 +16,52 @@ const infoProyecto = async (id) => {
 	return resultado.rows;
 };
 
+// Obtener todos los proyecto por idUsuario de Aliado
+const obtenerProyectosPorUsuario = async (idUsuario) => {
+    // Primero determinar el tipo de usuario
+    const usuarioResult = await db.query('SELECT "tipoPerfil" FROM "usuario" WHERE "idUsuario" = $1', [idUsuario]);
+    
+    if (usuarioResult.rows.length === 0) {
+        return []; // Usuario no encontrado
+    }
+    
+    const tipoPerfil = usuarioResult.rows[0].tipoPerfil;
+    
+    if (tipoPerfil === 2) { // Aliado
+        const resultado = await db.query(`
+            SELECT DISTINCT p."idProyecto", p."descripcion", p."validacionAdmin", p."fechaCreacion" 
+            FROM "proyecto" p 
+            JOIN "participacionProyecto" pp ON p."idProyecto" = pp."idProyecto" 
+            JOIN "perfilAliado" pa ON pp."rfc" = pa."rfc" 
+            WHERE pa."idUsuario" = $1 
+            ORDER BY p."fechaCreacion" DESC
+        `, [idUsuario]);
+        return resultado.rows;
+    } 
+    else if (tipoPerfil === 1) { // Escuela
+        const resultado = await db.query(`
+            SELECT DISTINCT p."idProyecto", p."descripcion", p."validacionAdmin", p."fechaCreacion" 
+            FROM "proyecto" p 
+            JOIN "participacionProyecto" pp ON p."idProyecto" = pp."idProyecto" 
+            JOIN "perfilEscuela" pe ON pp."cct" = pe."cct" 
+            WHERE pe."idUsuario" = $1 
+            ORDER BY p."fechaCreacion" DESC
+        `, [idUsuario]);
+        return resultado.rows;
+    } 
+    else if (tipoPerfil === 3) { // Admin
+        // Administrador puede ver todos los proyectos
+        const resultado = await db.query(`
+            SELECT "idProyecto", "descripcion", "validacionAdmin", "fechaCreacion" 
+            FROM "proyecto" 
+            ORDER BY "fechaCreacion" DESC
+        `);
+        return resultado.rows;
+    }
+    
+    return []; // Tipo de perfil no reconocido
+};
+
 // Crear nuevo proyecto
 const crearProyecto = async (params) => {
 	const resultado = await db.query('INSERT INTO proyecto ("validacionAdmin", descripcion, "fechaCreacion") VALUES ($1, $2, $3) RETURNING *',
@@ -120,4 +166,4 @@ const crearProyectoEntrega = async (idEtapa, params) => {
 	return resultado.rows;
 };
 
-module.exports = { obtenerProyectos, infoProyecto, crearProyecto, actualizarProyecto, obtenerProyectoEtapas, existeProyectoEtapa, infoEtapa, crearProyectoEtapa, obtenerProyectoEntrega, infoEntrega, existeEtapaEntrega, crearProyectoEntrega };
+module.exports = { obtenerProyectos, infoProyecto, crearProyecto, actualizarProyecto, obtenerProyectoEtapas, existeProyectoEtapa, infoEtapa, crearProyectoEtapa, obtenerProyectoEntrega, infoEntrega, existeEtapaEntrega, crearProyectoEntrega,obtenerProyectosPorUsuario};
