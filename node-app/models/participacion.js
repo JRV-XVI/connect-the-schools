@@ -109,23 +109,38 @@ const obtenerVinculaciones = async () => {
 	return vinculaciones.rows;
 };
 
-const crearProyecto = async (data) => {
-	const {
-		descripcion,
-		etapas
-	} = data;
-	const idProyecto = await db.query(`
-	INSERT INTO proyecto (descripcion) VALUES ($1)
-		RETURNING "idProyecto"
-	`, [descripcion]);
 
-	for (let nEtapas = 0; nEtapas < etapas; nEtapas++) {
+const crearProyecto = async (data) => {
+	const { descripcion, fechaFin, etapas } = data;
+
+	// Primero crear el proyecto
+	const result = await db.query(`
+	    INSERT INTO proyecto (descripcion, "fechaFin")
+	    VALUES ($1, $2)
+	    RETURNING "idProyecto"
+	  `, [descripcion, fechaFin]);
+
+	const idProyecto = result.rows[0].idProyecto;
+
+	// Ahora insertar cada etapa ligada a ese proyecto
+	for (let etapa of etapas) {
+		const { tituloEtapa, descripcionEtapa, orden } = etapa;
+
 		await db.query(`
-		INSERT INTO proyecto (descripcion) VALUES ($1)
-		RETURNING "idProyecto"
-		`)
+	      INSERT INTO "proyectoEtapas" ("idProyecto", "tituloEtapa", "descripcionEtapa", "orden", "estadoEntrega")
+	      VALUES ($1, $2, $3, $4, $5)
+	    `, [
+			idProyecto,
+			tituloEtapa,
+			descripcionEtapa,
+			orden,
+			'pendiente' // estadoEntrega inicial
+		]);
 	}
-}
+
+	return { message: 'Proyecto y etapas creados correctamente' };
+};
+
 
 // Participaciones sin proyecto asignado
 const obtenerParticipacionesSinProyecto = async () => {

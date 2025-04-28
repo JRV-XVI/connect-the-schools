@@ -82,13 +82,21 @@ participacion.get('/vinculaciones', async (req, res, next) => {
     }
 });
 
-
 participacion.post('/vinculacion/aceptar', async (req, res, next) => {
     try {
         // Match frontend field names
         const {
-            descripcion,
-            etapas
+            titulo1,
+            titulo2,
+            titulo3,
+            titulo4,
+            titulo5,
+            descripcion1,
+            descripcion2,
+            descripcion3,
+            descripcion4,
+            descripcion5,
+            descripcion
         } = req.body;
 
         const resultado = await modelo.crearVinculacion({
