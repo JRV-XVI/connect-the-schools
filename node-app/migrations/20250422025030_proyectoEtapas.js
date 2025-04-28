@@ -21,7 +21,7 @@ exports.up = function(knex) {
 		t.integer('orden')
 			.notNullable()
 			.unsigned();
-		t.specificType('archivo', 'BYTEA').notNullable()
+		t.specificType('archivo', 'BYTEA')
 	});
 };
 
