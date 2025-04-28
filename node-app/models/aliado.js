@@ -71,6 +71,7 @@ const necesidadesCompatibles = async (idUsuario) => {
 			"necesidadApoyo"."fechaCreacion",
 			"necesidadApoyo"."estadoValidacion",
 			"perfilEscuela".cct,
+			"perfilEscuela"."nombreDirector",
 			"perfilEscuela"."nivelEducativo",
 			"perfilEscuela"."numeroEstudiantes",
 			"perfilEscuela".sector,
