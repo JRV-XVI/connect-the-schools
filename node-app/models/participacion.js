@@ -53,13 +53,11 @@ const crearVinculacion = async (data) => {
 	} = data;
 
 	const idProyecto = null
-	const aceptacionAliado = true;
-	const aceptacionEscuela = false;
 
 	const resultado = await db.query(`
 		INSERT INTO "participacionProyecto" 
-			("idProyecto", cct, rfc, "idNecesidad", "idApoyo", observacion, "aceptacionAliado", "aceptacionEscuela")
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+			("idProyecto", cct, rfc, "idNecesidad", "idApoyo", observacion)
+		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING *
 	`, [idProyecto, cct, rfc, idNecesidad, idApoyo, observacion, aceptacionAliado, aceptacionEscuela]);
 
@@ -111,7 +109,7 @@ const obtenerVinculaciones = async () => {
 
 
 const crearProyecto = async (data) => {
-	const { descripcion, fechaFin, etapas, rfc, cct } = data;
+	const { descripcion, fechaFin, etapas, rfc, cct, idApoyo, idNecesidad } = data;
 
 	const result = await db.query(`
 	    INSERT INTO proyecto (descripcion, "fechaFin")
@@ -121,7 +119,7 @@ const crearProyecto = async (data) => {
 
 	const idProyecto = result.rows[0].idProyecto;
 
-	await db.query(`UPDATE "participacionProyecto" SET "idProyecto" = $1 WHERE rfc = $2 AND cct = $3`, [idProyecto, rfc, cct]);
+	await db.query(`UPDATE "participacionProyecto" SET "idProyecto" = $1 WHERE rfc = $2 AND cct = $3 AND "idApoyo" = $4 AND "idNecesidad" = $5"`, [idProyecto, rfc, cct, idApoyo, idNecesidad]);
 
 	await db.query(`
 		INSERT INTO mensajeria ("idProyecto") VALUES ($1)
