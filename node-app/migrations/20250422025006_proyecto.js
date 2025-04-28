@@ -8,6 +8,7 @@ exports.up = function(knex) {
 			.unsigned()
 			.primary();
 		t.boolean('validacionAdmin')
+			.defaultTo(true)
 			.notNullable();
 		t.text('descripcion')
 			.notNullable();
