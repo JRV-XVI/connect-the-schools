@@ -14,6 +14,8 @@ exports.up = function(knex) {
 		t.date('fechaCreacion')
 			.defaultTo(knex.fn.now())
 			.notNullable();
+		t.date('fechaFin')
+			.notNullable();
 	});
 };
 

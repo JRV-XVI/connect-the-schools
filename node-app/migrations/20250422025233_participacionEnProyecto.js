@@ -35,7 +35,7 @@ exports.up = function(knex) {
 			.defaultTo(true)
 			.notNullable();
 		t.boolean('aceptacionEscuela')
-			.defaultTo(false)
+			.defaultTo(true)
 			.notNullable();
 	});
 };

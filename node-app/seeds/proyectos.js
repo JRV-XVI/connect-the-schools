@@ -22,19 +22,23 @@ exports.seed = async function(knex) {
     {
       descripcion: 'Remodelación del auditorio escolar en Preparatoria',
       validacionAdmin: true,
-      fechaCreacion: knex.fn.now()
+      fechaCreacion: knex.fn.now(),
+      fechaFin: '2025-12-31'
     },
     {
       descripcion: 'Equipamiento tecnológico para aula de informática en Secundaria',
       validacionAdmin: true,
-      fechaCreacion: knex.fn.now()
+      fechaCreacion: knex.fn.now(),
+      fechaFin: '2025-10-15'
     },
     {
       descripcion: 'Programa de formación docente en tecnologías educativas para Primaria',
       validacionAdmin: true,
-      fechaCreacion: knex.fn.now()
+      fechaCreacion: knex.fn.now(),
+      fechaFin: '2025-08-20'
     }
   ];
+
 
   const proyectosInsertados = await knex('proyecto').insert(proyectos).returning('idProyecto');
 
