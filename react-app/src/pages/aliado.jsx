@@ -21,7 +21,7 @@ import { escuelasData, opcionesFiltros, apoyosDisponiblesAliado } from '../data/
 import { proyectoDetallado } from '../data/proyectoDetallado/proyectoDetallado.js';
 import Logo from "../assets/MPJ.png";
 
-const Aliado = ({ userData, onLogout }{ userData, onLogout }) => {  
+const Aliado = ({ userData, onLogout }) => {  
   const usuario = userData || {  nombre: "Aliado", foto: "" };
   const notificaciones = navbarAliado?.notificaciones || [];
   const menuItems = navbarAliado?.menuItems || [];
