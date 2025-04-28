@@ -15,8 +15,10 @@ const Gestiones = ({
   items = [],
   textoBoton = "Ver todos",
   onButtonClick = () => { },
-  onVerDetalles,
-  tipo = "admin"
+  onVerDetalles = () => { },
+  onAprobar = () => { },
+  tipo = "admin",
+  mostrarAcciones = false
 }) => {
   // Estado para la paginación
   const [currentPage, setCurrentPage] = useState(1);
@@ -124,16 +126,20 @@ const Gestiones = ({
             </td>
             <td>
               <div className="btn-group btn-group-sm">
-
                 <button
                   className="btn btn-outline-primary"
                   title="Ver detalles"
-                  onClick={() => onVerDetalles(item.datosOriginales)}>
+                  onClick={() => onVerDetalles(item)}>
                   <i className="fas fa-eye"></i>
                 </button>
-                <button className="btn btn-outline-success" title="Aprobar">
-                  <i className="fas fa-check"></i>
-                </button>
+                {mostrarAcciones && (
+                  <button 
+                    className="btn btn-outline-success" 
+                    title="Aprobar y crear proyecto"
+                    onClick={() => onAprobar(item)}>
+                    <i className="fas fa-check"></i>
+                  </button>
+                )}
                 <button className="btn btn-outline-danger" title="Rechazar">
                   <i className="fas fa-times"></i>
                 </button>
@@ -206,26 +212,36 @@ const Gestiones = ({
             </td>
           </tr>
         ));
-
-      default:
-        return currentItems.map((item, index) => (
-          <tr key={index}>
-            <td>{item.titulo}</td>
-            <td>{item.descripcion}</td>
-            <td>
-              <span className={`badge bg-${getEstadoColor(item.estado)}`}>
-                {item.estado || 'Pendiente'}
-              </span>
-            </td>
-            <td>
-              <div className="btn-group btn-group-sm">
-                <button className="btn btn-outline-primary" title="Ver detalles">
-                  <i className="fas fa-eye"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
-        ));
+        default:
+          return currentItems.map((item, index) => (
+            <tr key={index}>
+              <td>{item.titulo}</td>
+              <td>{item.descripcion}</td>
+              <td>
+                <span className={`badge bg-${getEstadoColor(item.estado)}`}>
+                  {item.estado || 'Pendiente'}
+                </span>
+              </td>
+              <td>
+                <div className="btn-group btn-group-sm">
+                  <button 
+                    className="btn btn-outline-primary" 
+                    title="Ver detalles"
+                    onClick={() => onVerDetalles(item)}>
+                    <i className="fas fa-eye"></i>
+                  </button>
+                  {mostrarAcciones && (
+                    <button 
+                      className="btn btn-outline-success" 
+                      title="Aprobar y crear proyecto"
+                      onClick={() => onAprobar(item)}>
+                      <i className="fas fa-check"></i>
+                    </button>
+                  )}
+                </div>
+              </td>
+            </tr>
+          ));
     }
   };
 
