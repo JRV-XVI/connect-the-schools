@@ -89,6 +89,7 @@ participacion.post('/vinculacion/aceptar', async (req, res, next) => {
 
         const resultado = await modelo.crearProyecto({
             descripcion,
+            fechaFin,
             etapas
         });
         res.status(201).send(resultado);

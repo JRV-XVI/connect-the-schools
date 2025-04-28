@@ -16,6 +16,16 @@ const obtenerApoyos = async (req, res, next) => {
     return apoyos.rows;
 };
 
+const cambiarEstadoValidacion = async (data) => {
+    const { estadoValidacion, id } = data;
+    const apoyo = await db.query(
+        'UPDATE "necesidadApoyo" SET "estadoValidacion" = $1 WHERE "idNecesidadApoyo" = $2 RETURNING *',
+        [estadoValidacion, id]
+    );
+    return apoyo.rows;
+
+};
+
 // No se si se usan
 
 const verificarUsuarioExiste = async (idUsuario) => {
@@ -102,5 +112,6 @@ module.exports = {
     actualizarNecesidadApoyo,
     verificarUsuarioExiste,
     obtenerApoyos,
-    obtenerNecesidades
+    obtenerNecesidades,
+    cambiarEstadoValidacion
 };

@@ -121,6 +121,10 @@ const crearProyecto = async (data) => {
 
 	const idProyecto = result.rows[0].idProyecto;
 
+	await db.query(`
+		INSERT INTO mensajeria ("idProyecto") VALUES ($1)
+	`, [idProyecto])
+
 	for (let etapa of etapas) {
 		const { tituloEtapa, descripcionEtapa, orden } = etapa;
 
