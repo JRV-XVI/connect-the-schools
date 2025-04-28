@@ -11,7 +11,6 @@ exports.seed = async function(knex) {
   // Inserta los usuarios de prueba
   await knex('usuario').insert([
     {
-      idUsuario: 1,
       correo: 'escuela@test.com',
       contraseña: '123456',
       estadoCuenta: false,
@@ -22,7 +21,6 @@ exports.seed = async function(knex) {
       direccion: 'Dirección Escuela'
     },
     {
-      idUsuario: 2,
       correo: 'aliado@test.com',
       contraseña: '123456',
       estadoCuenta: false,
@@ -33,7 +31,6 @@ exports.seed = async function(knex) {
       direccion: 'Dirección Aliado'
     },
     {
-      idUsuario: 3,
       correo: 'admin@test.com',
       contraseña: '123456',
       estadoCuenta: false,
@@ -45,7 +42,6 @@ exports.seed = async function(knex) {
     },
     
     {
-      idUsuario: 4,
       correo: 'escuela2@test.com',
       contraseña: '123456',
       estadoCuenta: false,
@@ -56,7 +52,6 @@ exports.seed = async function(knex) {
       direccion: 'Avenida Educación 456'
     },
     {
-      idUsuario: 5,
       correo: 'escuela3@test.com',
       contraseña: '123456',
       estadoCuenta: false,
@@ -67,7 +62,6 @@ exports.seed = async function(knex) {
       direccion: 'Calle Tecnológica 321'
     },
     {
-      idUsuario: 6,
       correo: 'aliado2@test.com',
       contraseña: '123456',
       estadoCuenta: false,
@@ -78,7 +72,6 @@ exports.seed = async function(knex) {
       direccion: 'Boulevard Corporativo 789'
     },
     {
-      idUsuario: 7,
       correo: 'aliado3@test.com',
       contraseña: '123456',
       estadoCuenta: false,
