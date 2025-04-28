@@ -7,8 +7,10 @@ exports.up = function(knex) {
 		t.increments('idProyecto')
 			.unsigned()
 			.primary();
-		t.boolean('validacionAdmin').notNullable();
-		t.text('descripcion').notNullable();
+		t.boolean('validacionAdmin')
+			.notNullable();
+		t.text('descripcion')
+			.notNullable();
 		t.date('fechaCreacion')
 			.defaultTo(knex.fn.now())
 			.notNullable();

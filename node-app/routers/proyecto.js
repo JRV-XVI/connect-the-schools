@@ -199,6 +199,24 @@ proyecto.get('/proyecto', async (req, res, next) => {
 	}
 });
 
+// Obtener todos los proyectos por idUsuario
+proyecto.get('/proyecto/usuario/:idUsuario', async (req, res, next) => {
+    try {
+        const idUsuario = parseInt(req.params.idUsuario, 10);
+        
+        if (isNaN(idUsuario) || idUsuario <= 0) {
+            return res.status(400).json({
+                error: "El ID de usuario debe ser un número entero positivo"
+            });
+        }
+        
+        const resultado = await modelo.obtenerProyectosPorUsuario(idUsuario);
+        res.status(200).json(resultado);
+    } catch (error) {
+        next(error);
+    }
+});
+
 // Obtener un proyecto por ID
 proyecto.get('/proyecto/:idProyecto', verificarProyectoExiste, (req, res) => {
 	res.status(200).json(req.proyecto);
