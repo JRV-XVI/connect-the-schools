@@ -4,6 +4,7 @@ import Sidebar from "../components/barraLateral.jsx";
 import Navbar from "../components/barraNavegacion.jsx";
 import Pendientes from "../components/pendientes.jsx";
 import Proyecto from "../components/proyectos.jsx";
+import axios from "axios";
 // Reemplazamos NecesidadApoyo por el nuevo componente
 import OfertaApoyo from "../components/OfertaApoyo.jsx";
 import Busqueda from "../components/busqueda.jsx";
@@ -20,8 +21,8 @@ import { escuelasData, opcionesFiltros, apoyosDisponiblesAliado } from '../data/
 import { proyectoDetallado } from '../data/proyectoDetallado/proyectoDetallado.js';
 import Logo from "../assets/MPJ.png";
 
-const Aliado = () => { 
-  const usuario = navbarAliado?.usuario || {idUsuario: 1, nombre: "Aliado", foto: "" };
+const Aliado = ({ userData, onLogout }) => {  
+  const usuario = userData || { idUsuario: 1, nombre: "Aliado", foto: "" };
   const notificaciones = navbarAliado?.notificaciones || [];
   const menuItems = navbarAliado?.menuItems || [];
 
@@ -141,7 +142,7 @@ const Aliado = () => {
   const apoyosIniciales = procesarDatosApoyos();
 
   // Estado para gestionar las ofertas de apoyo
-  const [apoyos, setApoyos] = useState(apoyosIniciales);
+  const [apoyos, setApoyos] = useState([]);
 
   // Estado para sincronizar con el componente de búsqueda
   const [apoyosDisponibles, setApoyosDisponibles] = useState(apoyosDisponiblesAliado);
@@ -192,22 +193,45 @@ const Aliado = () => {
     console.log("Acción en proyecto:", proyecto.nombre, "Estado:", proyecto.estado);
   };
   
-  // Manejadores para ofertas de apoyo - Ya compatible con la versión simplificada
-  const handleAddApoyo = (nuevaOferta) => {
-    console.log("Agregando nueva oferta:", nuevaOferta);
-    // Añadir ID y otros campos necesarios
-    const ofertaCompleta = {
-      ...nuevaOferta,
-      id: apoyos.length + 1,
-      fechaCreacion: new Date().toISOString()
-    };
+  // Manejadores para ofertas de apoyo
+  const handleAddApoyo = async (nuevaOferta) => {
+    try {
+      const payload = {
+        idUsuario: usuario.idUsuario,
+        descripcion: nuevaOferta.descripcion || nuevaOferta.titulo,
+        categoria: nuevaOferta.categoria || "Apoyo Material",
+        subcategoria: nuevaOferta.subcategoria || "General",
+        estadoValidacion: nuevaOferta.estado || 0
+      };
+      
+  
+      const response = await axios.post('http://localhost:4001/api/apoyos-aliado', payload, {
+        withCredentials: true
+      });
+  
+      console.log("[SUCCESS] Apoyo creado en base:", response.data);
+  
     
-    // Actualizar estado
-    setApoyos([...apoyos, ofertaCompleta]);
-    
-    // Mostrar notificación de éxito
-    alert(`Oferta de apoyo "${ofertaCompleta.titulo}" registrada correctamente`);
+      const apoyoNuevo = {
+        id: response.data.idNecesidadApoyo,                
+        descripcion: response.data.descripcion,            
+        categoria: response.data.categoria,             
+        subcategoria: response.data.subcategoria || "General",
+        fechaCreacion: response.data.fechaCreacion,
+        tipo: mapearCategoriaAliado(response.data.categoria), 
+        estado: "Disponible"                             
+      };
+  
+      setApoyos((prev) => [...prev, apoyoNuevo]);
+  
+      alert('¡Oferta de apoyo creada correctamente!');
+    } catch (error) {
+      console.error("[ERROR] Al crear apoyo:", error.response?.data || error.message);
+      alert('Error al guardar apoyo. Inténtalo de nuevo.');
+    }
   };
+  
+  
 
   const handleEditApoyo = (id, apoyoActualizado) => {
     console.log("Editando oferta de apoyo con ID:", id);
@@ -355,6 +379,79 @@ const Aliado = () => {
       throw error;
     }
   };
+
+  useEffect(() => {
+    const fetchApoyos = async () => {
+      try {
+        const response = await axios.get(`http://localhost:4001/api/apoyos-aliado/${usuario.idUsuario}`, {
+          withCredentials: true
+        });
+        console.log("[INFO] Apoyos cargados:", response.data);
+  
+        const apoyosConTipo = response.data.map(apoyo => ({
+          ...apoyo,
+          tipo: mapearCategoriaAliado(apoyo.categoria)
+        }));
+  
+        setApoyos(apoyosConTipo);
+      } catch (error) {
+        console.error("[ERROR] Error al cargar apoyos:", error.response?.data || error.message);
+      }
+    };
+  
+    fetchApoyos();
+  }, [usuario.idUsuario]);
+
+  const mapearCategoriaAliado = (categoria) => {
+    if (!categoria) return 'material'; // default
+    
+    switch (categoria.toLowerCase()) {
+      // Material
+      case 'infraestructura':
+      case 'equipamiento tecnológico':
+      case 'material didáctico':
+      case 'mobiliario':
+      case 'material bibliográfico':
+      case 'material deportivo':
+        return 'material';
+      
+      // Servicios
+      case 'capacitación':
+      case 'formación docente':
+      case 'formación niñas y niños':
+      case 'formación a familias':
+      case 'servicios tecnológicos':
+      case 'servicios de consultoría':
+      case 'mantenimiento':
+      case 'rehabilitación de espacios':
+        return 'servicios';
+      
+      // Económico
+      case 'financiero':
+      case 'apoyo económico':
+      case 'becas estudiantiles':
+      case 'apoyo a proyectos escolares':
+      case 'financiamiento de mejoras':
+      case 'patrocinios':
+      case 'donaciones monetarias':
+        return 'economico';
+      
+      // Voluntariado
+      case 'voluntariado':
+      case 'clases y talleres':
+      case 'asesoría académica':
+      case 'actividades culturales':
+      case 'mantenimiento y limpieza':
+      case 'mentorías':
+        return 'voluntariado';
+      
+      default:
+        return 'material';
+    }
+  };
+  
+  
+  
 
   const handleExportReport = () => {
     console.log("Exportando reporte del proyecto");

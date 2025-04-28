@@ -151,7 +151,11 @@ const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {
     e.preventDefault();
     
     const nuevaOferta = {
-      ...formData,
+      titulo: formData.titulo,
+      descripcion: formData.descripcion,
+      categoria: getCategoriaTexto(formData.tipo), 
+      subcategoria: formData.subcategoria,
+      estado: formData.estado,
       fechaCreacion: new Date().toISOString()
     };
     
@@ -364,6 +368,22 @@ const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {
         return 'Registrar Nueva Oferta de Apoyo';
     }
   };
+
+  const getCategoriaTexto = (tipo) => {
+    switch (tipo) {
+      case 'material':
+        return 'Apoyo Material';
+      case 'servicios':
+        return 'Servicios';
+      case 'economico':
+        return 'Apoyo Económico';
+      case 'voluntariado':
+        return 'Voluntariado';
+      default:
+        return 'Apoyo Material'; // default por si falla
+    }
+  };
+  
 
   // Obtener descripción de la sección según el tipo activo
   const getSectionDescription = () => {

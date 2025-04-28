@@ -2,6 +2,8 @@ const express = require('express');
 const modelo = require('../models/aliado.js')
 const { query } = require('../db.js');
 const usuario = express.Router();
+const aliado = express.Router();
+const db = require('../db.js');	
 
 // ---------------------------------------------- //
 // ----------------- MIDDLEWARE ----------------- //
@@ -106,6 +108,29 @@ usuario.post('/aliado', async (req, res, next) => {
 	}
 });
 
+// POST para crear un apoyo
+aliado.post('/apoyos-aliado', async (req, res) => {
+	try {
+	  const { idUsuario, descripcion, categoria, subcategoria } = req.body;
+  
+	  const query = `
+		INSERT INTO "necesidadApoyo" 
+		("idUsuario", "descripcion", "categoria", "subcategoria", "fechaCreacion", "prioridad", "estadoValidacion")
+		VALUES ($1, $2, $3, $4, NOW(), NULL, 0) -- 🔥 Estado inicial 0 (por ejemplo "pendiente")
+		RETURNING *;
+	  `;
+  
+	  const values = [idUsuario, descripcion, categoria, subcategoria];
+	  const { rows } = await db.query(query, values);
+  
+	  res.status(201).json(rows[0]);
+	} catch (error) {
+	  console.error('[ERROR] Al crear apoyo:', error);
+	  res.status(500).json({ error: error.message });
+	}
+  });
+  
+
 // Obtener todos los aliados
 usuario.get('/aliado', async (req, res, next) => {
 	try {
@@ -133,6 +158,29 @@ usuario.put('/aliado/:rfc', obtenerAliado, async (req, res, next) => {
 		next(error);
 	}
 });
+
+aliado.get('/apoyos-aliado/:idUsuario', async (req, res) => {
+	try {
+	  const { idUsuario } = req.params;
+	  const query = `
+		SELECT 
+		  "idNecesidadApoyo",
+		  "descripcion",
+		  "categoria",
+		  "subcategoria",
+		  "fechaCreacion"
+		FROM "necesidadApoyo"
+		WHERE "idUsuario" = $1
+		AND "prioridad" IS NULL
+	  `;
+	  const { rows } = await db.query(query, [idUsuario]);
+	  res.status(200).json(rows);
+	} catch (error) {
+	  console.error('[ERROR] Al obtener apoyos:', error.message);
+	  res.status(500).json({ error: "Error al obtener apoyos" });
+	}
+  });
+  
 
 // Eliminar un aliado
 usuario.delete('/aliado/:rfc', async (req, res, next) => {
@@ -166,4 +214,4 @@ usuario.use((err, req, res, next) => {
 	res.status(estado).json({ error: err.message || "Ocurrió un error al procesar la solicitud" });
 });
 
-module.exports = usuario;
+module.exports = aliado;
