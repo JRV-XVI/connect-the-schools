@@ -71,14 +71,19 @@ const necesidadesCompatibles = async (idUsuario) => {
 			"necesidadApoyo"."fechaCreacion",
 			"necesidadApoyo"."estadoValidacion",
 			"perfilEscuela".cct,
+			"perfilEscuela"."nombreDirector",
 			"perfilEscuela"."nivelEducativo",
 			"perfilEscuela"."numeroEstudiantes",
-			"perfilEscuela".sector
+			"perfilEscuela".sector,
+			usuario.direccion,
+			usuario.nombre
 		FROM "necesidadApoyo"
 		INNER JOIN "necesidadApoyo" AS apoyo
 		  ON "necesidadApoyo".categoria = apoyo.categoria
 		INNER JOIN "perfilEscuela"
 		  ON "perfilEscuela"."idUsuario" = "necesidadApoyo"."idUsuario"
+		INNER JOIN usuario
+		  ON usuario."idUsuario" = "necesidadApoyo"."idUsuario"
 		WHERE apoyo."idUsuario" = $1
 		  AND "necesidadApoyo".prioridad IS NOT NULL
 		  AND "necesidadApoyo"."estadoValidacion" = 3

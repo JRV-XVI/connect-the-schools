@@ -10,17 +10,18 @@ import React, { useState } from 'react';
  * @param {Function} props.onButtonClick - Función a ejecutar cuando se hace clic en el botón
  * @param {string} props.tipo - Tipo de gestión para estilo específico (admin, aliado, escuela)
  */
-const Gestiones = ({ 
-  titulo = "Gestiones", 
-  items = [], 
-  textoBoton = "Ver todos", 
-  onButtonClick = () => {}, 
+const Gestiones = ({
+  titulo = "Gestiones",
+  items = [],
+  textoBoton = "Ver todos",
+  onButtonClick = () => { },
+  onVerDetalles,
   tipo = "admin"
 }) => {
   // Estado para la paginación
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
-  
+
   // Estado para los filtros
   const [filtro, setFiltro] = useState({
     categoria: "Todas",
@@ -28,7 +29,7 @@ const Gestiones = ({
     estado: "Todos",
     busqueda: ""
   });
-  
+
   // Función para manejar cambios en los filtros
   const handleFiltroChange = (e) => {
     const { name, value } = e.target;
@@ -37,7 +38,7 @@ const Gestiones = ({
       [name]: value
     }));
   };
-  
+
   // Función para limpiar los filtros
   const limpiarFiltros = () => {
     setFiltro({
@@ -47,10 +48,10 @@ const Gestiones = ({
       busqueda: ""
     });
   };
-  
+
   // Estructura de la tabla según el tipo de usuario
   const renderTableHeaders = () => {
-    switch(tipo) {
+    switch (tipo) {
       case "admin":
         return (
           <tr>
@@ -94,15 +95,15 @@ const Gestiones = ({
         );
     }
   };
-  
+
   // Renderiza las filas de la tabla según el tipo de usuario
   const renderTableRows = () => {
     // Cálculo para paginación
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = items.slice(indexOfFirstItem, indexOfLastItem);
-    
-    switch(tipo) {
+
+    switch (tipo) {
       case "admin":
         return currentItems.map((item, index) => (
           <tr key={index}>
@@ -123,7 +124,11 @@ const Gestiones = ({
             </td>
             <td>
               <div className="btn-group btn-group-sm">
-                <button className="btn btn-outline-primary" title="Ver detalles">
+
+                <button
+                  className="btn btn-outline-primary"
+                  title="Ver detalles"
+                  onClick={() => onVerDetalles(item.datosOriginales)}>
                   <i className="fas fa-eye"></i>
                 </button>
                 <button className="btn btn-outline-success" title="Aprobar">
@@ -136,7 +141,7 @@ const Gestiones = ({
             </td>
           </tr>
         ));
-        
+
       case "escuela":
         return currentItems.map((item, index) => (
           <tr key={index}>
@@ -174,7 +179,7 @@ const Gestiones = ({
             </td>
           </tr>
         ));
-        
+
       case "aliado":
         return currentItems.map((item, index) => (
           <tr key={index}>
@@ -201,7 +206,7 @@ const Gestiones = ({
             </td>
           </tr>
         ));
-        
+
       default:
         return currentItems.map((item, index) => (
           <tr key={index}>
@@ -223,10 +228,10 @@ const Gestiones = ({
         ));
     }
   };
-  
+
   // Funciones auxiliares para determinar colores
   const getCategoriaColor = (categoria) => {
-    switch(categoria) {
+    switch (categoria) {
       case 'Tecnología': return 'success';
       case 'Infraestructura': return 'danger';
       case 'Capacitación': return 'info';
@@ -234,9 +239,9 @@ const Gestiones = ({
       default: return 'secondary';
     }
   };
-  
+
   const getEstadoColor = (estado) => {
-    switch(estado) {
+    switch (estado) {
       case 'Publicada': return 'success';
       case 'En Vinculación': return 'primary';
       case 'En Implementación': return 'info';
@@ -245,19 +250,19 @@ const Gestiones = ({
       default: return 'secondary';
     }
   };
-  
+
   const getPrioridadText = (prioridad) => {
-    switch(prioridad) {
+    switch (prioridad) {
       case 'critical': return 'Alta';
       case 'medium': return 'Media';
       case 'low': return 'Baja';
       default: return 'Normal';
     }
   };
-  
+
   // Cálculo de paginación
   const pageCount = Math.ceil(items.length / itemsPerPage);
-  
+
   // Renderizado de paginación
   const renderPagination = () => {
     return (
@@ -284,7 +289,7 @@ const Gestiones = ({
       </nav>
     );
   };
-  
+
   return (
     <div className="card">
       {/* Encabezado con título y botones */}
@@ -301,17 +306,17 @@ const Gestiones = ({
           </div>
         </div>
       </div>
-      
+
       {/* Sección de filtros */}
       <div className="card-body border-bottom">
         <h6>Filtros de {titulo}</h6>
         <div className="row g-3 align-items-end">
           <div className="col-md">
             <label className="form-label">Categoría</label>
-            <select 
-              className="form-select" 
-              name="categoria" 
-              value={filtro.categoria} 
+            <select
+              className="form-select"
+              name="categoria"
+              value={filtro.categoria}
               onChange={handleFiltroChange}
             >
               <option value="Todas">Todas</option>
@@ -320,13 +325,13 @@ const Gestiones = ({
               <option value="Capacitación">Capacitación</option>
             </select>
           </div>
-          
+
           <div className="col-md">
             <label className="form-label">Prioridad</label>
-            <select 
-              className="form-select" 
-              name="prioridad" 
-              value={filtro.prioridad} 
+            <select
+              className="form-select"
+              name="prioridad"
+              value={filtro.prioridad}
               onChange={handleFiltroChange}
             >
               <option value="Todas">Todas</option>
@@ -335,13 +340,13 @@ const Gestiones = ({
               <option value="Baja">Baja</option>
             </select>
           </div>
-          
+
           <div className="col-md">
             <label className="form-label">Estado</label>
-            <select 
-              className="form-select" 
-              name="estado" 
-              value={filtro.estado} 
+            <select
+              className="form-select"
+              name="estado"
+              value={filtro.estado}
               onChange={handleFiltroChange}
             >
               <option value="Todos">Todos</option>
@@ -351,19 +356,19 @@ const Gestiones = ({
               <option value="En Implementación">En Implementación</option>
             </select>
           </div>
-          
+
           <div className="col-md">
             <label className="form-label">Buscar Escuela</label>
-            <input 
-              type="text" 
-              className="form-control" 
-              placeholder="Nombre de escuela..." 
-              name="busqueda" 
-              value={filtro.busqueda} 
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Nombre de escuela..."
+              name="busqueda"
+              value={filtro.busqueda}
               onChange={handleFiltroChange}
             />
           </div>
-          
+
           <div className="col-md-auto d-flex gap-2">
             <button className="btn btn-outline-secondary" onClick={limpiarFiltros}>
               Limpiar
@@ -374,7 +379,7 @@ const Gestiones = ({
           </div>
         </div>
       </div>
-      
+
       {/* Tabla de datos */}
       <div className="card-body p-0">
         <div className="table-responsive">
@@ -396,7 +401,7 @@ const Gestiones = ({
           </table>
         </div>
       </div>
-      
+
       {/* Paginación */}
       {items.length > itemsPerPage && (
         <div className="card-footer bg-white">

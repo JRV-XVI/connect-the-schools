@@ -75,7 +75,7 @@ usuario.post('/registro/aliado', async (req, res, next) => {
 	}
 });
 
-usuario.get('/lista/necesidad', async (req, res, next) => {
+usuario.post('/lista/necesidad', async (req, res, next) => {
 	try {
 		const { idUsuario } = req.body;
 		const resultado = await modelo.necesidadesCompatibles(idUsuario);
