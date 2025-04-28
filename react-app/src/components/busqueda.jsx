@@ -15,7 +15,7 @@ const Busqueda = ({
   totalPaginas = 1,
   cargando: externalLoading = false,
   apoyosDisponibles = [],
-  userId = null // Nuevo prop para recibir userId externamente
+  userData = null  // Cambiado de userId a userData para ser consistente
 }) => {
   // Estados para datos reales y carga
   const [escuelasCompatibles, setEscuelasCompatibles] = useState([]);
@@ -45,9 +45,8 @@ const Busqueda = ({
   const [escuelaSeleccionada, setEscuelaSeleccionada] = useState(null);
   const [formData, setFormData] = useState({
     necesidadSeleccionada: "",
-    mensajeInteres: "",
+    descripcionServicios: "", // Este campo ahora contendrá tanto el interés como la descripción
     apoyoSeleccionado: "",
-    descripcionServicios: "",
     documentos: []
   });
   const [validationErrors, setValidationErrors] = useState({});
@@ -64,15 +63,74 @@ const Busqueda = ({
   }, [onFilterChange, filtros]);
 
   // Función para obtener necesidades compatibles
-  const fetchEscuelasCompatibles = async (idUsuario) => {
+  // Reemplazar la función fetchEscuelasCompatibles con esta nueva implementación
+  const fetchEscuelasCompatibles = async () => {
     try {
       setLoading(true);
-      // Use the actual endpoint path that exists on the backend
-      const response = await get(`/usuario/${idUsuario}/necesidadApoyo`);
-      console.log("Necesidades compatibles obtenidas de BD:", response);
-      return response;
+      
+      // Verificar si tenemos datos del usuario
+      if (!userData || !userData.idUsuario) {
+        console.warn("No hay ID de usuario disponible para buscar necesidades compatibles");
+        setError("No se puede identificar el usuario para buscar escuelas compatibles");
+        return [];
+      }
+      
+      // Usar POST en lugar de GET y enviar el idUsuario en el cuerpo
+      const necesidades = await post(`/lista/necesidad`, {
+        idUsuario: userData.idUsuario
+      });
+      
+      console.log("Escuelas y necesidades obtenidas:", necesidades);
+      
+      if (!necesidades || necesidades.length === 0) {
+        setError("No se encontraron escuelas disponibles");
+        return [];
+      }
+      
+      // Agrupar necesidades por escuela (CCT)
+      const escuelasPorCCT = {};
+      
+      // Recorrer todas las necesidades y agruparlas por CCT
+      necesidades.forEach(necesidad => {
+        const cct = necesidad.cct;
+        
+        if (!escuelasPorCCT[cct]) {
+          // Si es la primera necesidad de esta escuela, crear la estructura base
+          escuelasPorCCT[cct] = {
+            id: cct,
+            cct: cct,
+            nombre: necesidad.nombre || `Escuela ${cct}`,
+            nivelEducativo: necesidad.nivelEducativo || "No especificado",
+            matricula: necesidad.numeroEstudiantes || 0,
+            sector: necesidad.sector || "No especificado",
+            // Asegurarnos de capturar todas las posibles variaciones del nombre del director
+            nombreDirector: necesidad.nombreDirector || "No especificado",
+            telefonoDirector: necesidad.telefonoDirector || "No especificado",
+            direccion: necesidad.direccion || "Sin información de ubicación",
+            compatibilidad: 'total',
+            necesidades: []
+          };
+        }
+        
+        // Agregar esta necesidad al arreglo de necesidades de la escuela
+        escuelasPorCCT[cct].necesidades.push({
+          id: necesidad.idNecesidadApoyo,
+          idNecesidadApoyo: necesidad.idNecesidadApoyo,
+          nombre: `${necesidad.categoria || ''} - ${necesidad.subcategoria || ''}`.trim(),
+          descripcion: necesidad.descripcion || "Sin descripción",
+          prioridad: necesidad.prioridad || 5,
+          color: getPriorityColor(necesidad.prioridad)
+        });
+      });
+      
+      // Convertir el objeto a un arreglo de escuelas
+      const escuelasFormateadas = Object.values(escuelasPorCCT);
+      
+      console.log("Escuelas procesadas:", escuelasFormateadas);
+      
+      return escuelasFormateadas;
     } catch (error) {
-      console.error("Error al obtener necesidades compatibles:", error);
+      console.error("Error al obtener escuelas compatibles:", error);
       setError("No se pudieron cargar las escuelas compatibles");
       return [];
     } finally {
@@ -89,103 +147,40 @@ const Busqueda = ({
 
   useEffect(() => {
     const loadEscuelas = async () => {
-      // Obtener userId de prop o localStorage
-      const userIdentifier = userId || localStorage.getItem('userId') || sessionStorage.getItem('userId');
-      
-      if (!userIdentifier) {
-        console.warn("No se encontró ID de usuario, usando ID de demostración");
-        // Usar un ID de demostración o asignado por defecto
-        // Puedes asignar un ID fijo para pruebas
-        const demoUserId = "1"; // ID de demostración para pruebas
+      try {
+        // Obtener todas las escuelas con necesidades compatibles
+        const escuelasCompatibles = await fetchEscuelasCompatibles();
         
-        try {
-          const necesidades = await fetchEscuelasCompatibles(demoUserId);
-          // El resto del proceso continúa igual...
-          procesarNecesidades(necesidades);
-        } catch (error) {
-          console.error("Error con ID de demostración:", error);
+        if (!escuelasCompatibles || escuelasCompatibles.length === 0) {
+          setError("No se encontraron escuelas compatibles");
           setLoading(false);
-          setError("Error al cargar datos de prueba");
+          return;
         }
-      } else {
-        try {
-          const necesidades = await fetchEscuelasCompatibles(userIdentifier);
-          procesarNecesidades(necesidades);
-        } catch (error) {
-          console.error("Error al cargar datos de escuelas:", error);
-          setError("Error al procesar los datos de escuelas");
-          setLoading(false);
+        
+        // Ya tenemos las escuelas procesadas, podemos usarlas directamente
+        console.log("Escuelas procesadas de la base de datos:", escuelasCompatibles);
+        
+        // Guardar escuelas en estado local
+        setEscuelasCompatibles(escuelasCompatibles);
+        
+        // Calcular total de páginas
+        setTotalPaginasLocal(Math.ceil(escuelasCompatibles.length / escuelasPorPagina));
+        
+        // Actualizar escuelas a mostrar según paginación
+        const startIndex = (paginaLocal - 1) * escuelasPorPagina;
+        setEscuelasParaMostrar(escuelasCompatibles.slice(startIndex, startIndex + escuelasPorPagina));
+        
+        // Informar al componente padre
+        if (typeof onFilterChange === 'function') {
+          onFilterChange({ escuelasDB: escuelasCompatibles });
         }
-      }
-    };
-    
-    // Función separada para procesar las necesidades
-    const procesarNecesidades = (necesidades) => {
-      if (!necesidades || necesidades.length === 0) {
-        setError("No se encontraron escuelas compatibles");
+      } catch (error) {
+        console.error("Error al cargar datos de escuelas:", error);
+        setError("Error al procesar los datos de escuelas");
+      } finally {
         setLoading(false);
-        return;
       }
-      
-      // Procesar datos recibidos (mismo código que ya tienes)
-      const escuelasFormateadas = necesidades.reduce((acc, necesidad) => {
-        // Agrupar por CCT para consolidar necesidades de la misma escuela
-        const escuelaExistente = acc.find(e => e.cct === necesidad.cct);
-        
-        if (escuelaExistente) {
-          // Agregar necesidad a una escuela ya registrada
-          escuelaExistente.necesidades.push({
-            id: necesidad.idNecesidadApoyo,
-            idNecesidadApoyo: necesidad.idNecesidadApoyo,
-            nombre: `${necesidad.categoria} - ${necesidad.subcategoria}`,
-            descripcion: necesidad.descripcion,
-            prioridad: necesidad.prioridad,
-            color: getPriorityColor(necesidad.prioridad)
-          });
-          return acc;
-        } else {
-          // Crear nueva entrada de escuela con datos reales de la BD
-          return [...acc, {
-            id: necesidad.cct,
-            cct: necesidad.cct,
-            nombre: necesidad.nombreEscuela || `Escuela ${necesidad.cct}`,
-            nivelEducativo: necesidad.nivelEducativo,
-            matricula: necesidad.numeroEstudiantes || 0,
-            turno: necesidad.turno || "Matutino",
-            ubicacion: necesidad.direccion || "Sin información de ubicación",
-            compatibilidad: 'total', // Se asume compatibilidad total 
-            necesidades: [{
-              id: necesidad.idNecesidadApoyo,
-              idNecesidadApoyo: necesidad.idNecesidadApoyo,
-              nombre: `${necesidad.categoria} - ${necesidad.subcategoria}`,
-              descripcion: necesidad.descripcion,
-              prioridad: necesidad.prioridad,
-              color: getPriorityColor(necesidad.prioridad)
-            }]
-          }];
-        }
-      }, []);
-      
-      console.log("Escuelas procesadas de la base de datos:", escuelasFormateadas);
-      
-      // Guardar escuelas en estado local
-      setEscuelasCompatibles(escuelasFormateadas);
-      
-      // Calcular total de páginas
-      setTotalPaginasLocal(Math.ceil(escuelasFormateadas.length / escuelasPorPagina));
-      
-      // Actualizar escuelas a mostrar según paginación
-      const startIndex = (paginaLocal - 1) * escuelasPorPagina;
-      setEscuelasParaMostrar(escuelasFormateadas.slice(startIndex, startIndex + escuelasPorPagina));
-      
-      // Informar al componente padre
-      if (typeof onFilterChange === 'function') {
-        onFilterChange({ escuelasDB: escuelasFormateadas });
-      }
-      
-      setLoading(false);
     };
-    
     loadEscuelas();
   }, []);
 
@@ -246,16 +241,12 @@ const Busqueda = ({
       errors.necesidadSeleccionada = 'Debe seleccionar una necesidad a atender';
     }
     
-    if (!formData.mensajeInteres.trim()) {
-      errors.mensajeInteres = 'Debe explicar su interés en atender esta necesidad';
-    }
-    
     if (!formData.apoyoSeleccionado) {
       errors.apoyoSeleccionado = 'Debe seleccionar un apoyo de su perfil';
     }
     
     if (!formData.descripcionServicios.trim()) {
-      errors.descripcionServicios = 'Debe proporcionar una descripción de los servicios ofrecidos';
+      errors.descripcionServicios = 'Debe proporcionar una descripción de su interés y los servicios ofrecidos';
     }
     
     return errors;
@@ -271,6 +262,14 @@ const Busqueda = ({
       setValidationErrors(errors);
       return;
     }
+  
+    // Verificar que tenemos datos del usuario
+    if (!userData || !userData.idUsuario) {
+      setValidationErrors({
+        submit: "No se puede identificar el usuario. Por favor inicie sesión nuevamente."
+      });
+      return;
+    }
     
     setIsSubmitting(true);
     
@@ -284,21 +283,24 @@ const Busqueda = ({
         a => (a.id || a.idApoyo) == formData.apoyoSeleccionado
       );
       
-      // Datos para la base de datos - con los nombres de campo exactos esperados por el backend
+      // Datos para la base de datos con el formato correcto para el endpoint
       const vinculacionData = {
-        rfc: apoyoSeleccionado?.rfc || localStorage.getItem('aliadoRFC') || '',
+        idUsuario: userData.idUsuario,
+        rfc: userData.rfc, 
         cct: escuelaSeleccionada.cct,
-        idNecesidad: necesidadSeleccionada?.idNecesidadApoyo || formData.necesidadSeleccionada,
-        idApoyo: apoyoSeleccionado?.idApoyo || formData.apoyoSeleccionado,
-        observacion: formData.mensajeInteres + "\n\n" + formData.descripcionServicios
+        idNecesidad: parseInt(necesidadSeleccionada?.idNecesidadApoyo || formData.necesidadSeleccionada, 10),
+        idApoyo: parseInt(apoyoSeleccionado?.idApoyo || formData.apoyoSeleccionado, 10),
+        observacion: formData.descripcionServicios || "Sin observaciones",
       };
       
       console.log("Enviando datos a la base de datos:", vinculacionData);
+      console.log("Usuario actual:", userData);
       
       // Usar el servicio API centralizado 
       const response = await post('/vinculacion', vinculacionData);
       console.log("Vinculación registrada en base de datos:", response);
-      
+     
+    
       // Para el componente padre - incluir los documentos seleccionados
       const fullData = {
         escuela: {
@@ -319,8 +321,7 @@ const Busqueda = ({
           idApoyo: apoyoSeleccionado?.idApoyo || formData.apoyoSeleccionado
         },
         detalles: {
-          mensajeInteres: formData.mensajeInteres,
-          descripcionServicios: formData.descripcionServicios,
+          descripcion: formData.descripcionServicios,
           documentos: formData.documentos.map(file => file.name),
           fechaSolicitud: new Date().toISOString()
         },
@@ -376,7 +377,7 @@ const Busqueda = ({
   // Renderizado de resultados
   const renderResultado = (resultado) => {
     return (
-      <div className="col-md-6 col-lg-4 mb-4" key={resultado.id}>
+      <div className="col-md-6 col-lg-4 mb-4">
         <div className="card school-card h-100">
           <div className="card-body">
             <div className="d-flex justify-content-between align-items-center mb-3">
@@ -387,17 +388,23 @@ const Busqueda = ({
             </div>
             <div className="d-flex align-items-center mb-3">
               <i className="fas fa-map-marker-alt text-danger me-2"></i>
-              <small className="text-muted">{resultado.ubicacion}</small>
+              <small className="text-muted">{resultado.direccion}</small>
             </div>
             <div className="mb-3">
               <div className="d-flex justify-content-between mb-1">
-                <span>Matrícula:</span>
+                <span>Número de estudiantes:</span>
                 <strong>{resultado.matricula} alumnos</strong>
               </div>
               <div className="d-flex justify-content-between mb-1">
-                <span>Turno:</span>
-                <strong>{resultado.turno}</strong>
+                <span>Sector:</span>
+                <strong>{resultado.sector}</strong>
               </div>
+              {resultado.nombreDirector && (
+                <div className="d-flex justify-content-between mb-1">
+                  <span>Director:</span>
+                  <strong>{resultado.nombreDirector}</strong>
+                </div>
+              )}
             </div>
             <h6 className="mb-2">Necesidades prioritarias:</h6>
             <div className="mb-3">
@@ -526,7 +533,12 @@ const Busqueda = ({
               Mostrando escuelas compatibles con su perfil
             </div>
           </div>
-          {escuelasParaMostrar.map(resultado => renderResultado(resultado))}
+          {escuelasParaMostrar.map(resultado => (
+            <React.Fragment key={resultado.cct || resultado.id}>
+              {renderResultado(resultado)}
+            </React.Fragment>
+
+          ))}
         </div>
       ) : (
         <div className="text-center my-5">
@@ -600,13 +612,19 @@ const Busqueda = ({
               <p className="mb-1">
                 <strong>Nivel:</strong> {escuelaSeleccionada.nivelEducativo}
               </p>
+              <p className="mb-1">
+                <strong>Sector:</strong> {escuelaSeleccionada.sector}
+              </p>
             </div>
             <div className="col-md-6">
               <p className="mb-1">
-                <strong>Matrícula:</strong> {escuelaSeleccionada.matricula} alumnos
+                <strong>Número de estudiantes:</strong> {escuelaSeleccionada.matricula} alumnos
               </p>
               <p className="mb-1">
-                <strong>Ubicación:</strong> {escuelaSeleccionada.ubicacion}
+                <strong>Director:</strong> {escuelaSeleccionada.nombreDirector}
+              </p>
+              <p className="mb-1">
+                <strong>Dirección:</strong> {escuelaSeleccionada.direccion}
               </p>
             </div>
           </div>
@@ -630,21 +648,6 @@ const Busqueda = ({
             </Form.Select>
             <Form.Control.Feedback type="invalid">
               {validationErrors.necesidadSeleccionada}
-            </Form.Control.Feedback>
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Label>Explique su interés en atender esta necesidad:</Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={3}
-              name="mensajeInteres"
-              value={formData.mensajeInteres}
-              onChange={handleFormChange}
-              isInvalid={!!validationErrors.mensajeInteres}
-            />
-            <Form.Control.Feedback type="invalid">
-              {validationErrors.mensajeInteres}
             </Form.Control.Feedback>
           </Form.Group>
         </div>
@@ -673,18 +676,22 @@ const Busqueda = ({
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label>Describa los servicios o recursos que ofrecerá:</Form.Label>
+            <Form.Label>Describa su interés y los servicios o recursos que ofrecerá:</Form.Label>
             <Form.Control
               as="textarea"
-              rows={3}
+              rows={4}
               name="descripcionServicios"
               value={formData.descripcionServicios}
               onChange={handleFormChange}
+              placeholder="Explique por qué le interesa atender esta necesidad y detalle los recursos o servicios específicos que puede ofrecer."
               isInvalid={!!validationErrors.descripcionServicios}
             />
             <Form.Control.Feedback type="invalid">
               {validationErrors.descripcionServicios}
             </Form.Control.Feedback>
+            <Form.Text className="text-muted">
+              Incluya tanto su motivación como los detalles concretos de su oferta.
+            </Form.Text>
           </Form.Group>
         </div>
 

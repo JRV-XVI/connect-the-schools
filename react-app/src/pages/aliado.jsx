@@ -19,7 +19,7 @@ import { escuelasData, opcionesFiltros, apoyosDisponiblesAliado } from '../data/
 import { proyectoDetallado } from '../data/proyectoDetallado/proyectoDetallado.js';
 import Logo from "../assets/MPJ.png";
 
-const Aliado = () => { 
+const Aliado = ({ userData, onLogout }) => { 
   const usuario = navbarAliado?.usuario || { nombre: "Aliado", foto: "" };
   const notificaciones = navbarAliado?.notificaciones || [];
   const menuItems = navbarAliado?.menuItems || [];
@@ -434,21 +434,22 @@ const Aliado = () => {
 
           {/* Búsqueda de Escuelas */}
           <section id="seccionBusqueda" className="mt-5">
-            <Busqueda
-              titulo="Búsqueda de Escuelas"
-              resultados={escuelasPaginaActual}
-              opcionesFiltros={opcionesFiltros}
-              onFilterChange={handleFilterChange}
-              onMapView={handleMapView}
-              onVincular={handleVincular}
-              onVerDetalles={handleVerDetalles}
-              onPageChange={handlePageChange}
-              paginaActual={paginaActual}
-              totalPaginas={totalPaginas}
-              cargando={cargandoBusqueda}
-              apoyosDisponibles={apoyosDisponibles}  // Ahora usa el estado sincronizado
-            />
-          </section>
+          <Busqueda
+            titulo="Búsqueda de Escuelas"
+            resultados={escuelasPaginaActual}
+            opcionesFiltros={opcionesFiltros}
+            onFilterChange={handleFilterChange}
+            onMapView={handleMapView}
+            onVincular={handleVincular}
+            onVerDetalles={handleVerDetalles}
+            onPageChange={handlePageChange}
+            paginaActual={paginaActual}
+            totalPaginas={totalPaginas}
+            cargando={cargandoBusqueda}
+            apoyosDisponibles={apoyosDisponibles}
+            userData={userData}  // Aquí está pasando correctamente userData
+          />
+        </section>
         </div>
       </div>
     </div>
