@@ -111,7 +111,7 @@ const obtenerVinculaciones = async () => {
 
 
 const crearProyecto = async (data) => {
-	const { descripcion, fechaFin, etapas } = data;
+	const { descripcion, fechaFin, etapas, rfc, cct } = data;
 
 	const result = await db.query(`
 	    INSERT INTO proyecto (descripcion, "fechaFin")
@@ -120,6 +120,8 @@ const crearProyecto = async (data) => {
 	  `, [descripcion, fechaFin]);
 
 	const idProyecto = result.rows[0].idProyecto;
+
+	await db.query(`UPDATE "participacionProyecto" SET "idProyecto" = $1 WHERE rfc = $2 AND cct = $3`, [idProyecto, rfc, cct]);
 
 	await db.query(`
 		INSERT INTO mensajeria ("idProyecto") VALUES ($1)

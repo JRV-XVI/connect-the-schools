@@ -6,16 +6,12 @@ import Pendientes from "../components/pendientes.jsx";
 import { pendientesAdministrador, proyectosPendientes } from '../data/pendientes/pendientesAdministrador.js';
 import Proyecto from "../components/proyectos.jsx";
 import Gestiones from "../components/gestiones.jsx";
+import ProyectoDetallado from '../components/proyectoDetallado.jsx'; // Importamos el componente
 import { StatCardGroup } from "../components/cartas.jsx";
 import { sidebarAdministrador } from "../data/barraLateral/barraLateralAdministrador.js";
 import { navbarAdministrador } from "../data/barraNavegacion/barraNavegacionAdministrador.js";
 import { cartasAdministrador } from "../data/cartas/cartasAdministrador.js";
 import { proyectosAdministrador } from '../data/proyectos/proyectosAdministrador.js';
-// Removemos las importaciones que pueden estar causando problemas
-// import { gestionUsuarios } from '../data/gestiones/gestionUsuarios.js';
-// import { gestionNecesidades } from '../data/gestiones/gestionNecesidades.js';
-// import { gestionApoyos } from '../data/gestiones/gestionApoyos.js';
-// import { gestionVinculaciones } from '../data/gestiones/gestionVinculaciones.js';
 import Logo from "../assets/MPJ.png";
 import { string } from "prop-types";
 
@@ -28,6 +24,16 @@ const Administrador = () => {
   const [datosGestionNecesidades, setDatosGestionNecesidades] = useState({});
   const [datosGestionApoyos, setDatosGestionApoyos] = useState({});
   const [datosGestionVinculaciones, setDatosGestionVinculaciones] = useState({});
+  
+  // Estados para ProyectoDetallado
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [showProjectDetail, setShowProjectDetail] = useState(false);
+  const [projectData, setProjectData] = useState({
+    fases: [],
+    evidencias: [],
+    mensajes: [],
+    documentos: []
+  });
 
   const [mostrarModalEtapas, setMostrarModalEtapas] = useState(false);
   const [vinculacionSeleccionada, setVinculacionSeleccionada] = useState(null);
@@ -124,6 +130,100 @@ const Administrador = () => {
     fetchDatosVinculaciones();
   }, []); // Este useEffect también solo se ejecuta una vez al cargar el componente
 
+  useEffect(() => {
+    const fetchProjectDetails = async () => {
+      if (!selectedProject) return;
+      
+      try {
+        // Aquí normalmente cargarías datos del backend
+        // Por ahora simulamos datos de ejemplo
+        setProjectData({
+          fases: [
+            {
+              nombre: "Fase de Planificación",
+              fechaInicio: "2025-03-01",
+              fechaFin: "2025-03-15",
+              estado: "Completado",
+              entregables: [
+                { nombre: "Plan de proyecto", estado: "completado" },
+                { nombre: "Presupuesto inicial", estado: "completado" }
+              ]
+            },
+            {
+              nombre: "Fase de Implementación",
+              fechaInicio: "2025-03-16",
+              fechaFin: "2025-04-30",
+              estado: "En Progreso",
+              progreso: 40,
+              entregables: [
+                { nombre: "Instalación de equipo", estado: "en progreso" },
+                { nombre: "Capacitación inicial", estado: "pendiente" }
+              ]
+            },
+            {
+              nombre: "Fase de Cierre",
+              fechaInicio: "2025-05-01",
+              fechaFin: "2025-05-15",
+              estado: "Pendiente",
+              entregables: [
+                { nombre: "Informe final", estado: "pendiente" },
+                { nombre: "Evaluación de resultados", estado: "pendiente" }
+              ]
+            }
+          ],
+          evidencias: [
+            {
+              titulo: "Reunión inicial",
+              descripcion: "Primera reunión con el equipo directivo",
+              fecha: "2025-03-03",
+              imagen: "https://via.placeholder.com/300x200?text=Reunión+Inicial",
+              fase: "Planificación"
+            }
+          ],
+          mensajes: [
+            {
+              remitente: "Director Escuela",
+              contenido: "Buen día, ¿cómo va el avance del proyecto?",
+              fecha: "2025-03-20",
+              hora: "09:30",
+              esPropio: false
+            },
+            {
+              contenido: "Estamos en proceso de instalación del equipo, todo va según lo planeado",
+              fecha: "2025-03-20",
+              hora: "10:15",
+              esPropio: true
+            }
+          ],
+          documentos: [
+            {
+              nombre: "Plan de Proyecto.pdf",
+              tipo: "pdf",
+              categoria: "Documentación",
+              fase: "Planificación",
+              autor: "MPJ",
+              fecha: "2025-03-05",
+              tamaño: "2.3 MB"
+            },
+            {
+              nombre: "Presupuesto Inicial.xlsx",
+              tipo: "excel",
+              categoria: "Financiero",
+              fase: "Planificación",
+              autor: "Administrador MPJ",
+              fecha: "2025-03-10",
+              tamaño: "1.1 MB"
+            }
+          ]
+        });
+      } catch (error) {
+        console.error("[ERROR] Error al cargar detalles del proyecto:", error.response?.data || error.message);
+      }
+    };
+    
+    fetchProjectDetails();
+  }, [selectedProject]);
+
   // Obtenemos todos los pendientes para el dashboard
   const pendientesTodos = pendientesAdministrador?.items || [];
 
@@ -151,7 +251,6 @@ const Administrador = () => {
     setMostrarModal(true);
   };
 
-  // Manejadores para pendientes y proyectos
   const handleVerPendientes = () => {
     console.log("Ver todos los pendientes");
     // Al hacer clic en "Ver todos los pendientes", mostrar la sección de validación
@@ -164,13 +263,74 @@ const Administrador = () => {
 
   const handleVerDetallesProyecto = (proyecto) => {
     console.log("Ver detalles del proyecto:", proyecto.nombre);
+    setSelectedProject(proyecto);
+    setShowProjectDetail(true);
   };
 
   const handleActionProyecto = (proyecto) => {
     console.log("Acción en proyecto:", proyecto.nombre, "Estado:", proyecto.estado);
   };
+  
+  // Manejadores para ProyectoDetallado
+  const handleGoBack = () => {
+    setShowProjectDetail(false);
+    setSelectedProject(null);
+  };
 
-    // Funciones para manejar las etapas (agregar después de tus otros manejadores)
+  const handleExportReport = () => {
+    console.log("Exportando reporte del proyecto:", selectedProject?.nombre);
+  };
+
+  const handleAddRecord = (record) => {
+    console.log("Agregando registro al proyecto:", selectedProject?.nombre, record);
+  };
+
+  const handleUpdateProgress = () => {
+    console.log("Actualizando progreso del proyecto:", selectedProject?.nombre);
+  };
+
+  const handleUploadEvidence = () => {
+    console.log("Subiendo evidencia para el proyecto:", selectedProject?.nombre);
+  };
+
+  const handleSendMessage = (mensaje) => {
+    console.log("Enviando mensaje para el proyecto:", selectedProject?.nombre, mensaje);
+    
+    // Actualizar los mensajes localmente
+    const newMessage = {
+      contenido: mensaje,
+      fecha: new Date().toISOString(),
+      hora: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false }),
+      esPropio: true
+    };
+    
+    setProjectData(prev => ({
+      ...prev,
+      mensajes: [...prev.mensajes, newMessage]
+    }));
+  };
+
+  const handleUploadDocument = () => {
+    console.log("Subiendo documento para el proyecto:", selectedProject?.nombre);
+  };
+
+  const handleGenerateReport = () => {
+    console.log("Generando reporte para el proyecto:", selectedProject?.nombre);
+  };
+
+  const handleSaveChanges = () => {
+    console.log("Guardando cambios del proyecto:", selectedProject?.nombre);
+  };
+
+  const handleDownloadDocument = (documento) => {
+    console.log("Descargando documento:", documento.nombre);
+  };
+
+  const handleViewDocument = (documento) => {
+    console.log("Visualizando documento:", documento.nombre);
+  };
+
+  // Funciones para manejar las etapas (agregar después de tus otros manejadores)
   
   const handleAprobarVinculacion = (vinculacion) => {
     console.log("Aprobando vinculación:", vinculacion);
@@ -508,224 +668,259 @@ const Administrador = () => {
   
         <div className="content px-3 py-3">
           <h2 className="mb-4">Dashboard Administrador</h2>
-  
+    
           {/* Cartas estadísticas */}
           <section className="mb-4">
             <StatCardGroup cards={cartasAdministrador} />
           </section>
 
-          {/* Sección de Proyectos y Validaciones Pendientes */}
-          <section className="mb-4">
-            <div className="row">
-              <div className="col-xl-8 col-lg-7">
-                <Proyecto
-                  titulo={proyectosTitulo}
-                  proyectos={proyectosItems}
-                  tipo="admin"
-                  textoBoton={proyectosTextoBoton}
-                  onButtonClick={handleVerProyectos}
-                  onViewClick={handleVerDetallesProyecto}
-                  onActionClick={handleActionProyecto}
-                  allProjects={proyectosTodos}
-                />
-              </div>
-              <div className="col-xl-4 col-lg-5">
-                {/* Componente de validaciones pendientes actualizado */}
-                <div className="card h-100">
-                  <div className="card-header d-flex justify-content-between align-items-center">
-                    <h5 className="mb-0">Validaciones Pendientes</h5>
-                    {pendientesAdministrador?.textoBoton && (
-                      <button
-                        className="btn btn-sm btn-primary"
-                        onClick={() => console.log("Ver todas las validaciones")}
-                      >
-                        {pendientesAdministrador.textoBoton}
-                      </button>
-                    )}
-                  </div>
-                  <div className="card-body">
-                    <ul className="list-group list-group-flush">
-                      {pendientesTodos.map((item, index) => (
-                        <li
-                          className="list-group-item px-0 cursor-pointer"
-                          key={index}
-                          onClick={() => handlePendienteClick(item, index)}
-                          style={{ cursor: 'pointer' }}
+         {/* Sección de Proyectos y Validaciones Pendientes */}
+         <section className="mb-4">
+          <div className="row">
+            <div className="col-xl-8 col-lg-7">
+              <Proyecto
+                titulo={proyectosTitulo}
+                proyectos={proyectosItems}
+                tipo="admin"
+                textoBoton={proyectosTextoBoton}
+                onButtonClick={handleVerProyectos}
+                onViewClick={handleVerDetallesProyecto}
+                onActionClick={handleActionProyecto}
+                allProjects={proyectosTodos}
+              />
+            </div>
+            <div className="col-xl-4 col-lg-5">
+              {/* Componente de validaciones pendientes actualizado */}
+                  <div className="card h-100">
+                    <div className="card-header d-flex justify-content-between align-items-center">
+                      <h5 className="mb-0">Validaciones Pendientes</h5>
+                      {pendientesAdministrador?.textoBoton && (
+                        <button
+                          className="btn btn-sm btn-primary"
+                          onClick={() => console.log("Ver todas las validaciones")}
                         >
-                          <div className="d-flex justify-content-between align-items-center">
-                            <div>
-                              <h6 className="mb-0">{item.titulo}</h6>
-                              <small className="text-muted">{item.descripcion}</small>
+                          {pendientesAdministrador.textoBoton}
+                        </button>
+                      )}
+                    </div>
+                    <div className="card-body">
+                      <ul className="list-group list-group-flush">
+                        {pendientesTodos.map((item, index) => (
+                          <li
+                            className="list-group-item px-0 cursor-pointer"
+                            key={index}
+                            onClick={() => handlePendienteClick(item, index)}
+                            style={{ cursor: 'pointer' }}
+                          >
+                            <div className="d-flex justify-content-between align-items-center">
+                              <div>
+                                <h6 className="mb-0">{item.titulo}</h6>
+                                <small className="text-muted">{item.descripcion}</small>
+                              </div>
+                              <span className={`badge bg-${item.color || 'primary'} rounded-pill`}>{item.cantidad}</span>
                             </div>
-                            <span className={`badge bg-${item.color || 'primary'} rounded-pill`}>{item.cantidad}</span>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </section>
-
-          {/* Sección expandible de Validación de Proyectos */}
-          {validacionActiva === 'proyecto' && (
-            <section className="mb-4">
-              <div className="card">
-                <div className="card-header d-flex justify-content-between align-items-center">
-                  <h5 className="mb-0">Validación de Proyectos</h5>
-                  <button
-                    className="btn btn-sm btn-outline-secondary"
-                    onClick={cerrarValidacion}
-                  >
-                    <i className="fas fa-times me-1"></i> Cerrar
-                  </button>
-                </div>
-                <div className="card-body">
-                  <Pendientes
-                    titulo={proyectosPendientes.titulo}
-                    items={proyectosPendientes.items}
-                    tipo="proyecto"
-                    badgeText={proyectosPendientes.badgeText}
-                    badgeColor={proyectosPendientes.badgeColor}
-                    textoBoton={proyectosPendientes.textoBoton}
-                    onButtonClick={() => console.log("Ver todos los proyectos pendientes")}
-                    apiUrl={proyectosPendientes.apiUrl || "/api/v1"}
-                    onValidate={handleProyectoValidado}
-                    fullHeight={false}
-                    hideTitulo={true} // Ocultar título ya que está en el card-header
-                  />
-                </div>
-              </div>
             </section>
-          )}
+                    {/* ProyectoDetallado - Mostrado justo después de las validaciones y proyectos */}
+                    {showProjectDetail && selectedProject && (
+                      <section className="mb-4">
+                        <div className="card">
+                          <div className="card-header d-flex justify-content-between align-items-center">
+                            <h5 className="mb-0">Detalle del Proyecto: {selectedProject.nombre}</h5>
+                            <button
+                              className="btn btn-sm btn-outline-secondary"
+                              onClick={handleGoBack}
+                            >
+                              <i className="fas fa-times me-1"></i> Cerrar
+                            </button>
+                          </div>
+                          <div className="card-body">
+                            <ProyectoDetallado
+                              proyecto={selectedProject}
+                              fases={projectData.fases}
+                              evidencias={projectData.evidencias}
+                              mensajes={projectData.mensajes}
+                              documentos={projectData.documentos}
+                              onExportReport={handleExportReport}
+                              onAddRecord={handleAddRecord}
+                              onUpdateProgress={handleUpdateProgress}
+                              onUploadEvidence={handleUploadEvidence}
+                              onSendMessage={handleSendMessage}
+                              onUploadDocument={handleUploadDocument}
+                              onGoBack={handleGoBack}
+                              onGenerateReport={handleGenerateReport}
+                              onSaveChanges={handleSaveChanges}
+                              onDownloadDocument={handleDownloadDocument}
+                              onViewDocument={handleViewDocument}
+                            />
+                          </div>
+                        </div>
+                      </section>
+                    )}
+              {/* Sección expandible de Validación de Proyectos */}
+              {validacionActiva === 'proyecto' && (
+                <section className="mb-4">
+                  <div className="card">
+                    <div className="card-header d-flex justify-content-between align-items-center">
+                      <h5 className="mb-0">Validación de Proyectos</h5>
+                      <button
+                        className="btn btn-sm btn-outline-secondary"
+                        onClick={cerrarValidacion}
+                      >
+                        <i className="fas fa-times me-1"></i> Cerrar
+                      </button>
+                    </div>
+                    <div className="card-body">
+                      <Pendientes
+                        titulo={proyectosPendientes.titulo}
+                        items={proyectosPendientes.items}
+                        tipo="proyecto"
+                        badgeText={proyectosPendientes.badgeText}
+                        badgeColor={proyectosPendientes.badgeColor}
+                        textoBoton={proyectosPendientes.textoBoton}
+                        onButtonClick={() => console.log("Ver todos los proyectos pendientes")}
+                        apiUrl={proyectosPendientes.apiUrl || "/api/v1"}
+                        onValidate={handleProyectoValidado}
+                        fullHeight={false}
+                        hideTitulo={true} // Ocultar título ya que está en el card-header
+                      />
+                    </div>
+                  </div>
+                </section>
+              )}
 
-          {/* Implementar otras secciones de validación según sea necesario */}
-          {validacionActiva === 'usuario' && (
-            <section className="mb-4">
-              <div className="card">
-                <div className="card-header d-flex justify-content-between align-items-center">
-                  <h5 className="mb-0">Validación de Usuarios</h5>
-                  <button
-                    className="btn btn-sm btn-outline-secondary"
-                    onClick={cerrarValidacion}
-                  >
-                    <i className="fas fa-times me-1"></i> Cerrar
-                  </button>
+              {/* Validación de Usuarios */}
+              {validacionActiva === 'usuario' && (
+                <section className="mb-4">
+                  <div className="card">
+                    <div className="card-header d-flex justify-content-between align-items-center">
+                      <h5 className="mb-0">Validación de Usuarios</h5>
+                      <button
+                        className="btn btn-sm btn-outline-secondary"
+                        onClick={cerrarValidacion}
+                      >
+                        <i className="fas fa-times me-1"></i> Cerrar
+                      </button>
+                    </div>
+                    <div className="card-body">
+                      <p>Contenido para validación de usuarios...</p>
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {/* GESTIONES - Cada gestión en su propia sección */}
+              <h4 className="mb-3 mt-5">Gestiones del Sistema</h4>
+              
+              {/* Gestión de Necesidades */}
+              <section className="mb-4">
+                <div className="row">
+                  <div className="col-12">
+                    <Gestiones
+                      titulo={datosGestionNecesidades.titulo}
+                      items={datosGestionNecesidades.items}
+                      textoBoton={datosGestionNecesidades.textoBoton}
+                      onButtonClick={handleVerNecesidades}
+                      onVerDetalles={(item) => {
+                        if (item && item.datosOriginales) {
+                          handleVerDetalles(item.datosOriginales, "necesidad");
+                        } else {
+                          handleVerDetalles(item, "necesidad");
+                        }
+                      }}
+                      onAprobar={(item) => {
+                        if (item && item.datosOriginales) {
+                          handleAprobarNecesidad(item.datosOriginales);
+                        } else {
+                          handleAprobarNecesidad(item);
+                        }
+                      }}
+                      onRechazar={(item) => {
+                        if (item && item.datosOriginales) {
+                          handleRechazarNecesidad(item.datosOriginales);
+                        } else {
+                          handleRechazarNecesidad(item);
+                        }
+                      }}
+                      tipo="admin"
+                      mostrarAcciones={true}
+                    />
+                  </div>
                 </div>
-                <div className="card-body">
-                  {/* Aquí se implementaría el componente para validar usuarios */}
-                  <p>Contenido para validación de usuarios...</p>
+              </section>
+
+              {/* Gestión de Apoyos */}
+              <section className="mb-4">
+                <div className="row">
+                  <div className="col-12">
+                    <Gestiones
+                      titulo={datosGestionApoyos.titulo}
+                      items={datosGestionApoyos.items}
+                      textoBoton={datosGestionApoyos.textoBoton}
+                      onButtonClick={handleVerOfertas}
+                      onVerDetalles={(item) => {
+                        if (item && item.datosOriginales) {
+                          handleVerDetalles(item.datosOriginales, "apoyo");
+                        } else {
+                          handleVerDetalles(item, "apoyo");
+                        }
+                      }}
+                      onAprobar={(item) => {
+                        if (item && item.datosOriginales) {
+                          handleAprobarApoyo(item.datosOriginales);
+                        } else {
+                          handleAprobarApoyo(item);
+                        }
+                      }}
+                      onRechazar={(item) => {
+                        if (item && item.datosOriginales) {
+                          handleRechazarApoyo(item.datosOriginales);
+                        } else {
+                          handleRechazarApoyo(item);
+                        }
+                      }}
+                      tipo="admin"
+                      mostrarAcciones={true}
+                    />
+                  </div>
                 </div>
-              </div>
-            </section>
-          )}
+              </section>
 
-          {/* GESTIONES - Cada gestión en su propia sección */}
-          <h4 className="mb-3 mt-5">Gestiones del Sistema</h4>
-          {/* Gestión de Necesidades */}
-          <section className="mb-4">
-            <div className="row">
-              <div className="col-12">
-                <Gestiones
-                  titulo={datosGestionNecesidades.titulo}
-                  items={datosGestionNecesidades.items}
-                  textoBoton={datosGestionNecesidades.textoBoton}
-                  onButtonClick={handleVerNecesidades}
-                  onVerDetalles={(item) => {
-                    if (item && item.datosOriginales) {
-                      handleVerDetalles(item.datosOriginales, "necesidad");
-                    } else {
-                      handleVerDetalles(item, "necesidad");
-                    }
-                  }}
-                  onAprobar={(item) => {
-                    if (item && item.datosOriginales) {
-                      handleAprobarNecesidad(item.datosOriginales);
-                    } else {
-                      handleAprobarNecesidad(item);
-                    }
-                  }}
-                  onRechazar={(item) => {
-                    if (item && item.datosOriginales) {
-                      handleRechazarNecesidad(item.datosOriginales);
-                    } else {
-                      handleRechazarNecesidad(item);
-                    }
-                  }}
-                  tipo="admin"
-                  mostrarAcciones={true}
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* Gestión de Apoyos */}
-          <section className="mb-4">
-            <div className="row">
-              <div className="col-12">
-                <Gestiones
-                  titulo={datosGestionApoyos.titulo}
-                  items={datosGestionApoyos.items}
-                  textoBoton={datosGestionApoyos.textoBoton}
-                  onButtonClick={handleVerOfertas}
-                  onVerDetalles={(item) => {
-                    if (item && item.datosOriginales) {
-                      handleVerDetalles(item.datosOriginales, "apoyo");
-                    } else {
-                      handleVerDetalles(item, "apoyo");
-                    }
-                  }}
-                  onAprobar={(item) => {
-                    if (item && item.datosOriginales) {
-                      handleAprobarApoyo(item.datosOriginales);
-                    } else {
-                      handleAprobarApoyo(item);
-                    }
-                  }}
-                  onRechazar={(item) => {
-                    if (item && item.datosOriginales) {
-                      handleRechazarApoyo(item.datosOriginales);
-                    } else {
-                      handleRechazarApoyo(item);
-                    }
-                  }}
-                  tipo="admin"
-                  mostrarAcciones={true}
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* Gestión de Vinculaciones */}
-          <section className="mb-4">
-            <div className="row">
-              <div className="col-12">
-                <Gestiones
-                  titulo={datosGestionVinculaciones.titulo}
-                  items={datosGestionVinculaciones.items}
-                  textoBoton={datosGestionVinculaciones.textoBoton}
-                  onButtonClick={handleVerVinculaciones}
-                  onVerDetalles={(item) => {
-                    if (item && item.datosOriginales) {
-                      handleVerDetalles(item.datosOriginales, "vinculacion");
-                    } else {
-                      handleVerDetalles(item, "vinculacion");
-                    }
-                  }}
-                  onAprobar={(item) => {
-                    if (item && item.datosOriginales) {
-                      handleAprobarVinculacion(item.datosOriginales);
-                    } else {
-                      handleAprobarVinculacion(item);
-                    }
-                  }}
-                  tipo="admin"
-                  mostrarAcciones={true}
-                />
-              </div>
-            </div>
-          </section>
+              {/* Gestión de Vinculaciones */}
+              <section className="mb-4">
+                <div className="row">
+                  <div className="col-12">
+                    <Gestiones
+                      titulo={datosGestionVinculaciones.titulo}
+                      items={datosGestionVinculaciones.items}
+                      textoBoton={datosGestionVinculaciones.textoBoton}
+                      onButtonClick={handleVerVinculaciones}
+                      onVerDetalles={(item) => {
+                        if (item && item.datosOriginales) {
+                          handleVerDetalles(item.datosOriginales, "vinculacion");
+                        } else {
+                          handleVerDetalles(item, "vinculacion");
+                        }
+                      }}
+                      onAprobar={(item) => {
+                        if (item && item.datosOriginales) {
+                          handleAprobarVinculacion(item.datosOriginales);
+                        } else {
+                          handleAprobarVinculacion(item);
+                        }
+                      }}
+                      tipo="admin"
+                      mostrarAcciones={true}
+                    />
+                  </div>
+                </div>
+              </section>
         </div>
         
         {/* Modal para mostrar detalles - CORRECTAMENTE POSICIONADO */}
@@ -947,12 +1142,11 @@ const Administrador = () => {
                   >
                     Crear Proyecto
                   </button>
-                </div>
+                  </div>
               </div>
             </div>
           </div>
         )}
-
       </div>
     </div>
   );
