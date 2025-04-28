@@ -85,7 +85,7 @@ exports.seed = async function(knex) {
       idApoyo: necesidadesAliados[0].idNecesidadApoyo,      // Baños
       observacion: 'Pendiente confirmación de la escuela para iniciar obras',
       aceptacionAliado: true,
-      aceptacionEscuela: false
+      aceptacionEscuela: true
     },
     {
       idProyecto: null, // Sin proyecto porque la escuela no ha aceptado
@@ -95,7 +95,7 @@ exports.seed = async function(knex) {
       idApoyo: necesidadesAliados[2].idNecesidadApoyo,      // Bardas perimetrales
       observacion: 'Aliado disponible para iniciar, esperando respuesta de la escuela',
       aceptacionAliado: true,
-      aceptacionEscuela: false
+      aceptacionEscuela: true
     },
     {
       idProyecto: null, // Sin proyecto porque la escuela no ha aceptado
@@ -105,7 +105,7 @@ exports.seed = async function(knex) {
       idApoyo: necesidadesAliados[4].idNecesidadApoyo,      // Mesabancos
       observacion: 'Aliado esperando confirmación de la escuela',
       aceptacionAliado: true,
-      aceptacionEscuela: false
+      aceptacionEscuela: true
     },
 
     // GRUPO 3: Participaciones donde ninguno ha aceptado aún
@@ -116,8 +116,8 @@ exports.seed = async function(knex) {
       idNecesidad: necesidadesEscuelas[3].idNecesidadApoyo, // Libros
       idApoyo: necesidadesAliados[10].idNecesidadApoyo,     // Libros
       observacion: 'En evaluación por ambas partes',
-      aceptacionAliado: false,
-      aceptacionEscuela: false
+      aceptacionAliado: true,
+      aceptacionEscuela: true
     },
     {
       idProyecto: null,
@@ -126,8 +126,8 @@ exports.seed = async function(knex) {
       idNecesidad: necesidadesEscuelas[7].idNecesidadApoyo, // Inclusión educativa
       idApoyo: necesidadesAliados[11].idNecesidadApoyo,     // Inclusión educativa
       observacion: 'Se ha enviado invitación a la escuela',
-      aceptacionAliado: false,
-      aceptacionEscuela: false
+      aceptacionAliado: true,
+      aceptacionEscuela: true
     }
   ];
 
