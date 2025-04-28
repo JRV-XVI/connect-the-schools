@@ -10,7 +10,7 @@ const URL_BASE = 'http://localhost:4001/api'; // Replace with your actual API ba
 const get = async (endpoint) => {
     try {
         const response = await fetch(`${URL_BASE}${endpoint}`);
-        if(response.ok) {
+        if (response.ok) {
             return await response.json();
         } else {
             throw new Error(`Error: ${response.status} ${response.statusText}`);
@@ -37,14 +37,14 @@ const post = async (endpoint, data = null) => {
             'Content-Type': 'application/json'
         }
     };
-    
+
     if (data) {
         requestOptions.body = JSON.stringify(data);
     }
-    
+
     try {
         const response = await fetch(`${URL_BASE}${endpoint}`, requestOptions);
-        if(response.ok) {
+        if (response.ok) {
             return await response.json();
         } else {
             throw new Error(`Error: ${response.status} ${response.statusText}`);
@@ -72,10 +72,10 @@ const put = async (endpoint, data) => {
         },
         body: JSON.stringify(data)
     };
-    
+
     try {
         const response = await fetch(`${URL_BASE}${endpoint}`, requestOptions);
-        if(response.ok) {
+        if (response.ok) {
             return await response.json();
         } else {
             throw new Error(`Error: ${response.status} ${response.statusText}`);
@@ -98,10 +98,10 @@ const del = async (endpoint) => {
     const requestOptions = {
         method: 'DELETE'
     };
-    
+
     try {
         const response = await fetch(`${URL_BASE}${endpoint}`, requestOptions);
-        if(response.ok) {
+        if (response.ok) {
             return await response.json();
         } else {
             throw new Error(`Error: ${response.status} ${response.statusText}`);

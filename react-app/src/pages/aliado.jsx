@@ -21,8 +21,8 @@ import { escuelasData, opcionesFiltros, apoyosDisponiblesAliado } from '../data/
 import { proyectoDetallado } from '../data/proyectoDetallado/proyectoDetallado.js';
 import Logo from "../assets/MPJ.png";
 
-const Aliado = ({ userData, onLogout }) => {  
-  const usuario = userData || { idUsuario: 1, nombre: "Aliado", foto: "" };
+const Aliado = ({ userData, onLogout }{ userData, onLogout }) => {  
+  const usuario = userData || {  nombre: "Aliado", foto: "" };
   const notificaciones = navbarAliado?.notificaciones || [];
   const menuItems = navbarAliado?.menuItems || [];
 
@@ -57,6 +57,18 @@ const Aliado = ({ userData, onLogout }) => {
   const [mostrarProyectoDetallado, setMostrarProyectoDetallado] = useState(false);
   const [proyectoSeleccionado, setProyectoSeleccionado] = useState(null);
   const { proyecto, fases, evidencias, documentos } = proyectoDetallado; // Datos Dummie
+
+  //-------------------------------//
+  //---------RENDER DATOS---------//
+  //-----------------------------//
+
+  useEffect(() => {
+    fetchProyectos();
+  }, [usuario.idUsuario]);
+
+  //-------------------------------//
+  //------------------------------//
+  //-----------------------------//
 
   // MODIFICADO: Función auxiliar para mapear categorías antiguas a nuevos tipos
   const mapearCategoriaATipo = (categoria) => {
@@ -165,6 +177,32 @@ const Aliado = ({ userData, onLogout }) => {
   // Resto del código permanece igual...
   const handleVerPendientes = () => {
     console.log("Ver todos los pendientes");
+  };
+
+  //--------------------------//
+  //---------PROYECTO---------//
+  //--------------------------//
+
+  const [proyectos, setProyectos] = useState([]);
+
+  // Función para obtener proyectos
+  const fetchProyectos = async () => {
+    try {
+      // Obtener proyectos con el ID real del usuario
+      const respuesta = await get(`/proyecto/usuario/${usuario.idUsuario}`);
+      
+      // Comprobar si hay proyectos y actualizar el estado
+      if (respuesta && Array.isArray(respuesta)) {
+        setProyectos(respuesta);
+        console.log("Proyectos obtenidos:", respuesta);
+      } else {
+        setProyectos([]);
+        console.log("No se encontraron proyectos");
+      }
+    } catch (error) {
+      console.error("Error al obtener proyectos:", error);
+      setProyectos([]); // Actualiza proyectos, no mensajes
+    }
   };
 
   const handleVerProyectos = () => {
@@ -306,16 +344,17 @@ const Aliado = ({ userData, onLogout }) => {
     }
   };
 
-  // Manejadores para el componente ProyectoDetallado
-  // NUEVO: Manejadores para el componente ProyectoDetallado
+  //----------------------------//
+  //---------MENSAJERIA---------//
+  //----------------------------//
 
-  // Todos los mensajes
+  //Variable para odos los mensajes
   const [mensajes, setMensajes] = useState([]);
 
   // Obtener todos los mensajes por proyecto
   const fetchMensajes = async (idProyecto) => {
     try {
-      // Obtener la mensajería asociada al proyecto
+      // Paso 1: Obtener la mensajería asociada al proyecto
       const mensajerias = await get(`/proyecto/${idProyecto}/mensajeria`);
       
       // Verificar si se encontraron mensajerías
@@ -346,6 +385,7 @@ const Aliado = ({ userData, onLogout }) => {
     }
   };
 
+  // Crear mensajes
   const handleSendMessage = async ( mensaje, idUsuario) => {
     try {
 
@@ -605,21 +645,22 @@ const Aliado = ({ userData, onLogout }) => {
 
           {/* Búsqueda de Escuelas */}
           <section id="seccionBusqueda" className="mt-5">
-            <Busqueda
-              titulo="Búsqueda de Escuelas"
-              resultados={escuelasPaginaActual}
-              opcionesFiltros={opcionesFiltros}
-              onFilterChange={handleFilterChange}
-              onMapView={handleMapView}
-              onVincular={handleVincular}
-              onVerDetalles={handleVerDetalles}
-              onPageChange={handlePageChange}
-              paginaActual={paginaActual}
-              totalPaginas={totalPaginas}
-              cargando={cargandoBusqueda}
-              apoyosDisponibles={apoyosDisponibles}  // Ahora usa el estado sincronizado
-            />
-          </section>
+          <Busqueda
+            titulo="Búsqueda de Escuelas"
+            resultados={escuelasPaginaActual}
+            opcionesFiltros={opcionesFiltros}
+            onFilterChange={handleFilterChange}
+            onMapView={handleMapView}
+            onVincular={handleVincular}
+            onVerDetalles={handleVerDetalles}
+            onPageChange={handlePageChange}
+            paginaActual={paginaActual}
+            totalPaginas={totalPaginas}
+            cargando={cargandoBusqueda}
+            apoyosDisponibles={apoyosDisponibles}
+            userData={userData}  // Aquí está pasando correctamente userData
+          />
+        </section>
         </div>
       </div>
     </div>

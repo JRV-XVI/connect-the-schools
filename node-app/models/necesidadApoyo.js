@@ -4,6 +4,20 @@ const db = require('../db');
 // ----------------- QUERYS ----------------- //
 // ------------------------------------------ //
 
+// LOS QUE SE USAN
+
+const obtenerNecesidades = async (req, res, next) => {
+    const necesidad = await db.query('SELECT * FROM "necesidadApoyo" WHERE prioridad IS NOT NULL')
+    return necesidad.rows;
+};
+
+const obtenerApoyos = async (req, res, next) => {
+    const apoyos = await db.query('SELECT * FROM "necesidadApoyo" WHERE prioridad IS NULL')
+    return apoyos.rows;
+};
+
+// No se si se usan
+
 const verificarUsuarioExiste = async (idUsuario) => {
     const resultado = await db.query('SELECT 1 FROM "usuario" WHERE "idUsuario" = $1', [idUsuario]);
     return resultado.rowCount > 0;

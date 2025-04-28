@@ -2,6 +2,7 @@ const express = require('express');
 const modelo = require('../models/participacion.js');
 const participacion = express.Router();
 
+// Realizar una vinculacion de un aliado a una escuala
 participacion.post('/vinculacion', async (req, res, next) => {
     try {
         // Match frontend field names
@@ -19,6 +20,88 @@ participacion.post('/vinculacion', async (req, res, next) => {
             idNecesidad,
             idApoyo,
             observacion
+        });
+        res.status(201).send(resultado);
+    } catch (error) {
+        if (error.status === 500 || !error.status) {
+            console.error("Error al registrar la vinculacion:", error);
+            return res.status(400).json({
+                error: "Fallo en la creacion de vinculacion"
+            });
+        }
+        next(error);
+    }
+});
+
+participacion.get('/vinculaciones', async (req, res, next) => {
+    try {
+        const vinculaciones = await modelo.obtenerVinculaciones();
+
+        const resultado = vinculaciones.map((vinculacion) => {
+            return {
+                escuela: {
+                    cct: vinculacion.cct,
+                    nivelEducativo: vinculacion.nivelEducativo,
+                    sector: vinculacion.sector,
+                    numeroEstudiantes: vinculacion.numeroEstudiantes,
+                    nombreDirector: vinculacion.nombreDirector,
+                    telefonoDirector: vinculacion.telefonoDirector,
+                },
+                aliado: {
+                    rfc: vinculacion.rfc,
+                    razonSocial: vinculacion.razonSocial,
+                    telefono: vinculacion.telefono,
+                    correoRepresentante: vinculacion.correoRepresentante,
+                },
+                necesidad: {
+                    idNecesidad: vinculacion.idNecesidad,
+                    categoria: vinculacion.necesidadCategoria,
+                    subcategoria: vinculacion.necesidadSubcategoria,
+                    descripcion: vinculacion.necesidadDescripcion,
+                    prioridad: vinculacion.necesidadPrioridad
+                },
+                apoyo: {
+                    idApoyo: vinculacion.idApoyo,
+                    categoria: vinculacion.apoyoCategoria,
+                    subcategoria: vinculacion.apoyoSubcategoria,
+                    descripcion: vinculacion.apoyoDescripcion,
+                },
+                observacion: vinculacion.observacion
+            };
+        });
+
+        res.status(200).send(resultado);
+    } catch (error) {
+        if (error.status === 500 || !error.status) {
+            console.error("Error al obtener las vinculaciones:", error);
+            return res.status(400).json({
+                error: "Fallo al obtener las vinculaciones"
+            });
+        }
+        next(error);
+    }
+});
+
+participacion.post('/vinculacion/aceptar', async (req, res, next) => {
+    try {
+        // Match frontend field names
+        const {
+            titulo1,
+            titulo2,
+            titulo3,
+            titulo4,
+            titulo5,
+            descripcion1,
+            descripcion2,
+            descripcion3,
+            descripcion4,
+            descripcion5,
+            descripcion
+        } = req.body;
+
+        const resultado = await modelo.crearVinculacion({
+            descripcion,
+            etapas
         });
         res.status(201).send(resultado);
     } catch (error) {
