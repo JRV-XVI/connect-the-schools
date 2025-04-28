@@ -59,7 +59,7 @@ const crearVinculacion = async (data) => {
 			("idProyecto", cct, rfc, "idNecesidad", "idApoyo", observacion)
 		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING *
-	`, [idProyecto, cct, rfc, idNecesidad, idApoyo, observacion, aceptacionAliado, aceptacionEscuela]);
+	`, [idProyecto, cct, rfc, idNecesidad, idApoyo, observacion]);
 
 	return resultado.rows[0];
 
@@ -119,7 +119,7 @@ const crearProyecto = async (data) => {
 
 	const idProyecto = result.rows[0].idProyecto;
 
-	await db.query(`UPDATE "participacionProyecto" SET "idProyecto" = $1 WHERE rfc = $2 AND cct = $3 AND "idApoyo" = $4 AND "idNecesidad" = $5"`, [idProyecto, rfc, cct, idApoyo, idNecesidad]);
+	await db.query(`UPDATE "participacionProyecto" SET "idProyecto" = $1 WHERE rfc = $2 AND cct = $3 AND "idApoyo" = $4 AND "idNecesidad" = $5`, [idProyecto, rfc, cct, idApoyo, idNecesidad]);
 
 	await db.query(`
 		INSERT INTO mensajeria ("idProyecto") VALUES ($1)

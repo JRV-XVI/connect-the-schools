@@ -40,6 +40,10 @@ const Administrador = () => {
   const [datosProyecto, setDatosProyecto] = useState({
     descripcion: "",
     fechaFin: "",
+    rfc: "",        // RFC del aliado
+    cct: "",        // CCT de la escuela
+    idApoyo: null,  // ID del apoyo vinculado
+    idNecesidad: null, // ID de la necesidad vinculada
     etapas: [
       { tituloEtapa: "", descripcionEtapa: "", orden: 1 }
     ]
@@ -331,7 +335,6 @@ const Administrador = () => {
   };
 
   // Funciones para manejar las etapas (agregar después de tus otros manejadores)
-  
   const handleAprobarVinculacion = (vinculacion) => {
     console.log("Aprobando vinculación:", vinculacion);
     setVinculacionSeleccionada(vinculacion);
@@ -340,6 +343,11 @@ const Administrador = () => {
     setDatosProyecto({
       descripcion: "Proyecto de Vinculación 2025",
       fechaFin: "2025-12-31",
+      // Extraer datos de la vinculación seleccionada
+      rfc: vinculacion.aliado?.rfc || "",
+      cct: vinculacion.escuela?.cct || "",
+      idApoyo: vinculacion.apoyo?.idApoyo || null,           // Corregido
+      idNecesidad: vinculacion.necesidad?.idNecesidad || null, // Corregido
       etapas: [
         { tituloEtapa: "Planeación", descripcionEtapa: "Definición de objetivos y recursos", orden: 1 },
         { tituloEtapa: "Ejecución", descripcionEtapa: "Implementación de actividades", orden: 2 },
@@ -552,11 +560,15 @@ const Administrador = () => {
         alert('Todas las etapas deben tener un título');
         return;
       }
-  
+
       // Formar el objeto exactamente con la estructura requerida por el API
       const datosFormateados = {
         descripcion: datosProyecto.descripcion,
         fechaFin: datosProyecto.fechaFin,
+        rfc: datosProyecto.rfc,
+        cct: datosProyecto.cct,
+        idApoyo: datosProyecto.idApoyo,
+        idNecesidad: datosProyecto.idNecesidad,
         etapas: datosProyecto.etapas.map(etapa => ({
           tituloEtapa: etapa.tituloEtapa,
           descripcionEtapa: etapa.descripcionEtapa,
