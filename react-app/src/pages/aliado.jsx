@@ -34,6 +34,7 @@ const Aliado = ({ userData, onLogout }) => {
 
   // Obtenemos todos los proyectos y los limitamos a 3 para el dashboard
   const [proyectos, setProyectos] = useState([]);
+  const [mensajes, setMensajes] = useState([]);
 
   const proyectosTodos = proyectosAliado?.proyectos || [];
   const proyectosItems = proyectosTodos.slice(0, 3);
@@ -185,11 +186,6 @@ const Aliado = ({ userData, onLogout }) => {
   //---------PROYECTO---------//
   //--------------------------//
 
-  // FUncion para obtener el progreso por proyecto
-  const progresoProyecto = async (idProyecto) => {
-
-  };
-
   // Función para obtener proyectos
   const fetchProyectos = async () => {
     try {
@@ -233,6 +229,7 @@ const Aliado = ({ userData, onLogout }) => {
     
     // Obtener mensajes del proyecto
     console.log("Ver id del proyecto:", proyectoSeleccionado.id);
+
     fetchMensajes(proyectoSeleccionado.id);
     
     setTimeout(() => {
@@ -363,9 +360,6 @@ const Aliado = ({ userData, onLogout }) => {
   //----------------------------//
   //---------MENSAJERIA---------//
   //----------------------------//
-
-  //Variable para odos los mensajes
-  const [mensajes, setMensajes] = useState([]);
 
   // Obtener todos los mensajes por proyecto
   const fetchMensajes = async (idProyecto) => {
