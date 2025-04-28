@@ -5,6 +5,7 @@ import Pendientes from "../components/pendientes.jsx";
 import Proyecto from "../components/proyectos.jsx";
 import NecesidadApoyo from "../components/necesidadApoyo.jsx";
 import DiagnosticoNecesidades from '../components/DiagnosticoNecesidades'; // Ruta corregida
+import { useEffect } from "react";
 
 import { StatCardGroup } from "../components/cartas.jsx";
 import { sidebarEscuela } from "../data/barraLateral/barraLateralEscuela.js";
@@ -38,8 +39,50 @@ const Escuela = ({ userData, onLogout }) => {
   const proyectosTextoBoton = proyectosEscuela?.textoBoton || "Ver todos";
 
   // Estado para necesidades y sección activa - Importante: iniciar en 'dashboard'
-  const [necesidades, setNecesidades] = useState(necesidadesData);
+  const [necesidades, setNecesidades] = useState([]);
   const [activeSection, setActiveSection] = useState('dashboard');
+
+useEffect(() => {
+  const fetchNecesidades = async () => {
+    if (!userData?.idUsuario) return;
+
+    try {
+      const response = await axios.get(`http://localhost:4001/api/necesidades-escuela/${userData.idUsuario}`, {
+        withCredentials: true
+      });
+      console.log("[INFO] Necesidades escolares cargadas:", response.data);
+      const necesidadesConTipo = response.data.map(nec => ({
+        ...nec,
+        tipo: mapearCategoriaATipo(nec.categoria) // 🔥 función que mapea
+      }));
+      
+      setNecesidades(necesidadesConTipo);
+    } catch (error) {
+      console.error("[ERROR] Error al cargar necesidades escolares:", error.response?.data || error.message);
+    }
+  };
+
+  fetchNecesidades();
+}, [userData?.idUsuario]); // <-- se ejecuta cuando el usuario ya esté disponible
+
+const mapearCategoriaATipo = (categoria) => {
+  switch (categoria?.toLowerCase()) {
+    case 'infraestructura':
+      return 'infraestructura';
+    case 'equipamiento tecnológico':
+      return 'equipamiento';
+    case 'material didáctico':
+      return 'material';
+    case 'capacitación':
+    case 'formación docente':
+    case 'formación niñas y niños':
+    case 'formación a familias':
+      return 'capacitacion';
+    default:
+      return 'infraestructura'; // O cualquier default
+  }
+};
+
 
   // Función para cambiar entre secciones del dashboard
   const handleSectionChange = (section) => {
@@ -221,16 +264,12 @@ const Escuela = ({ userData, onLogout }) => {
               {/* NUEVA SECCIÓN: Gestión de necesidades escolares */}
               <section>
                 <NecesidadApoyo 
-                  tipo="necesidad"
-                  titulo="Gestión de Necesidades Escolares"
-                  tabs={tabsNecesidades}
-                  datos={datosNecesidades}
-                  columnas={columnasNecesidades}
-                  onAdd={handleAddNecesidad}
-                  onEdit={handleEditNecesidad}
-                  onView={handleViewNecesidad}
-                  onToggleStatus={handleToggleStatus}
-                  onHistory={handleVerHistorial}
+                  necesidades={necesidades}
+                  setNecesidades={setNecesidades}
+                  onAddNecesidad={handleAddNecesidad}
+                  onEditNecesidad={handleEditNecesidad}
+                  onViewNecesidad={handleViewNecesidad}
+                  userData={userData}
                 />
               </section>
             </>

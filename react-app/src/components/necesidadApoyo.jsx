@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Tab, Nav, Alert, Button, Form, Badge, Table, Card, Modal } from 'react-bootstrap';
 import PropTypes from 'prop-types';
+import axios from 'axios';
 
-const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNecesidad = () => {}, onViewNecesidad = () => {} }) => {
+const NecesidadApoyo = ({ necesidades =[], setNecesidades = () => { }, onAddNecesidad = () => { }, onEditNecesidad = () => { }, onViewNecesidad = () => { }, userData = {} }) => {
   const [activeTab, setActiveTab] = useState('infraestructura');
   const [showNewNeedForm, setShowNewNeedForm] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -161,27 +162,46 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
   };
 
   // Manejador para enviar el formulario de nueva necesidad
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
+  
     const nuevaNecesidad = {
       ...formData,
-      fechaCreacion: new Date().toISOString()
+      idUsuario: userData?.idUsuario, 
+      categoria: formData.tipo,
+      subcategoria: formData.subcategoria,
+      descripcion: formData.descripcion,
+      prioridad: formData.prioridad,
+      fechaCreacion: new Date(),
+      estadoValidacion: 0
     };
-    
-    onAddNecesidad(nuevaNecesidad);
-    
-    // Reiniciar formulario, manteniendo la categoría actual
-    setFormData({
-      titulo: '',
-      descripcion: '',
-      tipo: activeTab,
-      subcategoria: categoriasConfig[activeTab]?.subcategorias[0] || '',
-      prioridad: 'Media',
-      estado: 'Activa'
-    });
-    
-    setShowNewNeedForm(false);
+  
+    try {
+      const response = await axios.post(
+        'http://localhost:4001/api/necesidadApoyo',
+        nuevaNecesidad,
+        { withCredentials: true }
+    );
+  
+      console.log('[SUCCESS] Necesidad de apoyo creada:', response.data);
+  
+      setNecesidades([...necesidades, response.data]);
+  
+      setFormData({
+        titulo: '',
+        descripcion: '',
+        tipo: activeTab,
+        subcategoria: categoriasConfig[activeTab]?.subcategorias[0] || '',
+        prioridad: 'Media',
+        estado: 'Activa',
+      });
+  
+      setShowNewNeedForm(false);
+      alert('¡Necesidad de apoyo registrada exitosamente!');
+    } catch (error) {
+      console.error('[ERROR] Al crear necesidad de apoyo:', error.response?.data || error.message);
+      alert('Error al registrar la necesidad de apoyo. Verifica los campos.');
+    }
   };
   
   // Manejador para guardar cambios en edición
@@ -684,20 +704,6 @@ const NecesidadApoyo = ({ necesidades = [], onAddNecesidad = () => {}, onEditNec
                                 {prioridadesOptions.map((p, idx) => (
                                   <option key={idx} value={p.value}>{p.value}</option>
                                 ))}
-                              </Form.Select>
-                            </Form.Group>
-                          </div>
-                          <div className="col-md-6">
-                            <Form.Group>
-                              <Form.Label>Estado</Form.Label>
-                              <Form.Select
-                                name="estado"
-                                value={formData.estado}
-                                onChange={handleFormChange}
-                                required
-                              >
-                                <option value="Activa">Activa</option>
-                                <option value="Inactiva">Inactiva</option>
                               </Form.Select>
                             </Form.Group>
                           </div>

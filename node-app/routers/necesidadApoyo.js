@@ -105,29 +105,21 @@ necesidadApoyo.get('/apoyos', async (req, res, next) => {
 });
 
 // Crear necesidad/apoyo (ruta notificación según documentación)
-necesidadApoyo.post('/usuarionecesidadApoyo', validarCamposObligatorios, verificarUsuarioExiste, async (req, res, next) => {
+necesidadApoyo.post('/necesidadApoyo', async (req, res, next) => {
     try {
-        const resultado = await model.crearNecesidadApoyo(req.body);
-        res.status(201).send(resultado);
+      const resultado = await model.crearNecesidadApoyo(req.body);
+      res.status(201).send(resultado);
     } catch (error) {
-        next(error);
+      console.error('[ERROR] Al crear necesidad de apoyo:', error);
+      res.status(500).send({ error: 'Error al crear necesidad de apoyo' });
     }
-});
-
-// Obtener todas las necesidades/apoyo
-necesidadApoyo.get('/necesidadApoyo', async (req, res, next) => {
-    try {
-        const resultado = await model.obtenerNecesidadApoyo();
-        res.status(200).send(resultado);
-    } catch (error) {
-        next(error);
-    }
-});
+  });
+;
 
 
 
-// Obtener necesidades/apoyo por Usuario ID
-necesidadApoyo.get('/usuario/:idUsuario/necesidadApoyo', verificarUsuarioExiste, async (req, res, next) => {
+  // Obtener necesidades/apoyo por Usuario ID
+necesidadApoyo.get('/necesidades-escuela/:idUsuario', async (req, res, next) => {
     try {
         const id = Number(req.params.idUsuario);
         console.log('[INFO] ID de usuario recibido:', id);
@@ -148,27 +140,16 @@ necesidadApoyo.get('/usuario/:idUsuario/necesidadApoyo', verificarUsuarioExiste,
     }
 });
 
-necesidadApoyo.get('/necesidadApoyo/:idNecesidadApoyo', async (req, res, next) => {
+// Obtener todas las necesidades/apoyo
+necesidadApoyo.get('/necesidadApoyo', async (req, res, next) => {
     try {
-        const id = Number(req.params.idNecesidadApoyo);
-        console.log('[INFO] ID recibido:', id);
-
-        if (isNaN(id) || id <= 0) {
-            return res.status(400).json({ error: 'El ID proporcionado no es válido' });
-        }
-
-        const resultado = await model.necesidadApoyoPorId(id);
-        console.log('[INFO] Resultado de la consulta:', resultado);
-
-        if (!resultado || resultado.length === 0) {
-            return res.status(404).json({ error: `No se encontró la necesidad de apoyo con ID ${id}` });
-        }
-
-        res.status(200).json(resultado[0]);
+        const resultado = await model.obtenerNecesidadApoyo();
+        res.status(200).send(resultado);
     } catch (error) {
         next(error);
     }
 });
+
 
 // Actualizar una necesidad/apoyo por su ID
 necesidadApoyo.put('/necesidadApoyo/:idNecesidadApoyo', obtenerNecesidadPorId, async (req, res, next) => {
@@ -227,6 +208,28 @@ necesidadApoyo.put('/necesidadApoyo/:idNecesidadApoyo/validar', obtenerNecesidad
         res.status(200).json({
             necesidad: resultado
         });
+    } catch (error) {
+        next(error);
+    }
+});
+
+necesidadApoyo.get('/necesidadApoyo/:idNecesidadApoyo', async (req, res, next) => {
+    try {
+        const id = Number(req.params.idNecesidadApoyo);
+        console.log('[INFO] ID recibido:', id);
+
+        if (isNaN(id) || id <= 0) {
+            return res.status(400).json({ error: 'El ID proporcionado no es válido' });
+        }
+
+        const resultado = await model.necesidadApoyoPorId(id);
+        console.log('[INFO] Resultado de la consulta:', resultado);
+
+        if (!resultado || resultado.length === 0) {
+            return res.status(404).json({ error: `No se encontró la necesidad de apoyo con ID ${id}` });
+        }
+
+        res.status(200).json(resultado[0]);
     } catch (error) {
         next(error);
     }
