@@ -17,6 +17,7 @@ const Gestiones = ({
   onButtonClick = () => { },
   onVerDetalles = () => { },
   onAprobar = () => { },
+  onRechazar = () => { },  // Añadir esta prop para manejar rechazos
   tipo = "admin",
   mostrarAcciones = false
 }) => {
@@ -133,16 +134,21 @@ const Gestiones = ({
                   <i className="fas fa-eye"></i>
                 </button>
                 {mostrarAcciones && (
-                  <button 
-                    className="btn btn-outline-success" 
-                    title="Aprobar y crear proyecto"
-                    onClick={() => onAprobar(item)}>
-                    <i className="fas fa-check"></i>
-                  </button>
+                  <>
+                    <button 
+                      className="btn btn-outline-success" 
+                      title="Aprobar"
+                      onClick={() => onAprobar(item)}>
+                      <i className="fas fa-check"></i>
+                    </button>
+                    <button 
+                      className="btn btn-outline-danger" 
+                      title="Rechazar"
+                      onClick={() => onRechazar(item)}>
+                      <i className="fas fa-times"></i>
+                    </button>
+                  </>
                 )}
-                <button className="btn btn-outline-danger" title="Rechazar">
-                  <i className="fas fa-times"></i>
-                </button>
               </div>
             </td>
           </tr>
@@ -231,12 +237,20 @@ const Gestiones = ({
                     <i className="fas fa-eye"></i>
                   </button>
                   {mostrarAcciones && (
-                    <button 
-                      className="btn btn-outline-success" 
-                      title="Aprobar y crear proyecto"
-                      onClick={() => onAprobar(item)}>
-                      <i className="fas fa-check"></i>
-                    </button>
+                    <>
+                      <button 
+                        className="btn btn-outline-success" 
+                        title="Aprobar"
+                        onClick={() => onAprobar(item)}>
+                        <i className="fas fa-check"></i>
+                      </button>
+                      <button 
+                        className="btn btn-outline-danger" 
+                        title="Rechazar"
+                        onClick={() => onRechazar(item)}>
+                        <i className="fas fa-times"></i>
+                      </button>
+                    </>
                   )}
                 </div>
               </td>

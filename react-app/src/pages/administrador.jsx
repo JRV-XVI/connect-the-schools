@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { get } from '../api.js'
+import { get, post, put } from '../api.js'
 import Sidebar from "../components/barraLateral.jsx";
 import Navbar from "../components/barraNavegacion.jsx";
 import Pendientes from "../components/pendientes.jsx";
@@ -43,8 +43,8 @@ const Administrador = () => {
     async function fetchDatosNecesidades() {
       try {
         const datos = await get("/necesidades");
-        console.log("Datos necesidades:", datos); // Debug log
-  
+        console.log("Datos necesidades:", datos);
+    
         const datosAdaptados = {
           titulo: "Necesidades Escolares",
           textoBoton: "Ver todas las necesidades",
@@ -54,10 +54,10 @@ const Administrador = () => {
             estado: item.estadoValidacion === 1 ? "No aprobado" : (item.estadoValidacion === 2 ? "Pendiente" : "Aprobada"),
             cantidad: item.prioridad != null ? String(item.prioridad) : "0",
             color: "primary",
-            datosOriginales: item  // Add this line to preserve original data
+            datosOriginales: item
           }))
         };
-  
+    
         setDatosGestionNecesidades(datosAdaptados);
       } catch (error) {
         console.error("Error al obtener datos de necesidades:", error);
@@ -71,8 +71,8 @@ const Administrador = () => {
     async function fetchDatosApoyos() {
       try {
         const datos = await get("/apoyos");
-        console.log("Datos apoyos:", datos); // Debug log
-  
+        console.log("Datos apoyos:", datos);
+    
         const datosAdaptados = {
           titulo: "Ofertas de Apoyo",
           textoBoton: "Ver todas las ofertas",
@@ -82,10 +82,10 @@ const Administrador = () => {
             estado: item.estadoValidacion === 1 ? "No aprobado" : (item.estadoValidacion === 2 ? "Pendiente" : "Aprobada"),
             cantidad: item.prioridad != null ? String(item.prioridad) : "0",
             color: "secondary",
-            datosOriginales: item  // Add this line to preserve original data
+            datosOriginales: item
           }))
         };
-  
+    
         setDatosGestionApoyos(datosAdaptados);
       } catch (error) {
         console.error("Error al obtener datos de apoyos:", error);
@@ -176,18 +176,155 @@ const Administrador = () => {
     console.log("Aprobando vinculación:", vinculacion);
     setVinculacionSeleccionada(vinculacion);
     
-    // Inicializar el formulario con datos predeterminados pero solo con una etapa vacía
+    // Inicializar el formulario con datos y etapas predeterminadas según formato requerido
     setDatosProyecto({
-      descripcion: `Proyecto: ${vinculacion.necesidad?.categoria || ''} - ${vinculacion.apoyo?.categoria || ''}`,
-      fechaFin: obtenerFechaFinPredeterminada(),
+      descripcion: "Proyecto de Vinculación 2025",
+      fechaFin: "2025-12-31",
       etapas: [
-        { tituloEtapa: "", descripcionEtapa: "", orden: 1 }
+        { tituloEtapa: "Planeación", descripcionEtapa: "Definición de objetivos y recursos", orden: 1 },
+        { tituloEtapa: "Ejecución", descripcionEtapa: "Implementación de actividades", orden: 2 },
+        { tituloEtapa: "Evaluación", descripcionEtapa: "Análisis de resultados", orden: 3 }
       ]
     });
     
     setMostrarModalEtapas(true);
   };
   
+  // Agregar estas funciones junto a tus otros manejadores
+  
+  // Función para aprobar necesidades
+  const handleAprobarNecesidad = async (necesidad) => {
+    console.log("Aprobando necesidad:", necesidad);
+    try {
+      // Verifica si el ID existe y es válido - CORREGIDO para usar idNecesidadApoyo
+      if (!necesidad.idNecesidadApoyo) {
+        console.error("Error: necesidad no tiene un ID válido", necesidad);
+        alert('Error: La necesidad no tiene un ID válido');
+        return;
+      }
+      
+      const necesidadId = necesidad.idNecesidadApoyo;
+      
+      // Objeto de datos para enviar al backend
+      const datosAprobacion = {
+        id: necesidadId,
+        estadoValidacion: 3 // Código de estado para "Aprobado"
+      };
+      
+      console.log(`Enviando petición PUT a /necesidadApoyo/${necesidadId}`, datosAprobacion);
+      
+      // Llamada al endpoint para aprobar necesidad
+      const respuesta = await put(`/necesidadApoyo/${necesidadId}`, datosAprobacion);
+      
+      console.log("Respuesta del servidor:", respuesta);
+      alert('Necesidad aprobada exitosamente');
+
+    } catch (error) {
+      console.error("Error al aprobar la necesidad:", error);
+      alert(`Error al aprobar la necesidad: ${error.message || "Revisa la conexión con el servidor"}`);
+    }
+  };
+  
+  // De forma similar para apoyos:
+  const handleAprobarApoyo = async (apoyo) => {
+    console.log("Aprobando apoyo:", apoyo);
+    try {
+      // Verifica si el ID existe y es válido - CORREGIDO para usar idNecesidadApoyo
+      if (!apoyo.idNecesidadApoyo) {
+        console.error("Error: apoyo no tiene un ID válido", apoyo);
+        alert('Error: El apoyo no tiene un ID válido');
+        return;
+      }
+      
+      const apoyoId = apoyo.idNecesidadApoyo;
+      
+      // Objeto de datos para enviar al backend
+      const datosAprobacion = {
+        id: apoyoId,
+        estadoValidacion: 3 // Código de estado para "Aprobado"
+      };
+      
+      console.log(`Enviando petición PUT a /necesidadApoyo/${apoyoId}`, datosAprobacion);
+      
+      // Llamada al endpoint para aprobar apoyo
+      const respuesta = await put(`/necesidadApoyo/${apoyoId}`, datosAprobacion);
+      
+      console.log("Respuesta del servidor:", respuesta);
+      alert('Apoyo aprobado exitosamente');
+      
+    } catch (error) {
+      console.error("Error al aprobar el apoyo:", error);
+      alert(`Error al aprobar el apoyo: ${error.message || "Revisa la conexión con el servidor"}`);
+    }
+  };
+
+  const handleRechazarNecesidad = async (necesidad) => {
+    console.log("Rechazando necesidad:", necesidad);
+    try {
+      // Verifica si el ID existe y es válido
+      if (!necesidad.idNecesidadApoyo) {
+        console.error("Error: necesidad no tiene un ID válido", necesidad);
+        alert('Error: La necesidad no tiene un ID válido');
+        return;
+      }
+      
+      const necesidadId = necesidad.idNecesidadApoyo;
+      
+      // Objeto de datos para enviar al backend
+      const datosRechazo = {
+        id: necesidadId,
+        estadoValidacion: 1 // Código de estado para "No aprobado"
+      };
+      
+      console.log(`Enviando petición PUT a /necesidadApoyo/${necesidadId}`, datosRechazo);
+      
+      // Llamada al endpoint para rechazar necesidad
+      const respuesta = await put(`/necesidadApoyo/${necesidadId}`, datosRechazo);
+      
+      console.log("Respuesta del servidor:", respuesta);
+      alert('Necesidad rechazada exitosamente');
+      
+      
+    } catch (error) {
+      console.error("Error al rechazar la necesidad:", error);
+      alert(`Error al rechazar la necesidad: ${error.message || "Revisa la conexión con el servidor"}`);
+    }
+  };
+  
+  // Función para rechazar apoyos
+  const handleRechazarApoyo = async (apoyo) => {
+    console.log("Rechazando apoyo:", apoyo);
+    try {
+      // Verifica si el ID existe y es válido
+      if (!apoyo.idNecesidadApoyo) {
+        console.error("Error: apoyo no tiene un ID válido", apoyo);
+        alert('Error: El apoyo no tiene un ID válido');
+        return;
+      }
+      
+      const apoyoId = apoyo.idNecesidadApoyo;
+      
+      // Objeto de datos para enviar al backend
+      const datosRechazo = {
+        id: apoyoId,
+        estadoValidacion: 1 // Código de estado para "No aprobado"
+      };
+      
+      console.log(`Enviando petición PUT a /necesidadApoyo/${apoyoId}`, datosRechazo);
+      
+      // Llamada al endpoint para rechazar apoyo
+      const respuesta = await put(`/necesidadApoyo/${apoyoId}`, datosRechazo);
+      
+      console.log("Respuesta del servidor:", respuesta);
+      alert('Apoyo rechazado exitosamente');
+      
+      
+    } catch (error) {
+      console.error("Error al rechazar el apoyo:", error);
+      alert(`Error al rechazar el apoyo: ${error.message || "Revisa la conexión con el servidor"}`);
+    }
+  };
+
   // Función auxiliar para obtener una fecha predeterminada (6 meses desde hoy)
   const obtenerFechaFinPredeterminada = () => {
     const fecha = new Date();
@@ -256,21 +393,39 @@ const Administrador = () => {
         return;
       }
   
-      console.log("Enviando datos del proyecto:", JSON.stringify(datosProyecto, null, 2));
+      // Formar el objeto exactamente con la estructura requerida por el API
+      const datosFormateados = {
+        descripcion: datosProyecto.descripcion,
+        fechaFin: datosProyecto.fechaFin,
+        etapas: datosProyecto.etapas.map(etapa => ({
+          tituloEtapa: etapa.tituloEtapa,
+          descripcionEtapa: etapa.descripcionEtapa,
+          orden: etapa.orden
+        }))
+      };
+  
+      // Si necesitas el ID de la vinculación, añádelo aquí
+      if (vinculacionSeleccionada && vinculacionSeleccionada.id) {
+        datosFormateados.idVinculacion = vinculacionSeleccionada.id;
+      }
+  
+      console.log("Enviando datos:", JSON.stringify(datosFormateados, null, 2));
       
-      // Aquí iría tu llamada al backend
-      // const respuesta = await post('/proyectos', {
-      //   idVinculacion: vinculacionSeleccionada.id,
-      //   ...datosProyecto
-      // });
+      // Realizar la llamada POST al endpoint especificado
+      const respuesta = await post("/vinculacion/aceptar", datosFormateados);
+      
+      console.log("Respuesta del servidor:", respuesta);
       
       // Cerrar el modal y mostrar mensaje de éxito
       setMostrarModalEtapas(false);
       alert('Proyecto creado exitosamente');
       
+      // Opcional: Recargar los datos de vinculaciones para actualizar la UI
+      fetchDatosVinculaciones();
+      
     } catch (error) {
       console.error("Error al crear el proyecto:", error);
-      alert('Error al crear el proyecto. Por favor, inténtelo de nuevo.');
+      alert(`Error al crear el proyecto: ${error.message || "Revisa la conexión con el servidor"}`);
     }
   };
   
@@ -481,11 +636,25 @@ const Administrador = () => {
                     if (item && item.datosOriginales) {
                       handleVerDetalles(item.datosOriginales, "necesidad");
                     } else {
-                      // Fallback to the item itself if datosOriginales is not available
                       handleVerDetalles(item, "necesidad");
                     }
                   }}
+                  onAprobar={(item) => {
+                    if (item && item.datosOriginales) {
+                      handleAprobarNecesidad(item.datosOriginales);
+                    } else {
+                      handleAprobarNecesidad(item);
+                    }
+                  }}
+                  onRechazar={(item) => {
+                    if (item && item.datosOriginales) {
+                      handleRechazarNecesidad(item.datosOriginales);
+                    } else {
+                      handleRechazarNecesidad(item);
+                    }
+                  }}
                   tipo="admin"
+                  mostrarAcciones={true}
                 />
               </div>
             </div>
@@ -504,11 +673,25 @@ const Administrador = () => {
                     if (item && item.datosOriginales) {
                       handleVerDetalles(item.datosOriginales, "apoyo");
                     } else {
-                      // Fallback to the item itself if datosOriginales is not available
                       handleVerDetalles(item, "apoyo");
                     }
                   }}
+                  onAprobar={(item) => {
+                    if (item && item.datosOriginales) {
+                      handleAprobarApoyo(item.datosOriginales);
+                    } else {
+                      handleAprobarApoyo(item);
+                    }
+                  }}
+                  onRechazar={(item) => {
+                    if (item && item.datosOriginales) {
+                      handleRechazarApoyo(item.datosOriginales);
+                    } else {
+                      handleRechazarApoyo(item);
+                    }
+                  }}
                   tipo="admin"
+                  mostrarAcciones={true}
                 />
               </div>
             </div>
