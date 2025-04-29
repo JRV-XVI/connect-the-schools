@@ -52,7 +52,7 @@ etapa.get('/archivo/:idEtapa', validarEtapa, async (req, res, next) => {
         if (req.query.download === 'true') {
             res.setHeader('Content-Type', 'application/octet-stream');
             res.setHeader('Content-Disposition', `attachment; filename="${req.etapa.tituloEtapa}.pdf"`);
-            return res.send(req.entrega.archivo);
+            return res.send(req.etapa.archivo);
         }
 
         // Si se solicita solo información sobre el archivo
