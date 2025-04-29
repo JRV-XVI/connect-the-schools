@@ -74,8 +74,12 @@ const eliminarVinculacion = async (params) => {
 		params.idNecesidad,
 		params.idApoyo
 	]
+	// Eliminar necesidad
+	await db.query('DELETE FROM "necesidadApoyo" WHERE "idNecesidadApoyo" = $1', [params.idNecesidad]);
+	// Eliminar apoyo
+	await db.query('DELETE FROM "necesidadApoyo" WHERE "idNecesidadApoyo" = $1', [params.idApoyo]);
 	const resultado = await db.query(query, data);
-	return resultado.rows;
+	return resultado.rows[0];
 };
 
 // Obtener todas las vinculaciones

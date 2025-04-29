@@ -95,7 +95,7 @@ const actualizarNecesidadApoyo = async (idNecesidadApoyo, params) => { // Correg
 
 const necesidadApoyoPorUsuario = async (idUsuario) => { // Corregido: sin coma al final
     try {
-        const query = 'SELECT * FROM "necesidadApoyo" WHERE "idUsuario" = $1';
+        const query = 'SELECT * FROM "necesidadApoyo" WHERE "idUsuario" = $1 AND "estadoValidacion" = 3';
         const resultado = await db.query(query, [idUsuario]);
         return resultado.rows;
     } catch (error) {
