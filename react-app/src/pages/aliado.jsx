@@ -20,6 +20,7 @@ import { tabsApoyos, columnasApoyos, datosApoyos } from '../data/necesidadApoyo/
 import { escuelasData, opcionesFiltros, apoyosDisponiblesAliado } from '../data/busqueda/busquedaEscuelas.js';
 import { proyectoDetallado } from '../data/proyectoDetallado/proyectoDetallado.js';
 import Logo from "../assets/MPJ.png";
+import MapaGoogle from "../components/mapaGoogle.jsx";
 
 const Aliado = ({ userData, onLogout }) => {  
   const usuario = userData || {  nombre: "Aliado", foto: "" };
@@ -641,6 +642,13 @@ const Aliado = ({ userData, onLogout }) => {
               onEditApoyo={handleEditApoyo}
               onViewApoyo={handleViewApoyo}
             />
+          </section>
+
+          <section>
+            <h2 className="mb-4">Mapa de escuelas</h2>
+            <div className="map-container">
+              <MapaGoogle tipo="escuelas" />
+            </div>
           </section>
 
           {/* Búsqueda de Escuelas */}

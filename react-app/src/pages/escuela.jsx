@@ -279,7 +279,7 @@ const mapearCategoriaATipo = (categoria) => {
               <section className="mb-4">
                 <h2 className="mb-4">Mapa de Escuelas</h2>
                 <Container className="map-container">
-                  <MapaGoogle />
+                  <MapaGoogle tipo="aliados"/>
                 </Container>
               </section>
             </>

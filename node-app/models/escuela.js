@@ -28,6 +28,21 @@ const obtenerUbicacionesAliados = async () => {
     return rows;
 };
 
+const obtenerUbicacionesEscuelas = async () => {
+    const query = `
+        SELECT 
+            pe."idUsuario" AS id, 
+            pe."cct", 
+            u."nombre" AS nombre_escuela, 
+            pe."latitud", 
+            pe."longitud"
+        FROM "perfilEscuela" pe
+        INNER JOIN "usuario" u ON pe."idUsuario" = u."idUsuario"
+        WHERE pe."latitud" IS NOT NULL AND pe."longitud" IS NOT NULL
+    `;
+    const { rows } = await db.query(query);
+    return rows;
+};
 
 async function crearEscuela(data) {
     const {
@@ -104,4 +119,4 @@ const actualizarEscuela = async (cct, params) => {
     return resultado.rows[0];
 }
 
-module.exports = { obtenerEscuela, esceulaId, crearEscuela, eliminarEscuelaPorId, actualizarEscuela, obtenerUbicacionesAliados};
+module.exports = { obtenerEscuela, esceulaId, crearEscuela, eliminarEscuelaPorId, actualizarEscuela, obtenerUbicacionesAliados, obtenerUbicacionesEscuelas };

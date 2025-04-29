@@ -119,10 +119,10 @@ escuela.get('/escuela/:cct', obtenerIdEscuela, (req, res) => {
     res.status(200).send(req.escuela);
 });
 
-// 
+// Obtener todas las escuelas con ubicaciones
 escuela.get('/escuelas/ubicaciones', async (req, res, next) => {
     try {
-        const ubicaciones = await model.obtenerUbicacionesEscuelas(); // Método en el modelo
+        const ubicaciones = await model.obtenerUbicacionesEscuelas();
         res.status(200).json(ubicaciones);
     } catch (error) {
         next(error);
