@@ -56,8 +56,8 @@ const crearNecesidadApoyo = async (params) => {
             params.subcategoria,
             params.descripcion,
             params.prioridad,
-            params.fechaCreacion || new Date(),
-            params.estadoValidacion || 0
+            new Date().toISOString(),
+            2
         ]
     );
     return resultado.rows[0];
