@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Tab, Nav, Alert, Button, Form, Badge, Table, Card, Modal } from 'react-bootstrap';
 
 const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {}, onViewApoyo = () => {} }) => {
-  const [activeTab, setActiveTab] = useState('material');
+  const [activeTab, setActiveTab] = useState('todos');
   const [showNewOfferForm, setShowNewOfferForm] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -17,7 +17,7 @@ const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {
   const [formData, setFormData] = useState({
     titulo: '',
     descripcion: '',
-    tipo: 'material',
+    tipo: 'activeTab',
     subcategoria: '',
   });
   
@@ -235,7 +235,8 @@ const filtrarApoyos = (listaApoyos) => {
       categoria: categoria,          // La categoría textual (que también será el título)
       subcategoria: formData.subcategoria,
       descripcion: formData.descripcion,
-      fechaCreacion: new Date().toISOString()
+      fechaCreacion: new Date().toISOString(),
+      estadoValidacion: 2
     };
     
     onAddApoyo(nuevaOferta);
@@ -514,23 +515,6 @@ const filtrarApoyos = (listaApoyos) => {
     );
   };
 
-  // Obtener placeholder según el tipo seleccionado
-  const getTitlePlaceholder = () => {
-    const tipo = formData.tipo || activeTab;
-    switch (tipo) {
-      case 'material':
-        return 'Ej: Donación de 10 computadoras';
-      case 'servicios':
-        return 'Ej: Taller de programación';
-      case 'economico':
-        return 'Ej: Becas para estudiantes destacados';
-      case 'voluntariado':
-        return 'Ej: Voluntariado en clases de inglés';
-      default:
-        return 'Título de la oferta';
-    }
-  };
-
   const getDescriptionPlaceholder = () => {
     const tipo = formData.tipo || activeTab;
     switch (tipo) {
@@ -613,9 +597,11 @@ const filtrarApoyos = (listaApoyos) => {
                                 onChange={handleFormChange}
                                 required
                               >
-                                {Object.entries(categoriasConfig).map(([key, config]) => (
-                                  <option key={key} value={key}>{config.nombre}</option>
-                                ))}
+                                {Object.entries(categoriasConfig)
+                                  .filter(([key]) => key !== 'todos') // Excluir la opción "todos"
+                                  .map(([key, config]) => (
+                                    <option key={key} value={key}>{config.nombre}</option>
+                                  ))}
                               </Form.Select>
                             </Form.Group>
                           </div>
