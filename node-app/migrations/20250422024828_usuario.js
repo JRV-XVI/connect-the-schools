@@ -23,7 +23,13 @@ exports.up = function(knex) {
 			.notNullable();
 		t.integer('tipoPerfil').
 			notNullable();
-		t.text('direccion')
+		t.text('calle')
+			.notNullable();
+		t.text('codigoPostal')
+			.notNullable();
+		t.text('ciudad')
+			.notNullable();
+		t.text('estado')
 			.notNullable();
 	});
 };
