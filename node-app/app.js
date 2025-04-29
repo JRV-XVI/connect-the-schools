@@ -10,6 +10,7 @@ const necesidadApoyo = require('./routers/necesidadApoyo.js');
 const aliado = require('./routers/aliado.js');
 const participacion = require('./routers/participacion.js');
 const notificacion = require('./routers/notificacion.js');
+const etapa = require('./routers/etapa.js');
 
 const app = express();
 const PORT = process.env.PORT || 4001;
@@ -34,6 +35,7 @@ app.use('/api', proyecto);
 app.use('/api', aliado);
 app.use('/api', participacion);
 app.use('/api', notificacion);
+app.use('/api', etapa);
 
 app.listen(PORT, () => {
 	console.log(`[${new Date().toISOString()}] Server running in ${process.env.NODE_ENV || 'development'} mode`);
