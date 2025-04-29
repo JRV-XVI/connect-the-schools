@@ -32,9 +32,10 @@ const Aliado = ({ userData, onLogout }) => {
   const pendientesTitulo = pendientesAliado?.titulo || "Validaciones Pendientes";
   const pendientesTextoBoton = pendientesAliado?.textoBoton || "Ver todos los pendientes";
 
-  // Obtenemos todos los proyectos y los limitamos a 3 para el dashboard
+  // PROYECTOS / ETAPAS / MENSAJES -> VARIABLES
   const [proyectos, setProyectos] = useState([]);
   const [mensajes, setMensajes] = useState([]);
+  const [etapas, setEtapas] = useState([]);
 
   const proyectosTodos = proyectosAliado?.proyectos || [];
   const proyectosItems = proyectosTodos.slice(0, 3);
@@ -65,6 +66,7 @@ const Aliado = ({ userData, onLogout }) => {
   //---------RENDER DATOS---------//
   //-----------------------------//
 
+  // Obtener proyectos del usuario logeado
   useEffect(() => {
     fetchProyectos();
   }, [usuario.idUsuario]);
@@ -231,6 +233,7 @@ const Aliado = ({ userData, onLogout }) => {
     console.log("Ver id del proyecto:", proyecto.id);
 
     fetchMensajes(proyecto.id);
+    fetchEtapas(proyecto.id);
     
     setTimeout(() => {
       const seccionDetalles = document.getElementById('seccionProyectoDetallado');
@@ -243,6 +246,25 @@ const Aliado = ({ userData, onLogout }) => {
   const handleActionProyecto = (proyecto) => {
     console.log("Acción en proyecto:", proyecto.nombre, "Estado:", proyecto.estado);
   };
+
+  //----------------------------------//
+  //---------ETAPAS PROYECTO---------//
+  //--------------------------------//
+
+  const fetchEtapas = async (idProyecto) =>{
+    try {
+      const respuesta = await get(`/proyecto/${idProyecto}/etapas`);
+      setEtapas(respuesta);
+      console.log(`Etapas del proyecto ${idProyecto}`, respuesta)
+    } catch (error) {
+      console.log("Error al obtener las etapas:", error);
+      setEtapas([]);
+    }
+  };
+
+  //---------------------------------//
+  //---------OFERTAS APOYOS---------//
+  //-------------------------------//
   
   // Manejadores para ofertas de apoyo
   const handleAddApoyo = async (nuevaOferta) => {
@@ -373,7 +395,7 @@ const Aliado = ({ userData, onLogout }) => {
         const idMensajeria = mensajerias[0].idMensajeria;
         const respuestaMensajes = await get(`/mensajeria/${idMensajeria}/mensajes`);
 
-        // Paso 3: Transformar los mensajes para la UI
+        // Paso 3: Transformar los mensajes para el front
         const mensajesFormateados = respuestaMensajes.map(mensaje => {
           const fecha = new Date(mensaje.fechaEnvio);
           return {
@@ -624,7 +646,7 @@ const Aliado = ({ userData, onLogout }) => {
             <section id="seccionProyectoDetallado" className="mb-4">
               <ProyectoDetallado
                 proyecto={proyectoSeleccionado}
-                fases={fases}
+                fases={etapas}
                 evidencias={evidencias}
                 mensajes={mensajes}
                 documentos={documentos}
@@ -639,6 +661,7 @@ const Aliado = ({ userData, onLogout }) => {
                 onSaveChanges={handleSaveChanges}
                 onDownloadDocument={handleDownloadDocument}
                 onViewDocument={handleViewDocument}
+                userData={userData}
               />
             </section>
           )}
