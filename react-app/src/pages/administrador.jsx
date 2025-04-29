@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { get, post, put, del } from '../api.js';
+import axios from "axios"; // Add axios import
 import Sidebar from "../components/barraLateral.jsx";
 import Navbar from "../components/barraNavegacion.jsx";
-import Pendientes from "../components/pendientes.jsx";
-import { pendientesAdministrador, proyectosPendientes } from '../data/pendientes/pendientesAdministrador.js';
+import Notificaciones from "../components/notificaciones.jsx";
 import Proyecto from "../components/proyectos.jsx";
 import Gestiones from "../components/gestiones.jsx";
-import ProyectoDetallado from '../components/proyectoDetallado.jsx'; // Importamos el componente
+import ProyectoDetallado from '../components/proyectoDetallado.jsx';
 import { StatCardGroup } from "../components/cartas.jsx";
 import { sidebarAdministrador } from "../data/barraLateral/barraLateralAdministrador.js";
 import { navbarAdministrador } from "../data/barraNavegacion/barraNavegacionAdministrador.js";
@@ -22,9 +22,17 @@ const Administrador = () => {
   const usuario = navbarAdministrador?.usuario || { nombre: "Administrador", foto: "" };
   const notificaciones = navbarAdministrador?.notificaciones || [];
   const menuItems = navbarAdministrador?.menuItems || [];
+  
+  // New state for API notifications
+  const [notificacionesTodas, setNotificacionesTodas] = useState([]);
+  const [cargandoNotificaciones, setCargandoNotificaciones] = useState(false);
+  const [errorNotificaciones, setErrorNotificaciones] = useState(null);
+
   const [datosGestionNecesidades, setDatosGestionNecesidades] = useState({});
   const [datosGestionApoyos, setDatosGestionApoyos] = useState({});
   const [datosGestionVinculaciones, setDatosGestionVinculaciones] = useState({});
+
+  const [showAllNotificationsModal, setShowAllNotificationsModal] = useState(false);
 
   // Estados para ProyectoDetallado
   const [selectedProject, setSelectedProject] = useState(null);
@@ -35,7 +43,6 @@ const Administrador = () => {
     mensajes: [],
     documentos: []
   });
-
 
   const [mostrarModalEtapas, setMostrarModalEtapas] = useState(false);
   const [vinculacionSeleccionada, setVinculacionSeleccionada] = useState(null);
@@ -50,6 +57,40 @@ const Administrador = () => {
       { tituloEtapa: "", descripcionEtapa: "", orden: 1 }
     ]
   });
+
+  // Reemplazar la sección del useEffect para obtener notificaciones con este código corregido
+  
+  useEffect(() => {
+    const obtenerNotificaciones = async () => {
+      // ID fijo para el administrador
+      const adminId = 3; // Usar el ID fijo que sabemos que funciona
+      
+      console.log("Obteniendo notificaciones para administrador con ID:", adminId);
+      setCargandoNotificaciones(true);
+      setErrorNotificaciones(null);
+      
+      try {
+        // Llamada directa y más simple a la API usando nuestro servicio centralizado
+        const notificaciones = await get(`/usuario/${adminId}/notificacion`);
+        console.log("Notificaciones recibidas:", notificaciones);
+        
+        if (Array.isArray(notificaciones)) {
+          setNotificacionesTodas(notificaciones);
+        } else {
+          console.error("Las notificaciones no tienen el formato esperado:", notificaciones);
+          setNotificacionesTodas([]);
+        }
+      } catch (error) {
+        console.error("Error al obtener notificaciones:", error);
+        setErrorNotificaciones("No se pudieron cargar las notificaciones");
+        setNotificacionesTodas([]);
+      } finally {
+        setCargandoNotificaciones(false);
+      }
+    };
+    
+    obtenerNotificaciones();
+  }, []); // Quitamos la dependencia usuario.id para evitar recargas innecesarias
 
   // Modificar la función fetchDatosNecesidades
   // Modificar la función fetchDatosNecesidades
@@ -235,9 +276,6 @@ const Administrador = () => {
     fetchProjectDetails();
   }, [selectedProject]);
 
-  // Obtenemos todos los pendientes para el dashboard
-  const pendientesTodos = pendientesAdministrador?.items || [];
-
   // Obtenemos todos los proyectos y los limitamos a 3 para el dashboard
   const proyectosTodos = proyectosAdministrador?.proyectos || [];
   const proyectosItems = proyectosTodos.slice(0, 3);
@@ -333,8 +371,8 @@ const Administrador = () => {
 
   const handleViewDocument = (documento) => {
     console.log("Visualizando documento:", documento.nombre);
-  };
-
+  }
+  
   // Funciones para manejar las etapas (agregar después de tus otros manejadores)
   const handleAprobarVinculacion = (vinculacion) => {
     console.log("Aprobando vinculación:", vinculacion);
@@ -754,33 +792,19 @@ const Administrador = () => {
     }
   };
 
-  // Manejadores para validaciones de pendientes
-  const handlePendienteClick = (item) => {
-    if (item.tipo === 'proyecto') {
-      // Si ya está activo, lo desactivamos (toggle)
-      setValidacionActiva(validacionActiva === 'proyecto' ? null : 'proyecto');
-    } else if (item.tipo === 'usuario') {
-      setValidacionActiva(validacionActiva === 'usuario' ? null : 'usuario');
-    } else if (item.tipo === 'documento') {
-      setValidacionActiva(validacionActiva === 'documento' ? null : 'documento');
-    }
-    // Puedes agregar más tipos según sea necesario
-  };
-
   // Cerrar la sección de validación activa
   const cerrarValidacion = () => {
     setValidacionActiva(null);
   };
 
-  // Manejador para validación de proyectos
-  const handleProyectoValidado = (data, isApproved) => {
-    console.log(`Proyecto ${isApproved ? 'aprobado' : 'rechazado'}:`, data);
-    // Aquí podrías actualizar la lista de proyectos pendientes después de validar
-  };
-
   const handleVerNecesidades = () => {
     console.log("Ver todas las necesidades escolares");
   };
+
+  const handleVerNotificaciones = () => {
+    console.log("Ver todas las notificaciones");
+    setShowAllNotificationsModal(true);
+  };  
 
   const handleVerOfertas = () => {
     console.log("Ver todas las ofertas de apoyo");
@@ -850,38 +874,52 @@ const Administrador = () => {
                 />
               </div>
               <div className="col-xl-4 col-lg-5">
-                {/* Componente de validaciones pendientes actualizado */}
                 <div className="card h-100">
                   <div className="card-header d-flex justify-content-between align-items-center">
-                    <h5 className="mb-0">Validaciones Pendientes</h5>
-                    {pendientesAdministrador?.textoBoton && (
-                      <button
-                        className="btn btn-sm btn-primary"
-                        onClick={() => console.log("Ver todas las validaciones")}
-                      >
-                        {pendientesAdministrador.textoBoton}
-                      </button>
-                    )}
+                    <h5 className="mb-0">Notificaciones</h5>
+                    <button
+                      className="btn btn-sm btn-primary"
+                      onClick={handleVerNotificaciones}
+                    >
+                      Ver todas
+                    </button>
                   </div>
                   <div className="card-body">
-                    <ul className="list-group list-group-flush">
-                      {pendientesTodos.map((item, index) => (
-                        <li
-                          className="list-group-item px-0 cursor-pointer"
-                          key={index}
-                          onClick={() => handlePendienteClick(item, index)}
-                          style={{ cursor: 'pointer' }}
-                        >
-                          <div className="d-flex justify-content-between align-items-center">
-                            <div>
-                              <h6 className="mb-0">{item.titulo}</h6>
-                              <small className="text-muted">{item.descripcion}</small>
+                    {cargandoNotificaciones ? (
+                      <div className="text-center py-3">
+                        <div className="spinner-border text-primary" role="status">
+                          <span className="visually-hidden">Cargando...</span>
+                        </div>
+                      </div>
+                    ) : errorNotificaciones ? (
+                      <div className="alert alert-warning" role="alert">
+                        {errorNotificaciones}
+                      </div>
+                    ) : notificacionesTodas.length === 0 ? (
+                      <p className="text-muted text-center my-3">No hay notificaciones</p>
+                    ) : (
+                      <ul className="list-group list-group-flush">
+                        {notificacionesTodas.slice(0, 2).map((item, index) => (
+                          <li
+                            className="list-group-item px-0 cursor-pointer"
+                            key={index}
+                          >
+                            <div className="d-flex justify-content-between align-items-center">
+                              <div>
+                                <h6 className="mb-0">{item.titulo}</h6>
+                                <small className="text-muted">{item.mensaje || item.descripcion}</small>
+                              </div>
+                              {item.fechaCreacion && (
+                                <small className="text-muted">{new Date(item.fechaCreacion).toLocaleDateString()}</small>
+                              )}
+                              {item.cantidad && (
+                                <span className={`badge bg-${item.color || 'primary'} rounded-pill`}>{item.cantidad}</span>
+                              )}
                             </div>
-                            <span className={`badge bg-${item.color || 'primary'} rounded-pill`}>{item.cantidad}</span>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 </div>
               </div>
@@ -928,7 +966,7 @@ const Administrador = () => {
             <section className="mb-4">
               <div className="card">
                 <div className="card-header d-flex justify-content-between align-items-center">
-                  <h5 className="mb-0">Validación de Proyectos</h5>
+                  <h5 className="mb-0">Notificaciones</h5>
                   <button
                     className="btn btn-sm btn-outline-secondary"
                     onClick={cerrarValidacion}
@@ -937,18 +975,15 @@ const Administrador = () => {
                   </button>
                 </div>
                 <div className="card-body">
-                  <Pendientes
-                    titulo={proyectosPendientes.titulo}
-                    items={proyectosPendientes.items}
-                    tipo="proyecto"
-                    badgeText={proyectosPendientes.badgeText}
-                    badgeColor={proyectosPendientes.badgeColor}
-                    textoBoton={proyectosPendientes.textoBoton}
-                    onButtonClick={() => console.log("Ver todos los proyectos pendientes")}
-                    apiUrl={proyectosPendientes.apiUrl || "/api/v1"}
-                    onValidate={handleProyectoValidado}
-                    fullHeight={false}
-                    hideTitulo={true} // Ocultar título ya que está en el card-header
+                  <Notificaciones
+                    titulo="Notificaciones"
+                    items={notificacionesTodas} // Use the API data
+                    tipo="admin"
+                    textoBoton="Ver todas"
+                    onButtonClick={() => console.log("Ver todas las notificaciones")}
+                    apiUrl="/api"
+                    idUsuario={usuario?.id}
+                    hideTitulo={true} // Hide title in component since we have one in the card header
                   />
                 </div>
               </div>
@@ -1384,7 +1419,59 @@ const Administrador = () => {
             </Modal.Footer>
           </Modal>
         )}
-
+        
+        {/* Modal para mostrar todas las notificaciones */}
+        <Modal 
+          show={showAllNotificationsModal} 
+          onHide={() => setShowAllNotificationsModal(false)}
+          size="lg"
+          aria-labelledby="notificacionesModalLabel"
+        >
+          <Modal.Header closeButton>
+            <Modal.Title id="notificacionesModalLabel">Todas las Notificaciones</Modal.Title>
+          </Modal.Header>
+          
+          <Modal.Body>
+            {cargandoNotificaciones ? (
+              <div className="text-center py-3">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Cargando...</span>
+                </div>
+              </div>
+            ) : errorNotificaciones ? (
+              <div className="alert alert-warning" role="alert">
+                {errorNotificaciones}
+              </div>
+            ) : notificacionesTodas.length === 0 ? (
+              <p className="text-muted text-center my-3">No hay notificaciones</p>
+            ) : (
+              <ul className="list-group list-group-flush">
+                {notificacionesTodas.map((item, index) => (
+                  <li
+                    className="list-group-item cursor-pointer"
+                    key={index}
+                  >
+                    <div className="d-flex justify-content-between align-items-center">
+                      <div>
+                        <h6 className="mb-0">{item.titulo}</h6>
+                        <p className="mb-1">{item.mensaje || item.descripcion}</p>
+                      </div>
+                      {item.fechaCreacion && (
+                        <small className="text-muted">{new Date(item.fechaCreacion).toLocaleDateString()}</small>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Modal.Body>
+          
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowAllNotificationsModal(false)}>
+              Cerrar
+            </Button>
+          </Modal.Footer>
+        </Modal>
         {/* Modal para crear proyecto con etapas dinámicas */}
         {mostrarModalEtapas && vinculacionSeleccionada && (
           <div className="modal fade show d-block" tabIndex="-1" role="dialog" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
@@ -1502,6 +1589,7 @@ const Administrador = () => {
             <MapaGoogle tipo="admin" />
           </div>
         </section>
+
       </div>
     </div>
   );

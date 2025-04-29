@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import Sidebar from "../components/barraLateral.jsx";
 import Navbar from "../components/barraNavegacion.jsx";
-import Pendientes from "../components/pendientes.jsx";
+import Notificaciones from "../components/notificaciones.jsx"; // Nombre correcto del componente
 import Proyecto from "../components/proyectos.jsx";
 import NecesidadApoyo from "../components/necesidadApoyo.jsx";
-import DiagnosticoNecesidades from '../components/DiagnosticoNecesidades'; // Ruta corregida
+import DiagnosticoNecesidades from '../components/DiagnosticoNecesidades';
 import MapaEscuelas from "../components/mapasEscuela.jsx";
 import ProyectoDetallado from '../components/proyectoDetallado.jsx'; 
 import { useEffect } from "react";
@@ -14,37 +14,40 @@ import { StatCardGroup } from "../components/cartas.jsx";
 import { sidebarEscuela } from "../data/barraLateral/barraLateralEscuela.js";
 import { navbarEscuela } from "../data/barraNavegacion/barraNavegacionEscuela.js";
 import { cartasEscuela } from "../data/cartas/cartasEscuela.js";
-import { pendientesEscuela } from '../data/pendientes/pendientesEscuela.js';
 import { proyectosEscuela } from '../data/proyectos/proyectosEscuela.js';
-import { tabsNecesidades, columnasNecesidades, datosNecesidades } from '../data/necesidadApoyo/necesidades.js';
-import { necesidadesData } from '../data/necesidadesData';
 import axios from 'axios';
 import { Container } from 'react-bootstrap';
 import '../../styles/escuela.css';
 import Logo from "../assets/MPJ.png";
 import MapaGoogle from "../components/mapaGoogle.jsx";
-import { proyectoDetallado } from '../data/proyectoDetallado/proyectoDetallado.js';
+import { Modal, Button } from 'react-bootstrap';
 
 const Escuela = ({ userData, onLogout }) => { 
   const usuario = userData || { nombre: "Escuela", foto: "" };
   const notificaciones = navbarEscuela?.notificaciones || [];
   const menuItems = navbarEscuela?.menuItems || [];
   
-  // Obtenemos todos los pendientes y los limitamos a 4 para el dashboard
-  const pendientesTodos = pendientesEscuela?.items || [];
-  const pendientesItems = pendientesTodos.slice(0, 5); // Limitamos a 5 pendientes
-  const pendientesTitulo = pendientesEscuela?.titulo || "Validaciones Pendientes";
-  const pendientesTextoBoton = pendientesEscuela?.textoBoton || "Ver todos los pendientes";
+  // New state for API notifications
+  const [notificacionesTodas, setNotificacionesTodas] = useState([]);
+  const [cargandoNotificaciones, setCargandoNotificaciones] = useState(false);
+  const [errorNotificaciones, setErrorNotificaciones] = useState(null);
 
+  // Manejadores para notificaciones
+  const handleVerNotificaciones = () => {
+    console.log("Ver todas las notificaciones");
+    setShowAllNotificationsModal(true);
+  };
   // Obtenemos todos los proyectos y los limitamos a 3 para el dashboard
   const proyectosTodos = proyectosEscuela?.proyectos || [];
-  const proyectosItems = proyectosTodos.slice(0, 3); // Limitamos a 3 proyectos
   const proyectosTitulo = proyectosEscuela?.titulo || "Proyectos Recientes";
   const proyectosTextoBoton = proyectosEscuela?.textoBoton || "Ver todos";
 
   // Estado para necesidades y sección activa
   const [necesidades, setNecesidades] = useState([]);
   const [activeSection, setActiveSection] = useState('dashboard');
+
+  const [showAllNotificationsModal, setShowAllNotificationsModal] = useState(false);
+
 
   // PROYECTOS / ETAPAS / MENSAJES -> VARIABLES
   const [proyectos, setProyectos] = useState([]);
@@ -54,7 +57,6 @@ const Escuela = ({ userData, onLogout }) => {
   // Estados para el componente ProyectoDetallado
   const [mostrarProyectoDetallado, setMostrarProyectoDetallado] = useState(false);
   const [proyectoSeleccionado, setProyectoSeleccionado] = useState(null);
-  const { proyecto, fases, evidencias, documentos } = proyectoDetallado; // Datos Dummie
 
   //-------------------------------//
   //---------RENDER DATOS---------//
@@ -65,6 +67,28 @@ const Escuela = ({ userData, onLogout }) => {
     fetchProyectos();
   }, [usuario.idUsuario]);
   
+    // Add this useEffect to fetch notifications
+  useEffect(() => {
+    const obtenerNotificaciones = async () => {
+      if (!userData?.idUsuario) return;
+      
+      setCargandoNotificaciones(true);
+      setErrorNotificaciones(null);
+      
+      try {
+        const datosNotificaciones = await get(`/usuario/${userData.idUsuario}/notificacion`);
+        setNotificacionesTodas(datosNotificaciones);
+      } catch (error) {
+        console.error("Error al obtener notificaciones:", error);
+        setErrorNotificaciones("No se pudieron cargar las notificaciones");
+      } finally {
+        setCargandoNotificaciones(false);
+      }
+    };
+    
+    obtenerNotificaciones();
+  }, [userData?.idUsuario]); // Re-fetch when user ID changes
+
   // Estado para el proyecto seleccionado y su detalle
   const [selectedProject, setSelectedProject] = useState(null);
   const [showProjectDetail, setShowProjectDetail] = useState(false);
@@ -74,6 +98,11 @@ const Escuela = ({ userData, onLogout }) => {
     mensajes: [],
     documentos: []
   });
+
+  const handleNotificacionClick = (item) => {
+    console.log("Notificación clickeada:", item);
+    // Add any specific actions for notification clicks here
+  };
 
 useEffect(() => {
   const fetchNecesidades = async () => {
@@ -407,18 +436,112 @@ const mapearCategoriaATipo = (categoria) => {
                     />
                   </div>
                   <div className="col-xl-4 col-lg-5">
-                    <Pendientes 
-                      titulo={pendientesTitulo}
-                      items={pendientesItems}
-                      tipo="escuela"
-                      textoBoton={pendientesTextoBoton}
-                      onButtonClick={handleVerPendientes}
-                      allItems={pendientesTodos}
-                    />
+                    <div className="card h-100">
+                      <div className="card-header d-flex justify-content-between align-items-center">
+                        <h5 className="mb-0">Notificaciones</h5>
+                        <button
+                          className="btn btn-sm btn-primary"
+                          onClick={handleVerNotificaciones}
+                        >
+                          Ver todas
+                        </button>
+                      </div>
+                      <div className="card-body">
+                        {cargandoNotificaciones ? (
+                          <div className="text-center py-3">
+                            <div className="spinner-border text-primary" role="status">
+                              <span className="visually-hidden">Cargando...</span>
+                            </div>
+                          </div>
+                        ) : errorNotificaciones ? (
+                          <div className="alert alert-warning" role="alert">
+                            {errorNotificaciones}
+                          </div>
+                        ) : notificacionesTodas.length === 0 ? (
+                          <p className="text-muted text-center my-3">No hay notificaciones</p>
+                        ) : (
+                          <ul className="list-group list-group-flush">
+                            {notificacionesTodas.slice(0, 2).map((item, index) => (
+                              <li
+                                className="list-group-item px-0 cursor-pointer"
+                                key={index}
+                              >
+                                <div className="d-flex justify-content-between align-items-center">
+                                  <div>
+                                    <h6 className="mb-0">{item.titulo}</h6>
+                                    <small className="text-muted">{item.mensaje || item.descripcion}</small>
+                                  </div>
+                                  {item.fechaCreacion && (
+                                    <small className="text-muted">{new Date(item.fechaCreacion).toLocaleDateString()}</small>
+                                  )}
+                                  {item.cantidad && (
+                                    <span className={`badge bg-${item.color || 'primary'} rounded-pill`}>{item.cantidad}</span>
+                                  )}
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </section>
               
+              <Modal 
+                show={showAllNotificationsModal} 
+                onHide={() => setShowAllNotificationsModal(false)}
+                size="lg"
+                aria-labelledby="notificacionesModalLabel"
+              >
+                <Modal.Header closeButton>
+                  <Modal.Title id="notificacionesModalLabel">Todas las Notificaciones</Modal.Title>
+                </Modal.Header>
+                
+                <Modal.Body>
+                  {cargandoNotificaciones ? (
+                    <div className="text-center py-3">
+                      <div className="spinner-border text-primary" role="status">
+                        <span className="visually-hidden">Cargando...</span>
+                      </div>
+                    </div>
+                  ) : errorNotificaciones ? (
+                    <div className="alert alert-warning" role="alert">
+                      {errorNotificaciones}
+                    </div>
+                  ) : notificacionesTodas.length === 0 ? (
+                    <p className="text-muted text-center my-3">No hay notificaciones</p>
+                  ) : (
+                    <ul className="list-group list-group-flush">
+                      {notificacionesTodas.map((item, index) => (
+                        <li
+                          className="list-group-item cursor-pointer"
+                          key={index}
+                          onClick={() => handleNotificacionClick(item, index)}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <div className="d-flex justify-content-between align-items-center">
+                            <div>
+                              <h6 className="mb-0">{item.titulo}</h6>
+                              <p className="mb-1">{item.mensaje || item.descripcion}</p>
+                            </div>
+                            {item.fechaCreacion && (
+                              <small className="text-muted">{new Date(item.fechaCreacion).toLocaleDateString()}</small>
+                            )}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </Modal.Body>
+                
+                <Modal.Footer>
+                  <Button variant="secondary" onClick={() => setShowAllNotificationsModal(false)}>
+                    Cerrar
+                  </Button>
+                </Modal.Footer>
+              </Modal>
+
               {/* Detalle del proyecto (ahora aparece debajo de proyectos y pendientes) */}
               {mostrarProyectoDetallado && (
                 <section id="seccionProyectoDetallado" className="mb-4">

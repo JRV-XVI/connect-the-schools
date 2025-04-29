@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { get, post } from "../api.js";
+import { Modal, Button } from 'react-bootstrap';
 import Sidebar from "../components/barraLateral.jsx";
 import Navbar from "../components/barraNavegacion.jsx";
-import Pendientes from "../components/pendientes.jsx";
+import Notificaciones from "../components/notificaciones.jsx"; // Changed from 
 import Proyecto from "../components/proyectos.jsx";
 import axios from "axios";
 // Reemplazamos NecesidadApoyo por el nuevo componente
@@ -13,11 +14,9 @@ import { StatCardGroup } from "../components/cartas.jsx";
 import { sidebarAliado } from "../data/barraLateral/barraLateralAliado.js";
 import { navbarAliado } from "../data/barraNavegacion/barraNavegacionAliado.js";
 import { cartasAliado } from "../data/cartas/cartasAliado.js"; 
-import { pendientesAliado } from '../data/pendientes/pendientesAliado.js';
 import { proyectosAliado } from '../data/proyectos/proyectosAliado.js';
-// Mantenemos la importación para migrar los datos iniciales
-import { tabsApoyos, columnasApoyos, datosApoyos } from '../data/necesidadApoyo/apoyos.js';
-import { escuelasData, opcionesFiltros, apoyosDisponiblesAliado } from '../data/busqueda/busquedaEscuelas.js';
+import { datosApoyos } from '../data/necesidadApoyo/apoyos.js';
+import { escuelasData, opcionesFiltros } from '../data/busqueda/busquedaEscuelas.js';
 import { proyectoDetallado } from '../data/proyectoDetallado/proyectoDetallado.js';
 import Logo from "../assets/MPJ.png";
 import MapaGoogle from "../components/mapaGoogle.jsx";
@@ -26,12 +25,11 @@ const Aliado = ({ userData, onLogout }) => {
   const usuario = userData || {  nombre: "Aliado", foto: "" };
   const notificaciones = navbarAliado?.notificaciones || [];
   const menuItems = navbarAliado?.menuItems || [];
-
-  // Obtenemos todos los pendientes y los limitamos a 4 para el dashboard
-  const pendientesTodos = pendientesAliado?.items || [];
-  const pendientesItems = pendientesTodos.slice(0, 5);
-  const pendientesTitulo = pendientesAliado?.titulo || "Validaciones Pendientes";
-  const pendientesTextoBoton = pendientesAliado?.textoBoton || "Ver todos los pendientes";
+  
+  // New state for API notifications
+  const [notificacionesTodas, setNotificacionesTodas] = useState([]);
+  const [cargandoNotificaciones, setCargandoNotificaciones] = useState(false);
+  const [errorNotificaciones, setErrorNotificaciones] = useState(null);
 
   // PROYECTOS / ETAPAS / MENSAJES -> VARIABLES
   const [proyectos, setProyectos] = useState([]);
@@ -48,6 +46,11 @@ const Aliado = ({ userData, onLogout }) => {
   const [paginaActual, setPaginaActual] = useState(1);
   const [cargandoBusqueda, setCargandoBusqueda] = useState(false);
   
+  // Update the handleVerNotificaciones function
+  const handleVerNotificaciones = () => {
+    console.log("Ver todas las notificaciones");
+    setShowAllNotificationsModal(true);
+  };
   // Configuración de paginación
   const escuelasPorPagina = 3;
   const totalPaginas = Math.ceil(resultadosBusqueda.length / escuelasPorPagina);
@@ -71,6 +74,54 @@ const Aliado = ({ userData, onLogout }) => {
   useEffect(() => {
     fetchProyectos();
   }, [usuario.idUsuario]);
+
+  useEffect(() => {
+    const obtenerNotificaciones = async () => {
+      if (!usuario?.idUsuario) {
+        console.error("Error: No hay ID de usuario disponible", usuario);
+        return;
+      }
+      
+      console.log("Intentando obtener notificaciones para usuario ID:", usuario.idUsuario);
+      setCargandoNotificaciones(true);
+      setErrorNotificaciones(null);
+      
+      try {
+        // Direct call without retries to simplify debugging
+        console.log(`Obteniendo notificaciones para ID: ${usuario.idUsuario}`);
+        
+        // Use axios directly for better error details
+        const response = await axios.get(`http://localhost:4001/api/usuario/${usuario.idUsuario}/notificacion`, {
+          withCredentials: true
+        });
+        
+        console.log("Notificaciones recibidas:", response.data);
+        setNotificacionesTodas(response.data);
+      } catch (error) {
+        console.error("Error al obtener notificaciones:", error);
+        
+        // Get detailed error information
+        if (error.response) {
+          // The server responded with a status code outside the 2xx range
+          console.error("Detalle del error del servidor:", error.response.data);
+          console.error("Estado HTTP:", error.response.status);
+        } else if (error.request) {
+          // The request was made but no response was received
+          console.error("No se recibió respuesta del servidor");
+        } else {
+          // Something else caused the error
+          console.error("Error en la configuración de la solicitud:", error.message);
+        }
+        
+        setErrorNotificaciones("No se pudieron cargar las notificaciones. Error del servidor.");
+        setNotificacionesTodas([]);
+      } finally {
+        setCargandoNotificaciones(false);
+      }
+    };
+  
+  obtenerNotificaciones();
+}, [usuario.idUsuario]);
 
   //-------------------------------//
   //------------------------------//
@@ -156,8 +207,7 @@ const Aliado = ({ userData, onLogout }) => {
     ];
   };
 
-  // CORREGIDO: Usar el método de procesamiento seguro
-  const apoyosIniciales = procesarDatosApoyos();
+  const [showAllNotificationsModal, setShowAllNotificationsModal] = useState(false);
 
   // Estado para gestionar las ofertas de apoyo
   const [apoyos, setApoyos] = useState([]);
@@ -256,7 +306,8 @@ const Aliado = ({ userData, onLogout }) => {
 
   const handleActionProyecto = (proyecto) => {
     console.log("Acción en proyecto:", proyecto.nombre, "Estado:", proyecto.estado);
-  };
+  }
+
 
   //----------------------------------//
   //---------ETAPAS PROYECTO---------//
@@ -649,15 +700,54 @@ const Aliado = ({ userData, onLogout }) => {
                 />
               </div>
               <div className="col-xl-4 col-lg-5">
-                {/* Componente de Pendientes - Limitado a 5 */}
-                <Pendientes 
-                  titulo={pendientesTitulo}
-                  items={pendientesItems}
-                  tipo="aliado"
-                  textoBoton={pendientesTextoBoton}
-                  onButtonClick={handleVerPendientes}
-                  allItems={pendientesTodos}
-                />
+                <div className="card h-100">
+                  <div className="card-header d-flex justify-content-between align-items-center">
+                    <h5 className="mb-0">Notificaciones</h5>
+                    <button
+                      className="btn btn-sm btn-primary"
+                      onClick={handleVerNotificaciones}
+                    >
+                      Ver todas
+                    </button>
+                  </div>
+                  <div className="card-body">
+                    {cargandoNotificaciones ? (
+                      <div className="text-center py-3">
+                        <div className="spinner-border text-primary" role="status">
+                          <span className="visually-hidden">Cargando...</span>
+                        </div>
+                      </div>
+                    ) : errorNotificaciones ? (
+                      <div className="alert alert-warning" role="alert">
+                        {errorNotificaciones}
+                      </div>
+                    ) : notificacionesTodas.length === 0 ? (
+                      <p className="text-muted text-center my-3">No hay notificaciones</p>
+                    ) : (
+                      <ul className="list-group list-group-flush">
+                        {notificacionesTodas.slice(0, 2).map((item, index) => (
+                          <li
+                            className="list-group-item px-0 cursor-pointer"
+                            key={index}
+                          >
+                            <div className="d-flex justify-content-between align-items-center">
+                              <div>
+                                <h6 className="mb-0">{item.titulo}</h6>
+                                <small className="text-muted">{item.mensaje || item.descripcion}</small>
+                              </div>
+                              {item.fechaCreacion && (
+                                <small className="text-muted">{new Date(item.fechaCreacion).toLocaleDateString()}</small>
+                              )}
+                              {item.cantidad && (
+                                <span className={`badge bg-${item.color || 'primary'} rounded-pill`}>{item.cantidad}</span>
+                              )}
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </section>
@@ -721,7 +811,60 @@ const Aliado = ({ userData, onLogout }) => {
             apoyosDisponibles={apoyosDisponibles}
             userData={userData}  // Aquí está pasando correctamente userData
           />
-        </section>
+          </section>
+
+          {/* Modal para ver todas las notificaciones */}
+          <Modal 
+            show={showAllNotificationsModal} 
+            onHide={() => setShowAllNotificationsModal(false)}
+            size="lg"
+            aria-labelledby="notificacionesModalLabel"
+          >
+            <Modal.Header closeButton>
+              <Modal.Title id="notificacionesModalLabel">Todas las Notificaciones</Modal.Title>
+            </Modal.Header>
+            
+            <Modal.Body>
+              {cargandoNotificaciones ? (
+                <div className="text-center py-3">
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Cargando...</span>
+                  </div>
+                </div>
+              ) : errorNotificaciones ? (
+                <div className="alert alert-warning" role="alert">
+                  {errorNotificaciones}
+                </div>
+              ) : notificacionesTodas.length === 0 ? (
+                <p className="text-muted text-center my-3">No hay notificaciones</p>
+              ) : (
+                <ul className="list-group list-group-flush">
+                  {notificacionesTodas.map((item, index) => (
+                    <li
+                      className="list-group-item cursor-pointer"
+                      key={index}
+                    >
+                      <div className="d-flex justify-content-between align-items-center">
+                        <div>
+                          <h6 className="mb-0">{item.titulo}</h6>
+                          <p className="mb-1">{item.mensaje || item.descripcion}</p>
+                        </div>
+                        {item.fechaCreacion && (
+                          <small className="text-muted">{new Date(item.fechaCreacion).toLocaleDateString()}</small>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Modal.Body>
+            
+            <Modal.Footer>
+              <Button variant="secondary" onClick={() => setShowAllNotificationsModal(false)}>
+                Cerrar
+              </Button>
+            </Modal.Footer>
+          </Modal>  
         </div>
       </div>
     </div>
