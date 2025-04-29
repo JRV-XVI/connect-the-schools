@@ -86,6 +86,24 @@ const validarCamposObligatorios = (req, res, next) => {
 // ----------------- ROUTERS ----------------- //
 // ------------------------------------------- //
 
+necesidadApoyo.put('/necesidadApoyo/:id', async (req, res, next) => {
+    try {
+        const id = Number(req.params.id)
+        const { estadoValidacion } = req.body;
+        const data = { id, estadoValidacion }
+        const necesidadApoyo = await model.cambiarEstadoValidacion(data);
+        res.status(200).send(necesidadApoyo);
+    } catch (error) {
+        if (error.status === 500 || !error.status) {
+            console.error("Error al registrar la vinculacion:", error);
+            return res.status(400).json({
+                error: "Fallo al momento de actualizar necesidad/apoyo"
+            });
+        }
+        next(error);
+    }
+});
+
 necesidadApoyo.get('/necesidades', async (req, res, next) => {
     try {
         const resultado = await model.obtenerNecesidades();
@@ -107,18 +125,18 @@ necesidadApoyo.get('/apoyos', async (req, res, next) => {
 // Crear necesidad/apoyo (ruta notificación según documentación)
 necesidadApoyo.post('/necesidadApoyo', async (req, res, next) => {
     try {
-      const resultado = await model.crearNecesidadApoyo(req.body);
-      res.status(201).send(resultado);
+        const resultado = await model.crearNecesidadApoyo(req.body);
+        res.status(201).send(resultado);
     } catch (error) {
-      console.error('[ERROR] Al crear necesidad de apoyo:', error);
-      res.status(500).send({ error: 'Error al crear necesidad de apoyo' });
+        console.error('[ERROR] Al crear necesidad de apoyo:', error);
+        res.status(500).send({ error: 'Error al crear necesidad de apoyo' });
     }
-  });
+});
 ;
 
 
 
-  // Obtener necesidades/apoyo por Usuario ID
+// Obtener necesidades/apoyo por Usuario ID
 necesidadApoyo.get('/necesidades-escuela/:idUsuario', async (req, res, next) => {
     try {
         const id = Number(req.params.idUsuario);
@@ -151,20 +169,6 @@ necesidadApoyo.get('/necesidadApoyo', async (req, res, next) => {
 });
 
 
-// Actualizar una necesidad/apoyo por su ID
-necesidadApoyo.put('/necesidadApoyo/:idNecesidadApoyo', obtenerNecesidadPorId, async (req, res, next) => {
-    try {
-        if (Object.keys(req.body).length === 0) {
-            return res.status(400).json({ error: "No hay campos para actualizar" });
-        }
-
-        const resultado = await model.actualizarNecesidadApoyo(req.idNecesidadApoyo, req.body);
-        res.status(200).json(resultado);
-    } catch (error) {
-        next(error);
-    }
-});
-
 // Eliminar una necesidad/apoyo por su ID
 necesidadApoyo.delete('/necesidadApoyo/:idNecesidadApoyo', async (req, res, next) => {
     try {
@@ -186,27 +190,6 @@ necesidadApoyo.delete('/necesidadApoyo/:idNecesidadApoyo', async (req, res, next
 
         res.status(200).json({
             mensaje: `Necesidad/Apoyo con id ${id} eliminado correctamente`
-        });
-    } catch (error) {
-        next(error);
-    }
-});
-
-// Validar necesidad/apoyo (ruta separada para validación)
-necesidadApoyo.put('/necesidadApoyo/:idNecesidadApoyo/validar', obtenerNecesidadPorId, async (req, res, next) => {
-    try {
-        const { estadoValidacion } = req.body;
-
-        if (!estadoValidacion) {
-            return res.status(400).json({
-                error: "Es necesario indicar el estado de validación"
-            });
-        }
-
-        const resultado = await model.actualizarNecesidadApoyo(req.idNecesidadApoyo, { estadoValidacion });
-
-        res.status(200).json({
-            necesidad: resultado
         });
     } catch (error) {
         next(error);

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Tab, Nav, Alert, Button, Form, Badge, Table, Card, Modal } from 'react-bootstrap';
 
 const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {}, onViewApoyo = () => {} }) => {
-  const [activeTab, setActiveTab] = useState('material');
+  const [activeTab, setActiveTab] = useState('todos');
   const [showNewOfferForm, setShowNewOfferForm] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -17,9 +17,8 @@ const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {
   const [formData, setFormData] = useState({
     titulo: '',
     descripcion: '',
-    tipo: 'material',
+    tipo: 'activeTab',
     subcategoria: '',
-    estado: 'Disponible'
   });
   
   // Actualizar tipo y subcategoría cuando cambia la pestaña activa
@@ -36,50 +35,141 @@ const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {
   // Estado para los filtros
   const [filtro, setFiltro] = useState({
     subcategoria: "Todas",
-    estado: "Todos",
     busqueda: ""
   });
   
-  // Definición de categorías y subcategorías
+  // Definición de categorías y subcategorías según MI ESCUELA PRIMERO
   const categoriasConfig = {
-    material: {
-      nombre: "Apoyo Material",
+    todos: {
+      nombre: "Todos",
+      subcategorias: []  // No necesita subcategorías específicas
+    },
+    formacionDocente: {
+      nombre: "Formación docente",
       subcategorias: [
-        'Mobiliario',
-        'Equipamiento tecnológico',
-        'Material didáctico',
-        'Material bibliográfico',
-        'Material deportivo'
+        'Alimentación saludable',
+        'Atención de estudiantes con BAP',
+        'Comunidades de aprendizaje',
+        'Comunicación efectiva con comunidad escolar',
+        'Convivencia escolar/Cultura de paz/Valores',
+        'Disciplina positiva',
+        'Educación inclusiva',
+        'Enseñanza de lectura y matemáticas',
+        'Evaluación',
+        'Herramientas digitales para la educación',
+        'Inteligencia emocional',
+        'Lectoescritura',
+        'Liderazgo y habilidades directivas',
+        'Metodologías activas',
+        'Neuroeducación',
+        'Nueva Escuela Mexicana',
+        'Participación infantil',
+        'Proyecto de vida/Expectativas a futuro',
+        'Sexualidad'
       ]
     },
-    servicios: {
-      nombre: "Servicios",
+    formacionFamilias: {
+      nombre: "Formación a familias",
       subcategorias: [
-        'Capacitación docente',
-        'Mantenimiento',
-        'Rehabilitación de espacios',
-        'Servicios tecnológicos',
-        'Servicios de consultoría'
+        'Alimentación saludable',
+        'Atención para hijos con BAP',
+        'Comunicación efectiva con escuela',
+        'Cultura de paz/Valores en el hogar',
+        'Crianza positiva',
+        'Derechos y obligaciones de los padres',
+        'Enseñanza de lectura y matemáticas',
+        'Inteligencia emocional',
+        'Nueva Escuela Mexicana',
+        'Proyecto de vida/Expectativas a futuro',
+        'Sexualidad'
       ]
     },
-    economico: {
-      nombre: "Apoyo Económico",
+    formacionNinos: {
+      nombre: "Formación niñas y niños",
       subcategorias: [
-        'Becas estudiantiles',
-        'Apoyo a proyectos escolares',
-        'Financiamiento de mejoras',
-        'Patrocinios',
-        'Donaciones monetarias'
+        'Alimentación saludable',
+        'Arte',
+        'Convivencia escolar/Cultura de paz/Valores',
+        'Computación',
+        'Educación física',
+        'Enseñanza de lectura y matemáticas',
+        'Inteligencia emocional',
+        'Lectoescritura',
+        'Música',
+        'Proyecto de vida/Expectativas a futuro',
+        'Sexualidad',
+        'Visitas fuera de la escuela'
       ]
     },
-    voluntariado: {
-      nombre: "Voluntariado",
+    personalApoyo: {
+      nombre: "Personal de apoyo",
       subcategorias: [
-        'Clases y talleres',
-        'Asesoría académica',
-        'Actividades culturales',
-        'Mantenimiento y limpieza',
-        'Mentorías'
+        'Maestro para clases de arte',
+        'Maestro para clases de educación física',
+        'Maestro para clases de idiomas',
+        'Persona para apoyo administrativo',
+        'Persona para apoyo en limpieza',
+        'Psicólogo',
+        'Psicopedagogo o especialista en BAP',
+        'Suplentes de docentes frente a grupo',
+        'Terapeuta de lenguaje o comunicación'
+      ]
+    },
+    infraestructura: {
+      nombre: "Infraestructura",
+      subcategorias: [
+        'Adecuaciones para personas con discapacidad',
+        'Agua',
+        'Árboles',
+        'Baños',
+        'Cocina',
+        'Conectividad',
+        'Domos y patios',
+        'Luz',
+        'Muros, techos o pisos',
+        'Pintura',
+        'Seguridad',
+        'Ventanas y puertas'
+      ]
+    },
+    materiales: {
+      nombre: "Materiales",
+      subcategorias: [
+        'Didácticos',
+        'De educación física',
+        'Tecnológico',
+        'Literarios'
+      ]
+    },
+    mobiliario: {
+      nombre: "Mobiliario",
+      subcategorias: [
+        'Mesas para niños/mesabancos',
+        'Mesas para docentes',
+        'Comedores',
+        'Sillas',
+        'Estantes, libreros o cajoneras',
+        'Pizarrones'
+      ]
+    },
+    alimentacion: {
+      nombre: "Alimentación",
+      subcategorias: [
+        'Desayunos',
+        'Fórmula'
+      ]
+    },
+    transporte: {
+      nombre: "Transporte",
+      subcategorias: [
+        'Transporte',
+        'Arreglo de camino'
+      ]
+    },
+    juridico: {
+      nombre: "Jurídico",
+      subcategorias: [
+        'Apoyo en gestión de escrituras'
       ]
     }
   };
@@ -97,35 +187,23 @@ const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {
   const limpiarFiltros = () => {
     setFiltro({
       subcategoria: "Todas",
-      estado: "Todos",
       busqueda: ""
     });
   };
   
-  // Aplicar filtros a la lista de apoyos
-  const filtrarApoyos = (listaApoyos) => {
-    return listaApoyos.filter(apoyo => {
-      // Filtrar por tipo (tab activo)
-      if (apoyo.tipo !== activeTab) return false;
-      
-      // Filtrar por subcategoría
-      if (filtro.subcategoria !== "Todas" && apoyo.subcategoria !== filtro.subcategoria) return false;
-      
-      // Filtrar por estado
-      if (filtro.estado !== "Todos" && apoyo.estado !== filtro.estado) return false;
-      
-      // Filtrar por búsqueda en título o descripción
-      if (filtro.busqueda.trim() !== "") {
-        const searchTerm = filtro.busqueda.toLowerCase();
-        if (!apoyo.titulo.toLowerCase().includes(searchTerm) && 
-            !apoyo.descripcion.toLowerCase().includes(searchTerm)) {
-          return false;
-        }
-      }
-      
-      return true;
-    });
-  };
+  // Actualizar la función filtrarApoyos para usar categoria en lugar de tipo
+const filtrarApoyos = (listaApoyos) => {
+  return listaApoyos.filter(apoyo => {
+    // Si el tab activo es "todos", no filtramos por categoría
+    if (activeTab === 'todos') return true;
+    
+    // Filtrar por categoria (o tipo) según el tab activo
+    const categoriaActiva = getCategoriaTexto(activeTab);
+    if (apoyo.categoria !== categoriaActiva) return false;
+    
+    return true;
+  });
+};
 
   // Manejador para cambios en el formulario (simplificado)
   const handleFormChange = (e) => {
@@ -146,28 +224,28 @@ const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {
     }
   };
 
-  // Manejador para enviar el formulario de nueva oferta
+  // Modificar la función handleSubmit para usar la categoría como título
   const handleSubmit = (e) => {
     e.preventDefault();
     
+    const categoria = getCategoriaTexto(formData.tipo);
+    
     const nuevaOferta = {
-      titulo: formData.titulo,
-      descripcion: formData.descripcion,
-      categoria: getCategoriaTexto(formData.tipo), 
+      tipo: formData.tipo,           // Mantener el tipo para referencia interna
+      categoria: categoria,          // La categoría textual (que también será el título)
       subcategoria: formData.subcategoria,
-      estado: formData.estado,
-      fechaCreacion: new Date().toISOString()
+      descripcion: formData.descripcion,
+      fechaCreacion: new Date().toISOString(),
+      estadoValidacion: 2
     };
     
     onAddApoyo(nuevaOferta);
     
     // Reiniciar formulario, manteniendo la categoría actual
     setFormData({
-      titulo: '',
-      descripcion: '',
       tipo: activeTab,
       subcategoria: categoriasConfig[activeTab]?.subcategorias[0] || '',
-      estado: 'Disponible'
+      descripcion: '',
     });
     
     setShowNewOfferForm(false);
@@ -200,16 +278,6 @@ const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {
     setCurrentApoyo(null);
   };
   
-  // Manejador para cambiar estado (disponible/no disponible)
-  const handleToggleStatus = (apoyo) => {
-    const nuevoEstado = apoyo.estado === 'Disponible' ? 'No disponible' : 'Disponible';
-    
-    onEditApoyo(apoyo.id, {
-      ...apoyo,
-      estado: nuevoEstado
-    });
-  };
-  
   // Manejador para abrir modal de visualización
   const handleViewDetails = (apoyo) => {
     setCurrentApoyo(apoyo);
@@ -229,7 +297,6 @@ const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {
       descripcion: apoyo.descripcion || '',
       tipo: apoyo.tipo || activeTab,
       subcategoria: apoyo.subcategoria || '',
-      estado: apoyo.estado || 'Disponible'
     });
     
     setShowEditModal(true);
@@ -262,10 +329,8 @@ const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {
         <Table hover>
           <thead>
             <tr>
-              <th>Título</th>
-              <th>Descripción</th>
               <th>Subcategoría</th>
-              <th>Estado</th>
+              <th>Descripción</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -273,43 +338,15 @@ const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {
             {currentItems.length > 0 ? (
               currentItems.map((apoyo, index) => (
                 <tr key={index}>
-                  <td>{apoyo.titulo}</td>
+                  <td>
+                    <Badge bg="success">{apoyo.subcategoria}</Badge>
+                  </td>
                   <td>{apoyo.descripcion.length > 50 ? 
                       `${apoyo.descripcion.substring(0, 50)}...` : apoyo.descripcion}</td>
                   <td>
-                    <Badge bg="info">{apoyo.subcategoria}</Badge>
-                  </td>
-                  <td>
-                    <div className="d-flex align-items-center">
-                      <Badge 
-                        bg={apoyo.estado === 'Disponible' ? 'success' : 
-                           apoyo.estado === 'En proceso' ? 'primary' : 
-                           apoyo.estado === 'Vinculado' ? 'warning' : 'secondary'}>
-                        {apoyo.estado}
-                      </Badge>
-                      <div className="form-check form-switch ms-2">
-                        <input 
-                          className="form-check-input" 
-                          type="checkbox" 
-                          checked={apoyo.estado === 'Disponible'} 
-                          onChange={() => handleToggleStatus(apoyo)}
-                        />
-                      </div>
-                    </div>
-                  </td>
-                  <td>
                     <div className="btn-group btn-group-sm">
                       <Button 
-                        variant="outline-primary" 
-                        size="sm" 
-                        className="me-1" 
-                        onClick={() => handleEdit(apoyo)}
-                        title="Editar"
-                      >
-                        <i className="fas fa-edit"></i>
-                      </Button>
-                      <Button 
-                        variant="outline-info" 
+                        variant="btn btn-sm btn-outline-primary me-1" 
                         size="sm"
                         className="me-1"
                         onClick={() => handleViewDetails(apoyo)}
@@ -356,53 +393,93 @@ const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {
   const getFormTitle = () => {
     const tipoForm = formData.tipo || activeTab;
     switch (tipoForm) {
-      case 'material':
-        return 'Registrar Nueva Oferta de Apoyo Material';
-      case 'servicios':
-        return 'Registrar Nueva Oferta de Servicios';
-      case 'economico':
-        return 'Registrar Nueva Oferta de Apoyo Económico';
-      case 'voluntariado':
-        return 'Registrar Nueva Oferta de Voluntariado';
+      case 'formacionDocente':
+        return 'Registrar Nueva Oferta de Formación Docente';
+      case 'formacionFamilias':
+        return 'Registrar Nueva Oferta de Formación a Familias';
+      case 'formacionNinos':
+        return 'Registrar Nueva Oferta de Formación para Niñas y Niños';
+      case 'personalApoyo':
+        return 'Registrar Nueva Oferta de Personal de Apoyo';
+      case 'infraestructura':
+        return 'Registrar Nueva Oferta de Infraestructura';
+      case 'materiales':
+        return 'Registrar Nueva Oferta de Materiales';
+      case 'mobiliario':
+        return 'Registrar Nueva Oferta de Mobiliario';
+      case 'alimentacion':
+        return 'Registrar Nueva Oferta de Alimentación';
+      case 'transporte':
+        return 'Registrar Nueva Oferta de Transporte';
+      case 'juridico':
+        return 'Registrar Nueva Oferta de Apoyo Jurídico';
       default:
         return 'Registrar Nueva Oferta de Apoyo';
     }
   };
-
+  
   const getCategoriaTexto = (tipo) => {
     switch (tipo) {
-      case 'material':
-        return 'Apoyo Material';
-      case 'servicios':
-        return 'Servicios';
-      case 'economico':
-        return 'Apoyo Económico';
-      case 'voluntariado':
-        return 'Voluntariado';
+      case 'formacionDocente':
+        return 'Formación Docente';
+      case 'formacionFamilias':
+        return 'Formación a Familias';
+      case 'formacionNinos':
+        return 'Formación para Niñas y Niños';
+      case 'personalApoyo':
+        return 'Personal de Apoyo';
+      case 'infraestructura':
+        return 'Infraestructura';
+      case 'materiales':
+        return 'Materiales';
+      case 'mobiliario':
+        return 'Mobiliario';
+      case 'alimentacion':
+        return 'Alimentación';
+      case 'transporte':
+        return 'Transporte';
+      case 'juridico':
+        return 'Apoyo Jurídico';
       default:
-        return 'Apoyo Material'; // default por si falla
+        return 'Apoyo Escolar'; // default por si falla
     }
   };
   
-
   // Obtener descripción de la sección según el tipo activo
   const getSectionDescription = () => {
     switch (activeTab) {
-      case 'material':
-        return 'Registre sus ofertas de donación o préstamo de recursos materiales como equipos, mobiliario, libros o materiales didácticos para escuelas.';
-      case 'servicios':
-        return 'Registre los servicios profesionales que puede ofrecer a las escuelas, como capacitación, mantenimiento, asesoría o servicios tecnológicos.';
-      case 'economico':
-        return 'Registre sus opciones de apoyo económico, patrocinio o financiamiento para proyectos escolares o mejoras en instituciones educativas.';
-      case 'voluntariado':
-        return 'Registre las actividades de voluntariado que puede ofrecer, como talleres, clases, tutorías o participación en eventos escolares.';
+      case 'todos':
+        return 'Vista completa de todas sus ofertas de apoyo registradas en el sistema.';
+      case 'formacionDocente':
+        return 'Registre sus ofertas de formación para docentes en áreas como metodologías activas, evaluación, educación inclusiva y herramientas digitales.';
+      case 'formacionFamilias':
+        return 'Registre sus ofertas para capacitar a familias en temas como comunicación efectiva con la escuela, crianza positiva, y apoyo al aprendizaje en el hogar.';
+      case 'formacionNinos':
+        return 'Registre sus ofertas educativas dirigidas a niños y niñas como talleres de arte, música, computación o apoyo en lectoescritura y matemáticas.';
+      case 'personalApoyo':
+        return 'Registre sus ofertas de personal especializado como maestros de arte, educación física, idiomas, psicólogos o terapeutas de lenguaje.';
+      case 'infraestructura':
+        return 'Registre sus ofertas para mejoras de infraestructura como adecuaciones para accesibilidad, sistemas de agua, baños, conectividad o seguridad.';
+      case 'materiales':
+        return 'Registre sus ofertas de materiales didácticos, de educación física, tecnológicos o literarios para escuelas.';
+      case 'mobiliario':
+        return 'Registre sus ofertas de mobiliario escolar como mesas, sillas, estanterías o pizarrones para mejorar los espacios educativos.';
+      case 'alimentacion':
+        return 'Registre sus ofertas de apoyo alimentario como desayunos o fórmulas para programas escolares de nutrición.';
+      case 'transporte':
+        return 'Registre sus ofertas de transporte escolar o mejoras en rutas de acceso para facilitar la llegada a la escuela.';
+      case 'juridico':
+        return 'Registre sus ofertas de apoyo jurídico para gestión de escrituras u otros trámites legales que beneficien a las instituciones educativas.';
       default:
-        return '';
+        return 'Registre sus ofertas de apoyo para contribuir con las necesidades de las escuelas.';
     }
   };
 
   // Obtener título de sección según el tipo activo
   const getSectionTitle = () => {
+    if (activeTab === 'todos') {
+      return 'Todas las Ofertas de Apoyo';
+    }
     return categoriasConfig[activeTab]?.nombre || 'Ofertas de Apoyo';
   };
   
@@ -438,23 +515,6 @@ const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {
     );
   };
 
-  // Obtener placeholder según el tipo seleccionado
-  const getTitlePlaceholder = () => {
-    const tipo = formData.tipo || activeTab;
-    switch (tipo) {
-      case 'material':
-        return 'Ej: Donación de 10 computadoras';
-      case 'servicios':
-        return 'Ej: Taller de programación';
-      case 'economico':
-        return 'Ej: Becas para estudiantes destacados';
-      case 'voluntariado':
-        return 'Ej: Voluntariado en clases de inglés';
-      default:
-        return 'Título de la oferta';
-    }
-  };
-
   const getDescriptionPlaceholder = () => {
     const tipo = formData.tipo || activeTab;
     switch (tipo) {
@@ -488,67 +548,17 @@ const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {
           <Nav variant="tabs" className="card-header-tabs" activeKey={activeTab} onSelect={(k) => setActiveTab(k)}>
             {Object.entries(categoriasConfig).map(([key, config]) => (
               <Nav.Item key={key}>
-                <Nav.Link eventKey={key}>{config.nombre}</Nav.Link>
+                <Nav.Link 
+                  eventKey={key}
+                  style={activeTab !== key ? { color: '#28a745' } : {}}
+                >
+                  {config.nombre}
+                </Nav.Link>
               </Nav.Item>
             ))}
           </Nav>
         </Card.Header>
         <Card.Body>
-          {/* Sección de filtros */}
-          <div className="border-bottom pb-3 mb-3">
-            <h6>Filtros de ofertas</h6>
-            <div className="row g-3 align-items-end">
-              <div className="col-md">
-                <Form.Label>Subcategoría</Form.Label>
-                <Form.Select 
-                  name="subcategoria" 
-                  value={filtro.subcategoria} 
-                  onChange={handleFiltroChange}
-                >
-                  <option value="Todas">Todas</option>
-                  {getSubcategoriesForActiveType().map((cat, idx) => (
-                    <option key={idx} value={cat}>{cat}</option>
-                  ))}
-                </Form.Select>
-              </div>
-              
-              <div className="col-md">
-                <Form.Label>Estado</Form.Label>
-                <Form.Select 
-                  name="estado" 
-                  value={filtro.estado} 
-                  onChange={handleFiltroChange}
-                >
-                  <option value="Todos">Todos</option>
-                  <option value="Disponible">Disponible</option>
-                  <option value="En proceso">En proceso</option>
-                  <option value="Vinculado">Vinculado</option>
-                  <option value="No disponible">No disponible</option>
-                </Form.Select>
-              </div>
-              
-              <div className="col-md">
-                <Form.Label>Buscar</Form.Label>
-                <Form.Control
-                  type="text" 
-                  placeholder="Buscar por título..." 
-                  name="busqueda" 
-                  value={filtro.busqueda} 
-                  onChange={handleFiltroChange}
-                />
-              </div>
-              
-              <div className="col-md-auto d-flex gap-2">
-                <Button variant="outline-secondary" onClick={limpiarFiltros}>
-                  Limpiar
-                </Button>
-                <Button variant="success">
-                  Aplicar Filtros
-                </Button>
-              </div>
-            </div>
-          </div>
-
           <Tab.Content>
             <Tab.Pane active>
               <div className="mb-4">
@@ -568,13 +578,8 @@ const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {
                 
                 {/* Mostrar botón o formulario según el estado */}
                 {!showNewOfferForm ? (
-                  <Button 
-                    variant="primary" 
-                    className="mt-3"
-                    onClick={() => setShowNewOfferForm(true)}
-                  >
-                    <i className="fas fa-plus me-2"></i> Nueva Oferta de {getSectionTitle()}
-                  </Button>
+                  // El botón ha sido eliminado como solicitaste
+                  <div></div> // Div vacío para mantener la estructura
                 ) : (
                   <Card className="mt-4">
                     <Card.Header>
@@ -592,9 +597,11 @@ const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {
                                 onChange={handleFormChange}
                                 required
                               >
-                                {Object.entries(categoriasConfig).map(([key, config]) => (
-                                  <option key={key} value={key}>{config.nombre}</option>
-                                ))}
+                                {Object.entries(categoriasConfig)
+                                  .filter(([key]) => key !== 'todos') // Excluir la opción "todos"
+                                  .map(([key, config]) => (
+                                    <option key={key} value={key}>{config.nombre}</option>
+                                  ))}
                               </Form.Select>
                             </Form.Group>
                           </div>
@@ -619,22 +626,6 @@ const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {
                         <div className="row mb-3">
                           <div className="col-md-12">
                             <Form.Group>
-                              <Form.Label>Título de la oferta</Form.Label>
-                              <Form.Control
-                                type="text"
-                                name="titulo"
-                                value={formData.titulo}
-                                onChange={handleFormChange}
-                                placeholder={getTitlePlaceholder()}
-                                required
-                              />
-                            </Form.Group>
-                          </div>
-                        </div>
-                        
-                        <div className="row mb-3">
-                          <div className="col-md-12">
-                            <Form.Group>
                               <Form.Label>Descripción detallada</Form.Label>
                               <Form.Control
                                 as="textarea"
@@ -648,19 +639,6 @@ const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {
                             </Form.Group>
                           </div>
                         </div>
-                        
-                        <Form.Group className="mb-3">
-                          <Form.Label>Estado</Form.Label>
-                          <Form.Select
-                            name="estado"
-                            value={formData.estado}
-                            onChange={handleFormChange}
-                            required
-                          >
-                            <option value="Disponible">Disponible</option>
-                            <option value="No disponible">No disponible</option>
-                          </Form.Select>
-                        </Form.Group>
                         
                         <div className="text-end">
                           <Button 
@@ -695,21 +673,11 @@ const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {
         <Modal.Body>
           {currentApoyo && (
             <div>
-              <h4>{currentApoyo.titulo}</h4>
+              <h4>{currentApoyo.categoria || currentApoyo.titulo}</h4>
               
               <div className="mb-3">
-                <Badge 
-                  bg="secondary"
-                  className="me-2">
-                  {categoriasConfig[currentApoyo.tipo]?.nombre || "Categoría no especificada"}
-                </Badge>
-                <Badge bg={currentApoyo.estado === 'Disponible' ? 'success' : 
-                           currentApoyo.estado === 'En proceso' ? 'primary' : 
-                           currentApoyo.estado === 'Vinculado' ? 'warning' : 'secondary'}
-                      className="me-2">
-                  {currentApoyo.estado}
-                </Badge>
-                <Badge bg="info">{currentApoyo.subcategoria}</Badge>
+                <Badge bg="danger" className="me-2">Categoría: {currentApoyo.categoria}</Badge>
+                <Badge bg="success">Subcategoría: {currentApoyo.subcategoria}</Badge>
               </div>
               
               <h6>Descripción:</h6>
@@ -733,118 +701,8 @@ const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {
             <i className="fas fa-trash me-2"></i>
             Eliminar
           </Button>
-          <Button variant="outline-primary" onClick={() => {
-            setShowViewModal(false);
-            handleEdit(currentApoyo);
-          }}>
-            <i className="fas fa-edit me-2"></i>
-            Editar
-          </Button>
           <Button variant="secondary" onClick={() => setShowViewModal(false)}>
             Cerrar
-          </Button>
-        </Modal.Footer>
-      </Modal>
-      
-      {/* Modal para editar */}
-      <Modal show={showEditModal} onHide={() => setShowEditModal(false)} size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>Editar oferta de apoyo</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <div className="row mb-3">
-              <div className="col-md-6">
-                <Form.Group>
-                  <Form.Label>Título de la oferta</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="titulo"
-                    value={formData.titulo}
-                    onChange={handleFormChange}
-                    required
-                  />
-                </Form.Group>
-              </div>
-              <div className="col-md-6">
-                <Form.Group>
-                  <Form.Label>Tipo de apoyo</Form.Label>
-                  <Form.Select
-                    name="tipo"
-                    value={formData.tipo}
-                    onChange={handleFormChange}
-                    required
-                  >
-                    {Object.entries(categoriasConfig).map(([key, config]) => (
-                      <option key={key} value={key}>{config.nombre}</option>
-                    ))}
-                  </Form.Select>
-                </Form.Group>
-              </div>
-            </div>
-            
-            <div className="row mb-3">
-              <div className="col-md-6">
-                <Form.Group>
-                  <Form.Label>Subcategoría</Form.Label>
-                  <Form.Select
-                    name="subcategoria"
-                    value={formData.subcategoria}
-                    onChange={handleFormChange}
-                    required
-                  >
-                    <option value="">Seleccionar...</option>
-                    {categoriasConfig[formData.tipo || activeTab]?.subcategorias.map((cat, idx) => (
-                      <option key={idx} value={cat}>{cat}</option>
-                    ))}
-                  </Form.Select>
-                </Form.Group>
-              </div>
-              <div className="col-md-6">
-                <Form.Group>
-                  <Form.Label>Estado</Form.Label>
-                  <Form.Select
-                    name="estado"
-                    value={formData.estado}
-                    onChange={handleFormChange}
-                    required
-                  >
-                    <option value="Disponible">Disponible</option>
-                    <option value="No disponible">No disponible</option>
-                    <option value="En proceso">En proceso</option>
-                    <option value="Vinculado">Vinculado</option>
-                  </Form.Select>
-                </Form.Group>
-              </div>
-            </div>
-            
-            <Form.Group className="mb-3">
-              <Form.Label>Descripción detallada</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={4}
-                name="descripcion"
-                value={formData.descripcion}
-                onChange={handleFormChange}
-                required
-              />
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="danger" className="me-auto" onClick={() => {
-            setShowEditModal(false);
-            handleConfirmDelete(currentApoyo);
-          }}>
-            <i className="fas fa-trash me-2"></i>
-            Eliminar
-          </Button>
-          <Button variant="secondary" onClick={() => setShowEditModal(false)}>
-            Cancelar
-          </Button>
-          <Button variant="primary" onClick={handleSaveEdit}>
-            <i className="fas fa-save me-2"></i>
-            Guardar Cambios
           </Button>
         </Modal.Footer>
       </Modal>

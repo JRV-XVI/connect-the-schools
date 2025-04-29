@@ -15,9 +15,14 @@ exports.up = function(knex) {
 			.onDelete('CASCADE');
 		t.text('tituloEtapa').notNullable();
 		t.text('descripcionEtapa').notNullable();
+		t.boolean('estadoEntrega')
+			.notNullable()
+			.defaultTo(false)
 		t.integer('orden')
 			.notNullable()
 			.unsigned();
+		t.specificType('archivo', 'BYTEA')
+		t.date('fechaEntrega')
 	});
 };
 

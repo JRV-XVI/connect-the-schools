@@ -8,11 +8,14 @@ exports.up = function(knex) {
 			.unsigned()
 			.primary();
 		t.boolean('validacionAdmin')
+			.defaultTo(true)
 			.notNullable();
 		t.text('descripcion')
 			.notNullable();
 		t.date('fechaCreacion')
 			.defaultTo(knex.fn.now())
+			.notNullable();
+		t.date('fechaFin')
 			.notNullable();
 	});
 };

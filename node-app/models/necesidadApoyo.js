@@ -16,6 +16,16 @@ const obtenerApoyos = async (req, res, next) => {
     return apoyos.rows;
 };
 
+const cambiarEstadoValidacion = async (data) => {
+    const { estadoValidacion, id } = data;
+    const apoyo = await db.query(
+        'UPDATE "necesidadApoyo" SET "estadoValidacion" = $1 WHERE "idNecesidadApoyo" = $2 RETURNING *',
+        [estadoValidacion, id]
+    );
+    return apoyo.rows;
+
+};
+
 // No se si se usan
 
 const verificarUsuarioExiste = async (idUsuario) => {
@@ -93,12 +103,15 @@ const necesidadApoyoPorUsuario = async (idUsuario) => { // Corregido: sin coma a
     }
 }; // Corregido: cierre correcto
 
-module.exports = { 
-    obtenerNecesidadApoyo, 
-    necesidadApoyoPorId, 
-    necesidadApoyoPorUsuario, 
-    crearNecesidadApoyo, 
-    eliminarNecesidadApoyo, 
+module.exports = {
+    obtenerNecesidadApoyo,
+    necesidadApoyoPorId,
+    necesidadApoyoPorUsuario,
+    crearNecesidadApoyo,
+    eliminarNecesidadApoyo,
     actualizarNecesidadApoyo,
-    verificarUsuarioExiste 
+    verificarUsuarioExiste,
+    obtenerApoyos,
+    obtenerNecesidades,
+    cambiarEstadoValidacion
 };

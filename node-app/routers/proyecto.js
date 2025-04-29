@@ -201,20 +201,20 @@ proyecto.get('/proyecto', async (req, res, next) => {
 
 // Obtener todos los proyectos por idUsuario
 proyecto.get('/proyecto/usuario/:idUsuario', async (req, res, next) => {
-    try {
-        const idUsuario = parseInt(req.params.idUsuario, 10);
-        
-        if (isNaN(idUsuario) || idUsuario <= 0) {
-            return res.status(400).json({
-                error: "El ID de usuario debe ser un número entero positivo"
-            });
-        }
-        
-        const resultado = await modelo.obtenerProyectosPorUsuario(idUsuario);
-        res.status(200).json(resultado);
-    } catch (error) {
-        next(error);
-    }
+	try {
+		const idUsuario = parseInt(req.params.idUsuario, 10);
+
+		if (isNaN(idUsuario) || idUsuario <= 0) {
+			return res.status(400).json({
+				error: "El ID de usuario debe ser un número entero positivo"
+			});
+		}
+
+		const resultado = await modelo.obtenerProyectosPorUsuario(idUsuario);
+		res.status(200).json(resultado);
+	} catch (error) {
+		next(error);
+	}
 });
 
 // Obtener un proyecto por ID
@@ -271,6 +271,17 @@ proyecto.get('/proyecto/:idProyecto/etapas', verificarProyectoExiste, async (req
 	try {
 		const resultado = await modelo.obtenerProyectoEtapas(req.idProyecto);
 		res.status(200).json(resultado);
+	} catch (error) {
+		next(error);
+	}
+});
+
+// Obtener datos de progreso etapas de un proyecto
+proyecto.get('/proyecto/:idProyecto/progreso', async (req, res, next) => {
+	try {
+		const idProyecto = parseInt(req.params.idProyecto, 10);
+		const progreso = await modelo.progresoProyectoEtapas(idProyecto);
+		res.status(200).json(progreso);
 	} catch (error) {
 		next(error);
 	}

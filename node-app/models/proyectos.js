@@ -26,40 +26,56 @@ const obtenerProyectosPorUsuario = async (idUsuario) => {
     }
     
     const tipoPerfil = usuarioResult.rows[0].tipoPerfil;
+	let proyectos = [];
     
     if (tipoPerfil === 2) { // Aliado
         const resultado = await db.query(`
-            SELECT DISTINCT p."idProyecto", p."descripcion", p."validacionAdmin", p."fechaCreacion" 
+            SELECT DISTINCT 
+                p."idProyecto", 
+                p."descripcion", 
+                p."validacionAdmin", 
+                p."fechaCreacion", 
+                p."fechaFin",
+                u."nombre" as "nombreEscuela"
             FROM "proyecto" p 
             JOIN "participacionProyecto" pp ON p."idProyecto" = pp."idProyecto" 
             JOIN "perfilAliado" pa ON pp."rfc" = pa."rfc" 
+            JOIN "perfilEscuela" pe ON pp."cct" = pe."cct"  -- Unir con perfil escuela
+            JOIN "usuario" u ON pe."idUsuario" = u."idUsuario"  -- Unir con usuario para obtener nombre
             WHERE pa."idUsuario" = $1 
             ORDER BY p."fechaCreacion" DESC
         `, [idUsuario]);
-        return resultado.rows;
+        proyectos = resultado.rows;
     } 
     else if (tipoPerfil === 1) { // Escuela
         const resultado = await db.query(`
-            SELECT DISTINCT p."idProyecto", p."descripcion", p."validacionAdmin", p."fechaCreacion" 
+            SELECT DISTINCT p."idProyecto", p."descripcion", p."validacionAdmin", p."fechaCreacion", p."fechaFin" 
             FROM "proyecto" p 
             JOIN "participacionProyecto" pp ON p."idProyecto" = pp."idProyecto" 
             JOIN "perfilEscuela" pe ON pp."cct" = pe."cct" 
             WHERE pe."idUsuario" = $1 
             ORDER BY p."fechaCreacion" DESC
         `, [idUsuario]);
-        return resultado.rows;
+        proyectos = resultado.rows;
     } 
     else if (tipoPerfil === 3) { // Admin
         // Administrador puede ver todos los proyectos
         const resultado = await db.query(`
-            SELECT "idProyecto", "descripcion", "validacionAdmin", "fechaCreacion" 
+            SELECT "idProyecto", "descripcion", "validacionAdmin", "fechaCreacion", "fechaFin" 
             FROM "proyecto" 
             ORDER BY "fechaCreacion" DESC
         `);
-        return resultado.rows;
+        proyectos = resultado.rows;
+    }
+	// Calcular el progreso para cada proyecto
+    for (let i = 0; i < proyectos.length; i++) {
+        const progreso = await progresoProyectoEtapas(proyectos[i].idProyecto);
+        proyectos[i].progreso = progreso.porcentaje;
+        proyectos[i].etapasCompletadas = progreso.etapasCompletadas;
+        proyectos[i].totalEtapas = progreso.totalEtapas;
     }
     
-    return []; // Tipo de perfil no reconocido
+    return proyectos;    
 };
 
 // Crear nuevo proyecto
@@ -128,6 +144,35 @@ const crearProyectoEtapa = async (idProyecto, params) => {
 	return resultado.rows;
 };
 
+// Obtener porcentaje de progreso de etapas por idProyecto
+const progresoProyectoEtapas = async (idProyecto) => {
+    const resultado = await db.query(`
+        SELECT 
+            COUNT(*) as total_etapas,
+            SUM(CASE WHEN "estadoEntrega" = true THEN 1 ELSE 0 END) as etapas_completadas
+        FROM "proyectoEtapas"
+        WHERE "idProyecto" = $1
+    `, [idProyecto]);
+    
+    const { total_etapas, etapas_completadas } = resultado.rows[0];
+    
+    // Evitar división por cero
+    if (parseInt(total_etapas) === 0) {
+        return {
+            totalEtapas: 0,
+            etapasCompletadas: 0,
+            porcentaje: 0
+        };
+    }
+    
+    const porcentaje = Math.round((parseInt(etapas_completadas) * 100) / parseInt(total_etapas));
+    
+    return {
+        totalEtapas: parseInt(total_etapas),
+        etapasCompletadas: parseInt(etapas_completadas),
+        porcentaje: porcentaje
+    };
+};
 
 // ------------------------------------------- //
 // ----------------- ENTREGAS ---------------- //
@@ -166,4 +211,4 @@ const crearProyectoEntrega = async (idEtapa, params) => {
 	return resultado.rows;
 };
 
-module.exports = { obtenerProyectos, infoProyecto, crearProyecto, actualizarProyecto, obtenerProyectoEtapas, existeProyectoEtapa, infoEtapa, crearProyectoEtapa, obtenerProyectoEntrega, infoEntrega, existeEtapaEntrega, crearProyectoEntrega,obtenerProyectosPorUsuario};
+module.exports = { obtenerProyectos, infoProyecto, crearProyecto, actualizarProyecto, obtenerProyectoEtapas, existeProyectoEtapa, infoEtapa, crearProyectoEtapa, obtenerProyectoEntrega, infoEntrega, existeEtapaEntrega, crearProyectoEntrega,obtenerProyectosPorUsuario, progresoProyectoEtapas};

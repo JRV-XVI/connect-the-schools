@@ -33,10 +33,14 @@ const Aliado = ({ userData, onLogout }) => {
   const pendientesTitulo = pendientesAliado?.titulo || "Validaciones Pendientes";
   const pendientesTextoBoton = pendientesAliado?.textoBoton || "Ver todos los pendientes";
 
-  // Obtenemos todos los proyectos y los limitamos a 3 para el dashboard
+  // PROYECTOS / ETAPAS / MENSAJES -> VARIABLES
+  const [proyectos, setProyectos] = useState([]);
+  const [mensajes, setMensajes] = useState([]);
+  const [etapas, setEtapas] = useState([]);
+
   const proyectosTodos = proyectosAliado?.proyectos || [];
   const proyectosItems = proyectosTodos.slice(0, 3);
-  const proyectosTitulo = proyectosAliado?.titulo || "Proyectos Recientes";
+  const proyectosTitulo = "Proyectos Recientes";
   const proyectosTextoBoton = proyectosAliado?.textoBoton || "Ver todos";
 
   // Estados para el componente de búsqueda
@@ -63,6 +67,7 @@ const Aliado = ({ userData, onLogout }) => {
   //---------RENDER DATOS---------//
   //-----------------------------//
 
+  // Obtener proyectos del usuario logeado
   useEffect(() => {
     fetchProyectos();
   }, [usuario.idUsuario]);
@@ -158,20 +163,30 @@ const Aliado = ({ userData, onLogout }) => {
   const [apoyos, setApoyos] = useState([]);
 
   // Estado para sincronizar con el componente de búsqueda
-  const [apoyosDisponibles, setApoyosDisponibles] = useState(apoyosDisponiblesAliado);
+  const [apoyosDisponibles, setApoyosDisponibles] = useState([
+    {
+      id: "default",
+      titulo: "Cargando apoyos disponibles...",
+      tipo: "material",
+      descripcion: "Por favor espere mientras se cargan sus apoyos disponibles"
+    }
+  ]);
 
-  // Efecto para mantener sincronizados los apoyos disponibles
   useEffect(() => {
-    // Transformar apoyos al formato esperado por el componente Búsqueda
+    // Transformar apoyos al formato esperado por el componente Búsqueda con campos correctos
     const apoyosFormateados = apoyos
-      .filter(a => a.estado === "Disponible")
+      // Asegúrate que sólo filtras si realmente quieres excluir algunos
+      //.filter(a => a.estado === "Disponible" || a.estadoValidacion === 1)
       .map(a => ({
-        id: a.id,
-        titulo: a.titulo,
-        tipo: a.tipo,
-        descripcion: a.descripcion
+        id: a.id || a.idNecesidadApoyo,
+        titulo: a.titulo || a.descripcion || "Apoyo sin título", // Usar descripción como respaldo
+        tipo: a.tipo || mapearCategoriaAliado(a.categoria),
+        descripcion: a.descripcion || "",
+        categoria: a.categoria || "",
+        subcategoria: a.subcategoria || ""
       }));
     
+    console.log("Apoyos formateados disponibles para vinculación:", apoyosFormateados);
     setApoyosDisponibles(apoyosFormateados);
   }, [apoyos]);
 
@@ -184,25 +199,34 @@ const Aliado = ({ userData, onLogout }) => {
   //---------PROYECTO---------//
   //--------------------------//
 
-  const [proyectos, setProyectos] = useState([]);
-
   // Función para obtener proyectos
   const fetchProyectos = async () => {
     try {
-      // Obtener proyectos con el ID real del usuario
+      // Paso 1: Obtener proyectos con el ID real del usuario
       const respuesta = await get(`/proyecto/usuario/${usuario.idUsuario}`);
       
-      // Comprobar si hay proyectos y actualizar el estado
+      // Paso 2: Comprobar si hay proyectos y actualizar el estado
       if (respuesta && Array.isArray(respuesta)) {
-        setProyectos(respuesta);
-        console.log("Proyectos obtenidos:", respuesta);
+        // Formateo de datos
+        const proyectosFormateados = respuesta.map(proyecto => ({
+          id: proyecto.idProyecto,
+          nombre: proyecto.descripcion,
+          fechaInicio: new Date(proyecto.fechaCreacion).toLocaleDateString(),
+          fechaFin: proyecto.fechaFin ? new Date(proyecto.fechaFin).toLocaleDateString() : 'No definida',
+          progreso: proyecto.progreso || 0,
+          estado: proyecto.validacionAdmin ? 'En tiempo' : 'Pendiente',
+          escuela: proyecto.nombreEscuela || 'Escuela asociada',
+        }));
+        console.log("Proyectos normales: ", respuesta);
+        setProyectos(proyectosFormateados);
+        console.log("Proyectos formateados:", proyectosFormateados);
       } else {
         setProyectos([]);
         console.log("No se encontraron proyectos");
       }
     } catch (error) {
       console.error("Error al obtener proyectos:", error);
-      setProyectos([]); // Actualiza proyectos, no mensajes
+      setProyectos([]);
     }
   };
 
@@ -217,8 +241,10 @@ const Aliado = ({ userData, onLogout }) => {
     setMostrarProyectoDetallado(true);
     
     // Obtener mensajes del proyecto
-    console.log("Ver id del proyecto:", proyectoSeleccionado.id);
-    fetchMensajes(proyectoSeleccionado.id);
+    console.log("Ver id del proyecto:", proyecto.id);
+
+    fetchMensajes(proyecto.id);
+    fetchEtapas(proyecto.id);
     
     setTimeout(() => {
       const seccionDetalles = document.getElementById('seccionProyectoDetallado');
@@ -231,6 +257,25 @@ const Aliado = ({ userData, onLogout }) => {
   const handleActionProyecto = (proyecto) => {
     console.log("Acción en proyecto:", proyecto.nombre, "Estado:", proyecto.estado);
   };
+
+  //----------------------------------//
+  //---------ETAPAS PROYECTO---------//
+  //--------------------------------//
+
+  const fetchEtapas = async (idProyecto) =>{
+    try {
+      const respuesta = await get(`/proyecto/${idProyecto}/etapas`);
+      setEtapas(respuesta);
+      console.log(`Etapas del proyecto ${idProyecto}`, respuesta)
+    } catch (error) {
+      console.log("Error al obtener las etapas:", error);
+      setEtapas([]);
+    }
+  };
+
+  //---------------------------------//
+  //---------OFERTAS APOYOS---------//
+  //-------------------------------//
   
   // Manejadores para ofertas de apoyo
   const handleAddApoyo = async (nuevaOferta) => {
@@ -349,9 +394,6 @@ const Aliado = ({ userData, onLogout }) => {
   //---------MENSAJERIA---------//
   //----------------------------//
 
-  //Variable para odos los mensajes
-  const [mensajes, setMensajes] = useState([]);
-
   // Obtener todos los mensajes por proyecto
   const fetchMensajes = async (idProyecto) => {
     try {
@@ -364,7 +406,7 @@ const Aliado = ({ userData, onLogout }) => {
         const idMensajeria = mensajerias[0].idMensajeria;
         const respuestaMensajes = await get(`/mensajeria/${idMensajeria}/mensajes`);
 
-        // Paso 3: Transformar los mensajes para la UI
+        // Paso 3: Transformar los mensajes para el front
         const mensajesFormateados = respuestaMensajes.map(mensaje => {
           const fecha = new Date(mensaje.fechaEnvio);
           return {
@@ -428,6 +470,16 @@ const Aliado = ({ userData, onLogout }) => {
           withCredentials: true
         });
         console.log("[INFO] Apoyos cargados:", response.data);
+        
+        // Inspección detallada de la primera entrada para diagnóstico
+        if (response.data.length > 0) {
+          console.log("[DEBUG] Primer apoyo - campos disponibles:", 
+            Object.keys(response.data[0]));
+          console.log("[DEBUG] Primer apoyo - estado:", 
+            response.data[0].estado || response.data[0].estadoValidacion);
+        } else {
+          console.log("[WARN] No se encontraron apoyos para mostrar");
+        }
   
         const apoyosConTipo = response.data.map(apoyo => ({
           ...apoyo,
@@ -587,7 +639,7 @@ const Aliado = ({ userData, onLogout }) => {
                 {/* Componente de Proyectos - Limitado a 3 */}
                 <Proyecto 
                   titulo={proyectosTitulo}
-                  proyectos={proyectosItems}
+                  proyectos={proyectos}
                   tipo="aliado"
                   textoBoton={proyectosTextoBoton}
                   onButtonClick={handleVerProyectos}
@@ -614,8 +666,8 @@ const Aliado = ({ userData, onLogout }) => {
           {mostrarProyectoDetallado && (
             <section id="seccionProyectoDetallado" className="mb-4">
               <ProyectoDetallado
-                proyecto={proyecto}
-                fases={fases}
+                proyecto={proyectoSeleccionado}
+                fases={etapas}
                 evidencias={evidencias}
                 mensajes={mensajes}
                 documentos={documentos}
@@ -630,6 +682,7 @@ const Aliado = ({ userData, onLogout }) => {
                 onSaveChanges={handleSaveChanges}
                 onDownloadDocument={handleDownloadDocument}
                 onViewDocument={handleViewDocument}
+                userData={userData}
               />
             </section>
           )}

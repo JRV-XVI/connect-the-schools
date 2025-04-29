@@ -4,7 +4,145 @@ import PropTypes from 'prop-types';
 import axios from 'axios';
 
 const NecesidadApoyo = ({ necesidades =[], setNecesidades = () => { }, onAddNecesidad = () => { }, onEditNecesidad = () => { }, onViewNecesidad = () => { }, userData = {} }) => {
-  const [activeTab, setActiveTab] = useState('infraestructura');
+
+  // Definición de categorías y subcategorías para necesidades escolares
+  const categoriasConfig = {
+    todos: {
+      nombre: "Todos",
+      subcategorias: []  // No necesita subcategorías específicas
+    },
+    formacionDocente: {
+      nombre: "Formación docente",
+      subcategorias: [
+        'Alimentación saludable',
+        'Atención de estudiantes con BAP',
+        'Comunidades de aprendizaje',
+        'Comunicación efectiva con comunidad escolar',
+        'Convivencia escolar/Cultura de paz/Valores',
+        'Disciplina positiva',
+        'Educación inclusiva',
+        'Enseñanza de lectura y matemáticas',
+        'Evaluación',
+        'Herramientas digitales para la educación',
+        'Inteligencia emocional',
+        'Lectoescritura',
+        'Liderazgo y habilidades directivas',
+        'Metodologías activas',
+        'Neuroeducación',
+        'Nueva Escuela Mexicana',
+        'Participación infantil',
+        'Proyecto de vida/Expectativas a futuro',
+        'Sexualidad'
+      ]
+    },
+    formacionFamilias: {
+      nombre: "Formación a familias",
+      subcategorias: [
+        'Alimentación saludable',
+        'Atención para hijos con BAP',
+        'Comunicación efectiva con escuela',
+        'Cultura de paz/Valores en el hogar',
+        'Crianza positiva',
+        'Derechos y obligaciones de los padres',
+        'Enseñanza de lectura y matemáticas',
+        'Inteligencia emocional',
+        'Nueva Escuela Mexicana',
+        'Proyecto de vida/Expectativas a futuro',
+        'Sexualidad'
+      ]
+    },
+    formacionNinos: {
+      nombre: "Formación niñas y niños",
+      subcategorias: [
+        'Alimentación saludable',
+        'Arte',
+        'Convivencia escolar/Cultura de paz/Valores',
+        'Computación',
+        'Educación física',
+        'Enseñanza de lectura y matemáticas',
+        'Inteligencia emocional',
+        'Lectoescritura',
+        'Música',
+        'Proyecto de vida/Expectativas a futuro',
+        'Sexualidad',
+        'Visitas fuera de la escuela'
+      ]
+    },
+    personalApoyo: {
+      nombre: "Personal de apoyo",
+      subcategorias: [
+        'Maestro para clases de arte',
+        'Maestro para clases de educación física',
+        'Maestro para clases de idiomas',
+        'Persona para apoyo administrativo',
+        'Persona para apoyo en limpieza',
+        'Psicólogo',
+        'Psicopedagogo o especialista en BAP',
+        'Suplentes de docentes frente a grupo',
+        'Terapeuta de lenguaje o comunicación'
+      ]
+    },
+    infraestructura: {
+      nombre: "Infraestructura",
+      subcategorias: [
+        'Adecuaciones para personas con discapacidad',
+        'Agua',
+        'Árboles',
+        'Baños',
+        'Cocina',
+        'Conectividad',
+        'Domos y patios',
+        'Luz',
+        'Muros, techos o pisos',
+        'Pintura',
+        'Seguridad',
+        'Ventanas y puertas'
+      ]
+    },
+    materiales: {
+      nombre: "Materiales",
+      subcategorias: [
+        'Didácticos',
+        'De educación física',
+        'Tecnológico',
+        'Literarios'
+      ]
+    },
+    mobiliario: {
+      nombre: "Mobiliario",
+      subcategorias: [
+        'Mesas para niños/mesabancos',
+        'Mesas para docentes',
+        'Comedores',
+        'Sillas',
+        'Estantes, libreros o cajoneras',
+        'Pizarrones'
+      ]
+    },
+    alimentacion: {
+      nombre: "Alimentación",
+      subcategorias: [
+        'Desayunos',
+        'Fórmula'
+      ]
+    },
+    transporte: {
+      nombre: "Transporte",
+      subcategorias: [
+        'Transporte',
+        'Arreglo de camino'
+      ]
+    },
+    juridico: {
+      nombre: "Jurídico",
+      subcategorias: [
+        'Apoyo en gestión de escrituras'
+      ]
+    }
+  };
+
+
+  const [activeTab, setActiveTab] = useState('todos');
   const [showNewNeedForm, setShowNewNeedForm] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -17,12 +155,10 @@ const NecesidadApoyo = ({ necesidades =[], setNecesidades = () => { }, onAddNece
   
   // Estado del formulario para crear/editar necesidades
   const [formData, setFormData] = useState({
-    titulo: '',
     descripcion: '',
-    tipo: 'infraestructura',
-    subcategoria: '',
-    prioridad: 'Media',
-    estado: 'Activa'
+    tipo: activeTab,
+    subcategoria: categoriasConfig[activeTab]?.subcategorias[0] || '',
+    prioridad: 5,
   });
   
   // Actualizar tipo y subcategoría cuando cambia la pestaña activa
@@ -39,61 +175,24 @@ const NecesidadApoyo = ({ necesidades =[], setNecesidades = () => { }, onAddNece
   // Estado para los filtros
   const [filtro, setFiltro] = useState({
     subcategoria: "Todas",
-    estado: "Todos",
     prioridad: "Todas",
     busqueda: ""
   });
   
-  // Definición de categorías y subcategorías para necesidades escolares
-  const categoriasConfig = {
-    infraestructura: {
-      nombre: "Infraestructura",
-      subcategorias: [
-        'Aulas',
-        'Áreas recreativas',
-        'Instalaciones deportivas',
-        'Sanitarios',
-        'Instalaciones eléctricas'
-      ]
-    },
-    equipamiento: {
-      nombre: "Equipamiento Tecnológico",
-      subcategorias: [
-        'Computadoras',
-        'Proyectores',
-        'Pizarrones interactivos',
-        'Internet',
-        'Tabletas'
-      ]
-    },
-    material: {
-      nombre: "Material Didáctico",
-      subcategorias: [
-        'Libros',
-        'Material bibliográfico',
-        'Material de laboratorio',
-        'Material artístico',
-        'Material deportivo'
-      ]
-    },
-    capacitacion: {
-      nombre: "Capacitación",
-      subcategorias: [
-        'Formación docente',
-        'Talleres para estudiantes',
-        'Cursos para personal',
-        'Educación especial',
-        'Programas educativos'
-      ]
-    }
-  };
-
-  // Opciones de prioridad
+  // Primero, actualiza las opciones de prioridad
   const prioridadesOptions = [
-    { value: 'Alta', color: 'danger' },
-    { value: 'Media', color: 'warning' },
-    { value: 'Baja', color: 'info' }
+    { value: 10, label: '10 - Urgente', color: 'danger' },
+    { value: 9, label: '9', color: 'danger' },
+    { value: 8, label: '8', color: 'warning' },
+    { value: 7, label: '7', color: 'warning' },
+    { value: 6, label: '6', color: 'warning' },
+    { value: 5, label: '5', color: 'primary' },
+    { value: 4, label: '4', color: 'primary' },
+    { value: 3, label: '3', color: 'info' },
+    { value: 2, label: '2', color: 'info' },
+    { value: 1, label: '1 - Baja', color: 'info' }
   ];
+
 
   // Función para manejar cambios en los filtros
   const handleFiltroChange = (e) => {
@@ -108,39 +207,35 @@ const NecesidadApoyo = ({ necesidades =[], setNecesidades = () => { }, onAddNece
   const limpiarFiltros = () => {
     setFiltro({
       subcategoria: "Todas",
-      estado: "Todos",
       prioridad: "Todas",
       busqueda: ""
     });
   };
   
-  // Aplicar filtros a la lista de necesidades
-  const filtrarNecesidades = (listaNecesidades) => {
-    return listaNecesidades.filter(necesidad => {
-      // Filtrar por tipo (tab activo)
-      if (necesidad.tipo !== activeTab) return false;
-      
-      // Filtrar por subcategoría
-      if (filtro.subcategoria !== "Todas" && necesidad.subcategoria !== filtro.subcategoria) return false;
-      
-      // Filtrar por estado
-      if (filtro.estado !== "Todos" && necesidad.estado !== filtro.estado) return false;
-      
-      // Filtrar por prioridad
-      if (filtro.prioridad !== "Todas" && necesidad.prioridad !== filtro.prioridad) return false;
-      
-      // Filtrar por búsqueda en título o descripción
-      if (filtro.busqueda.trim() !== "") {
-        const searchTerm = filtro.busqueda.toLowerCase();
-        if (!necesidad.titulo.toLowerCase().includes(searchTerm) && 
-            !necesidad.descripcion.toLowerCase().includes(searchTerm)) {
-          return false;
-        }
-      }
-      
-      return true;
-    });
-  };
+// Aplicar filtros a la lista de necesidades
+const filtrarNecesidades = (listaNecesidades) => {
+  // Si estamos en la pestaña "todos", mostrar todas las necesidades
+  if (activeTab === 'todos') {
+    return listaNecesidades;
+  }
+  
+  // Para cualquier otra pestaña, filtrar por tipo (categoría)
+  return listaNecesidades.filter(necesidad => {
+    // Comprueba tanto el campo tipo como hacer la conversión inversa de categoria a tipo
+    return necesidad.tipo === activeTab || 
+           getTipoFromCategoria(necesidad.categoria) === activeTab;
+  });
+};
+
+// Función auxiliar para convertir texto de categoría a código de tipo
+const getTipoFromCategoria = (categoriaTexto) => {
+  for (const [key, value] of Object.entries(categoriasConfig)) {
+    if (value.nombre === categoriaTexto || getCategoriaTexto(key) === categoriaTexto) {
+      return key;
+    }
+  }
+  return null;
+};
 
   // Manejador para cambios en el formulario
   const handleFormChange = (e) => {
@@ -165,17 +260,19 @@ const NecesidadApoyo = ({ necesidades =[], setNecesidades = () => { }, onAddNece
   const handleSubmit = async (e) => {
     e.preventDefault();
   
+    const categoria = getCategoriaTexto(formData.tipo);
+  
     const nuevaNecesidad = {
       ...formData,
       idUsuario: userData?.idUsuario, 
-      categoria: formData.tipo,
+      categoria: categoria,
+      tipo: formData.tipo,  // Añadir explícitamente el tipo
       subcategoria: formData.subcategoria,
       descripcion: formData.descripcion,
       prioridad: formData.prioridad,
-      fechaCreacion: new Date(),
-      estadoValidacion: 0
+      fechaCreacion: new Date().toISOString(),
+      estadoValidacion: 2
     };
-  
     try {
       const response = await axios.post(
         'http://localhost:4001/api/necesidadApoyo',
@@ -188,12 +285,10 @@ const NecesidadApoyo = ({ necesidades =[], setNecesidades = () => { }, onAddNece
       setNecesidades([...necesidades, response.data]);
   
       setFormData({
-        titulo: '',
         descripcion: '',
         tipo: activeTab,
         subcategoria: categoriasConfig[activeTab]?.subcategorias[0] || '',
-        prioridad: 'Media',
-        estado: 'Activa',
+        prioridad: '5',
       });
   
       setShowNewNeedForm(false);
@@ -231,16 +326,6 @@ const NecesidadApoyo = ({ necesidades =[], setNecesidades = () => { }, onAddNece
     setCurrentNecesidad(null);
   };
   
-  // Manejador para cambiar estado 
-  const handleToggleStatus = (necesidad) => {
-    const nuevoEstado = necesidad.estado === 'Activa' ? 'Inactiva' : 'Activa';
-    
-    onEditNecesidad(necesidad.id, {
-      ...necesidad,
-      estado: nuevoEstado
-    });
-  };
-  
   // Manejador para abrir modal de visualización
   const handleViewDetails = (necesidad) => {
     setCurrentNecesidad(necesidad);
@@ -256,12 +341,10 @@ const NecesidadApoyo = ({ necesidades =[], setNecesidades = () => { }, onAddNece
     
     // Inicializar el formulario con los datos de la necesidad
     setFormData({
-      titulo: necesidad.titulo || '',
       descripcion: necesidad.descripcion || '',
       tipo: necesidad.tipo || activeTab,
       subcategoria: necesidad.subcategoria || '',
-      prioridad: necesidad.prioridad || 'Media',
-      estado: necesidad.estado || 'Activa'
+      prioridad: necesidad.prioridad || '5',
     });
     
     setShowEditModal(true);
@@ -273,10 +356,38 @@ const NecesidadApoyo = ({ necesidades =[], setNecesidades = () => { }, onAddNece
     setShowDeleteModal(true);
   };
 
-  // Función para obtener color según prioridad
+  // Función para obtener color según prioridad numérica
   const getPrioridadColor = (prioridad) => {
-    const prioridadItem = prioridadesOptions.find(p => p.value === prioridad);
+    const prioridadItem = prioridadesOptions.find(p => p.value === parseInt(prioridad));
     return prioridadItem ? prioridadItem.color : 'secondary';
+  };
+
+  // Función para convertir código de categoría a texto legible
+  const getCategoriaTexto = (tipo) => {
+    switch (tipo) {
+      case 'formacionDocente':
+        return 'Formación Docente';
+      case 'formacionFamilias':
+        return 'Formación a Familias';
+      case 'formacionNinos':
+        return 'Formación para Niñas y Niños';
+      case 'personalApoyo':
+        return 'Personal de Apoyo';
+      case 'infraestructura':
+        return 'Infraestructura';
+      case 'materiales':
+        return 'Materiales';
+      case 'mobiliario':
+        return 'Mobiliario';
+      case 'alimentacion':
+        return 'Alimentación';
+      case 'transporte':
+        return 'Transporte';
+      case 'juridico':
+        return 'Apoyo Jurídico';
+      default:
+        return 'Apoyo Escolar'; // default por si falla
+    }
   };
 
   // Función para renderizar la tabla de necesidades
@@ -300,11 +411,9 @@ const NecesidadApoyo = ({ necesidades =[], setNecesidades = () => { }, onAddNece
         <Table hover>
           <thead>
             <tr>
-              <th>Título</th>
-              <th>Descripción</th>
               <th>Subcategoría</th>
+              <th>Descripción</th>
               <th>Prioridad</th>
-              <th>Estado</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -312,48 +421,20 @@ const NecesidadApoyo = ({ necesidades =[], setNecesidades = () => { }, onAddNece
             {currentItems.length > 0 ? (
               currentItems.map((necesidad, index) => (
                 <tr key={index}>
-                  <td>{necesidad.titulo}</td>
+                  <td>
+                    <Badge bg="success">{necesidad.subcategoria}</Badge>
+                  </td>
                   <td>{necesidad.descripcion.length > 50 ? 
                       `${necesidad.descripcion.substring(0, 50)}...` : necesidad.descripcion}</td>
-                  <td>
-                    <Badge bg="info">{necesidad.subcategoria}</Badge>
-                  </td>
                   <td>
                     <Badge bg={getPrioridadColor(necesidad.prioridad)}>
                       {necesidad.prioridad}
                     </Badge>
                   </td>
                   <td>
-                    <div className="d-flex align-items-center">
-                      <Badge 
-                        bg={necesidad.estado === 'Activa' ? 'success' : 
-                           necesidad.estado === 'En proceso' ? 'primary' : 
-                           necesidad.estado === 'Resuelta' ? 'secondary' : 'secondary'}>
-                        {necesidad.estado}
-                      </Badge>
-                      <div className="form-check form-switch ms-2">
-                        <input 
-                          className="form-check-input" 
-                          type="checkbox" 
-                          checked={necesidad.estado === 'Activa'} 
-                          onChange={() => handleToggleStatus(necesidad)}
-                        />
-                      </div>
-                    </div>
-                  </td>
-                  <td>
                     <div className="btn-group btn-group-sm">
                       <Button 
-                        variant="outline-primary" 
-                        size="sm" 
-                        className="me-1" 
-                        onClick={() => handleEdit(necesidad)}
-                        title="Editar"
-                      >
-                        <i className="fas fa-edit"></i>
-                      </Button>
-                      <Button 
-                        variant="outline-info" 
+                        variant="btn btn-sm btn-outline-primary me-1" 
                         size="sm"
                         className="me-1"
                         onClick={() => handleViewDetails(necesidad)}
@@ -375,8 +456,11 @@ const NecesidadApoyo = ({ necesidades =[], setNecesidades = () => { }, onAddNece
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="text-center py-3">
-                  No hay necesidades registradas en esta categoría
+                <td colSpan="4" className="text-center py-3">
+                  {activeTab === 'todos' 
+                    ? "No hay necesidades escolares registradas en el sistema"
+                    : `No hay necesidades registradas en la categoría ${getSectionTitle()}`
+                  }
                 </td>
               </tr>
             )}
@@ -400,37 +484,66 @@ const NecesidadApoyo = ({ necesidades =[], setNecesidades = () => { }, onAddNece
   const getFormTitle = () => {
     const tipoForm = formData.tipo || activeTab;
     switch (tipoForm) {
+      case 'formacionDocente':
+        return 'Registrar Nueva Necesidad de Formación Docente';
+      case 'formacionFamilias':
+        return 'Registrar Nueva Necesidad de Formación a Familias';
+      case 'formacionNinos':
+        return 'Registrar Nueva Necesidad de Formación para Niñas y Niños';
+      case 'personalApoyo':
+        return 'Registrar Nueva Necesidad de Personal de Apoyo';
       case 'infraestructura':
         return 'Registrar Nueva Necesidad de Infraestructura';
-      case 'equipamiento':
-        return 'Registrar Nueva Necesidad de Equipamiento Tecnológico';
-      case 'material':
-        return 'Registrar Nueva Necesidad de Material Didáctico';
-      case 'capacitacion':
-        return 'Registrar Nueva Necesidad de Capacitación';
+      case 'materiales':
+        return 'Registrar Nueva Necesidad de Materiales';
+      case 'mobiliario':
+        return 'Registrar Nueva Necesidad de Mobiliario';
+      case 'alimentacion':
+        return 'Registrar Nueva Necesidad de Alimentación';
+      case 'transporte':
+        return 'Registrar Nueva Necesidad de Transporte';
+      case 'juridico':
+        return 'Registrar Nueva Necesidad de Apoyo Jurídico';
       default:
-        return 'Registrar Nueva Necesidad';
+        return 'Registrar Nueva Necesidad Escolar';
     }
   };
-
+  
   // Obtener descripción de la sección según el tipo activo
   const getSectionDescription = () => {
     switch (activeTab) {
+      case 'todos':
+        return 'Vista completa de todas las necesidades escolares registradas en el sistema.';
+      case 'formacionDocente':
+        return 'Registre sus necesidades de formación para docentes en áreas como metodologías activas, evaluación, educación inclusiva y herramientas digitales.';
+      case 'formacionFamilias':
+        return 'Registre sus necesidades para capacitar a familias en temas como comunicación efectiva con la escuela, crianza positiva, y apoyo al aprendizaje en el hogar.';
+      case 'formacionNinos':
+        return 'Registre sus necesidades educativas dirigidas a niños y niñas como talleres de arte, música, computación o apoyo en lectoescritura y matemáticas.';
+      case 'personalApoyo':
+        return 'Registre sus necesidades de personal especializado como maestros de arte, educación física, idiomas, psicólogos o terapeutas de lenguaje.';
       case 'infraestructura':
-        return 'Registre las necesidades de construcción, remodelación o mantenimiento de instalaciones escolares.';
-      case 'equipamiento':
-        return 'Registre las necesidades de equipos tecnológicos como computadoras, proyectores, internet o dispositivos multimedia.';
-      case 'material':
-        return 'Registre las necesidades de material didáctico, libros, material deportivo u otros recursos educativos.';
-      case 'capacitacion':
-        return 'Registre las necesidades de capacitación docente, talleres para estudiantes o programas educativos especiales.';
+        return 'Registre sus necesidades para mejoras de infraestructura como adecuaciones para accesibilidad, sistemas de agua, baños, conectividad o seguridad.';
+      case 'materiales':
+        return 'Registre sus necesidades de materiales didácticos, de educación física, tecnológicos o literarios para su escuela.';
+      case 'mobiliario':
+        return 'Registre sus necesidades de mobiliario escolar como mesas, sillas, estanterías o pizarrones para mejorar los espacios educativos.';
+      case 'alimentacion':
+        return 'Registre sus necesidades de apoyo alimentario como desayunos o fórmulas para programas escolares de nutrición.';
+      case 'transporte':
+        return 'Registre sus necesidades de transporte escolar o mejoras en rutas de acceso para facilitar la llegada a la escuela.';
+      case 'juridico':
+        return 'Registre sus necesidades de apoyo jurídico para gestión de escrituras u otros trámites legales que beneficien a su institución educativa.';
       default:
-        return '';
+        return 'Registre sus necesidades escolares para mejorar la experiencia educativa.';
     }
   };
 
   // Obtener título de sección según el tipo activo
   const getSectionTitle = () => {
+    if (activeTab === 'todos') {
+      return 'Todas las Necesidades Escolares';
+    }
     return categoriasConfig[activeTab]?.nombre || 'Necesidades';
   };
   
@@ -470,14 +583,26 @@ const NecesidadApoyo = ({ necesidades =[], setNecesidades = () => { }, onAddNece
   const getTitlePlaceholder = () => {
     const tipo = formData.tipo || activeTab;
     switch (tipo) {
+      case 'formacionDocente':
+        return 'Ej: Curso de capacitación en métodos pedagógicos actualizados';
+      case 'formacionFamilias':
+        return 'Ej: Taller para padres sobre apoyo en tareas escolares';
+      case 'formacionNinos':
+        return 'Ej: Necesidad de talleres artísticos para alumnos';
+      case 'personalApoyo':
+        return 'Ej: Necesitamos un psicólogo escolar';
       case 'infraestructura':
-        return 'Ej: Reparación de techos en aulas';
-      case 'equipamiento':
-        return 'Ej: Necesidad de 15 computadoras';
-      case 'material':
+        return 'Ej: Reparación urgente de techos en aulas';
+      case 'materiales':
         return 'Ej: Libros de texto para 3er grado';
-      case 'capacitacion':
-        return 'Ej: Capacitación en métodos educativos';
+      case 'mobiliario':
+        return 'Ej: Necesitamos 30 pupitres nuevos';
+      case 'alimentacion':
+        return 'Ej: Programa de desayunos escolares';
+      case 'transporte':
+        return 'Ej: Necesidad de transporte para alumnos de zonas alejadas';
+      case 'juridico':
+        return 'Ej: Apoyo para regularización de documentos escolares';
       default:
         return 'Título de la necesidad';
     }
@@ -486,16 +611,28 @@ const NecesidadApoyo = ({ necesidades =[], setNecesidades = () => { }, onAddNece
   const getDescriptionPlaceholder = () => {
     const tipo = formData.tipo || activeTab;
     switch (tipo) {
+      case 'formacionDocente':
+        return 'Describa con detalle la necesidad de formación para docentes...';
+      case 'formacionFamilias':
+        return 'Describa con detalle la necesidad de formación para familias...';
+      case 'formacionNinos':
+        return 'Describa con detalle la necesidad de formación para niños y niñas...';
+      case 'personalApoyo':
+        return 'Describa con detalle la necesidad de personal de apoyo...';
       case 'infraestructura':
         return 'Describa con detalle la necesidad de infraestructura...';
-      case 'equipamiento':
-        return 'Describa con detalle la necesidad de equipamiento tecnológico...';
-      case 'material':
-        return 'Describa con detalle la necesidad de material didáctico...';
-      case 'capacitacion':
-        return 'Describa con detalle la necesidad de capacitación...';
+      case 'materiales':
+        return 'Describa con detalle la necesidad de materiales...';
+      case 'mobiliario':
+        return 'Describa con detalle la necesidad de mobiliario...';
+      case 'alimentacion':
+        return 'Describa con detalle la necesidad de alimentación...';
+      case 'transporte':
+        return 'Describa con detalle la necesidad de transporte...';
+      case 'juridico':
+        return 'Describa con detalle la necesidad de apoyo jurídico...';
       default:
-        return 'Describa con detalle la necesidad...';
+        return 'Describa con detalle la necesidad escolar...';
     }
   };
 
@@ -516,81 +653,17 @@ const NecesidadApoyo = ({ necesidades =[], setNecesidades = () => { }, onAddNece
           <Nav variant="tabs" className="card-header-tabs" activeKey={activeTab} onSelect={(k) => setActiveTab(k)}>
             {Object.entries(categoriasConfig).map(([key, config]) => (
               <Nav.Item key={key}>
-                <Nav.Link eventKey={key}>{config.nombre}</Nav.Link>
+                <Nav.Link 
+                  eventKey={key}
+                  style={activeTab !== key ? { color: '#28a745' } : {}}
+                >
+                  {config.nombre}
+                </Nav.Link>
               </Nav.Item>
             ))}
           </Nav>
         </Card.Header>
         <Card.Body>
-          {/* Sección de filtros */}
-          <div className="border-bottom pb-3 mb-3">
-            <h6>Filtros de necesidades</h6>
-            <div className="row g-3 align-items-end">
-              <div className="col-md">
-                <Form.Label>Subcategoría</Form.Label>
-                <Form.Select 
-                  name="subcategoria" 
-                  value={filtro.subcategoria} 
-                  onChange={handleFiltroChange}
-                >
-                  <option value="Todas">Todas</option>
-                  {getSubcategoriesForActiveType().map((cat, idx) => (
-                    <option key={idx} value={cat}>{cat}</option>
-                  ))}
-                </Form.Select>
-              </div>
-              
-              <div className="col-md">
-                <Form.Label>Estado</Form.Label>
-                <Form.Select 
-                  name="estado" 
-                  value={filtro.estado} 
-                  onChange={handleFiltroChange}
-                >
-                  <option value="Todos">Todos</option>
-                  <option value="Activa">Activa</option>
-                  <option value="En proceso">En proceso</option>
-                  <option value="Resuelta">Resuelta</option>
-                  <option value="Inactiva">Inactiva</option>
-                </Form.Select>
-              </div>
-              
-              <div className="col-md">
-                <Form.Label>Prioridad</Form.Label>
-                <Form.Select 
-                  name="prioridad" 
-                  value={filtro.prioridad} 
-                  onChange={handleFiltroChange}
-                >
-                  <option value="Todas">Todas</option>
-                  {prioridadesOptions.map((p, idx) => (
-                    <option key={idx} value={p.value}>{p.value}</option>
-                  ))}
-                </Form.Select>
-              </div>
-              
-              <div className="col-md">
-                <Form.Label>Buscar</Form.Label>
-                <Form.Control
-                  type="text" 
-                  placeholder="Buscar por título..." 
-                  name="busqueda" 
-                  value={filtro.busqueda} 
-                  onChange={handleFiltroChange}
-                />
-              </div>
-              
-              <div className="col-md-auto d-flex gap-2">
-                <Button variant="outline-secondary" onClick={limpiarFiltros}>
-                  Limpiar
-                </Button>
-                <Button variant="success">
-                  Aplicar Filtros
-                </Button>
-              </div>
-            </div>
-          </div>
-
           <Tab.Content>
             <Tab.Pane active>
               <div className="mb-4">
@@ -610,13 +683,8 @@ const NecesidadApoyo = ({ necesidades =[], setNecesidades = () => { }, onAddNece
                 
                 {/* Mostrar botón o formulario según el estado */}
                 {!showNewNeedForm ? (
-                  <Button 
-                    variant="primary" 
-                    className="mt-3"
-                    onClick={() => setShowNewNeedForm(true)}
-                  >
-                    <i className="fas fa-plus me-2"></i> Nueva Necesidad de {getSectionTitle()}
-                  </Button>
+                  // El botón ha sido eliminado como solicitaste
+                  <div></div> // Div vacío para mantener la estructura
                 ) : (
                   <Card className="mt-4">
                     <Card.Header>
@@ -634,9 +702,11 @@ const NecesidadApoyo = ({ necesidades =[], setNecesidades = () => { }, onAddNece
                                 onChange={handleFormChange}
                                 required
                               >
-                                {Object.entries(categoriasConfig).map(([key, config]) => (
-                                  <option key={key} value={key}>{config.nombre}</option>
-                                ))}
+                                {Object.entries(categoriasConfig)
+                                  .filter(([key]) => key !== 'todos') // Excluir la opción "todos"
+                                  .map(([key, config]) => (
+                                    <option key={key} value={key}>{config.nombre}</option>
+                                  ))}
                               </Form.Select>
                             </Form.Group>
                           </div>
@@ -654,22 +724,6 @@ const NecesidadApoyo = ({ necesidades =[], setNecesidades = () => { }, onAddNece
                                   <option key={idx} value={cat}>{cat}</option>
                                 ))}
                               </Form.Select>
-                            </Form.Group>
-                          </div>
-                        </div>
-                        
-                        <div className="row mb-3">
-                          <div className="col-md-12">
-                            <Form.Group>
-                              <Form.Label>Título de la necesidad</Form.Label>
-                              <Form.Control
-                                type="text"
-                                name="titulo"
-                                value={formData.titulo}
-                                onChange={handleFormChange}
-                                placeholder={getTitlePlaceholder()}
-                                required
-                              />
                             </Form.Group>
                           </div>
                         </div>
@@ -745,20 +799,14 @@ const NecesidadApoyo = ({ necesidades =[], setNecesidades = () => { }, onAddNece
               <h4>{currentNecesidad.titulo}</h4>
               
               <div className="mb-3">
-                <Badge 
-                  bg="secondary"
-                  className="me-2">
-                  {categoriasConfig[currentNecesidad.tipo]?.nombre || "Categoría no especificada"}
+                <Badge bg="danger" className="me-2">Categoría: {currentNecesidad.categoria}</Badge>
+                <Badge bg="success" className="me-2">
+                  Subcategoría: {currentNecesidad.subcategoria}
                 </Badge>
                 <Badge bg={getPrioridadColor(currentNecesidad.prioridad)} className="me-2">
                   Prioridad: {currentNecesidad.prioridad}
                 </Badge>
-                <Badge bg={currentNecesidad.estado === 'Activa' ? 'success' : 
-                         currentNecesidad.estado === 'En proceso' ? 'primary' : 
-                         'secondary'} className="me-2">
-                  {currentNecesidad.estado}
-                </Badge>
-                <Badge bg="info">{currentNecesidad.subcategoria}</Badge>
+
               </div>
               
               <h6>Descripción:</h6>
@@ -782,136 +830,8 @@ const NecesidadApoyo = ({ necesidades =[], setNecesidades = () => { }, onAddNece
             <i className="fas fa-trash me-2"></i>
             Eliminar
           </Button>
-          <Button variant="outline-primary" onClick={() => {
-            setShowViewModal(false);
-            handleEdit(currentNecesidad);
-          }}>
-            <i className="fas fa-edit me-2"></i>
-            Editar
-          </Button>
           <Button variant="secondary" onClick={() => setShowViewModal(false)}>
             Cerrar
-          </Button>
-        </Modal.Footer>
-      </Modal>
-      
-      {/* Modal para editar */}
-      <Modal show={showEditModal} onHide={() => setShowEditModal(false)} size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>Editar necesidad escolar</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <div className="row mb-3">
-              <div className="col-md-6">
-                <Form.Group>
-                  <Form.Label>Título de la necesidad</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="titulo"
-                    value={formData.titulo}
-                    onChange={handleFormChange}
-                    required
-                  />
-                </Form.Group>
-              </div>
-              <div className="col-md-6">
-                <Form.Group>
-                  <Form.Label>Tipo de necesidad</Form.Label>
-                  <Form.Select
-                    name="tipo"
-                    value={formData.tipo}
-                    onChange={handleFormChange}
-                    required
-                  >
-                    {Object.entries(categoriasConfig).map(([key, config]) => (
-                      <option key={key} value={key}>{config.nombre}</option>
-                    ))}
-                  </Form.Select>
-                </Form.Group>
-              </div>
-            </div>
-            
-            <div className="row mb-3">
-              <div className="col-md-6">
-                <Form.Group>
-                  <Form.Label>Subcategoría</Form.Label>
-                  <Form.Select
-                    name="subcategoria"
-                    value={formData.subcategoria}
-                    onChange={handleFormChange}
-                    required
-                  >
-                    <option value="">Seleccionar...</option>
-                    {categoriasConfig[formData.tipo || activeTab]?.subcategorias.map((cat, idx) => (
-                      <option key={idx} value={cat}>{cat}</option>
-                    ))}
-                  </Form.Select>
-                </Form.Group>
-              </div>
-              <div className="col-md-6">
-                <Form.Group>
-                  <Form.Label>Prioridad</Form.Label>
-                  <Form.Select
-                    name="prioridad"
-                    value={formData.prioridad}
-                    onChange={handleFormChange}
-                    required
-                  >
-                    {prioridadesOptions.map((p, idx) => (
-                      <option key={idx} value={p.value}>{p.value}</option>
-                    ))}
-                  </Form.Select>
-                </Form.Group>
-              </div>
-            </div>
-            
-            <div className="row mb-3">
-              <div className="col-md-12">
-                <Form.Group>
-                  <Form.Label>Estado</Form.Label>
-                  <Form.Select
-                    name="estado"
-                    value={formData.estado}
-                    onChange={handleFormChange}
-                    required
-                  >
-                    <option value="Activa">Activa</option>
-                    <option value="Inactiva">Inactiva</option>
-                    <option value="En proceso">En proceso</option>
-                    <option value="Resuelta">Resuelta</option>
-                  </Form.Select>
-                </Form.Group>
-              </div>
-            </div>
-            
-            <Form.Group className="mb-3">
-              <Form.Label>Descripción detallada</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={4}
-                name="descripcion"
-                value={formData.descripcion}
-                onChange={handleFormChange}
-                required
-              />
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="danger" className="me-auto" onClick={() => {
-            setShowEditModal(false);
-            handleConfirmDelete(currentNecesidad);
-          }}>
-            <i className="fas fa-trash me-2"></i>
-            Eliminar
-          </Button>
-          <Button variant="secondary" onClick={() => setShowEditModal(false)}>
-            Cancelar
-          </Button>
-          <Button variant="primary" onClick={handleSaveEdit}>
-            <i className="fas fa-save me-2"></i>
-            Guardar Cambios
           </Button>
         </Modal.Footer>
       </Modal>
@@ -927,7 +847,9 @@ const NecesidadApoyo = ({ necesidades =[], setNecesidades = () => { }, onAddNece
               <p>¿Está seguro que desea eliminar la siguiente necesidad escolar?</p>
               <div className="alert alert-warning">
                 <strong>{currentNecesidad.titulo}</strong>
-                <p className="mb-0">{currentNecesidad.subcategoria} - Prioridad: {currentNecesidad.prioridad}</p>
+                <p className="mb-0">
+                  {categoriasConfig[currentNecesidad.tipo]?.nombre} - {currentNecesidad.subcategoria} - Prioridad: {currentNecesidad.prioridad}
+                </p>
               </div>
               <p className="text-danger">Esta acción no se puede deshacer.</p>
             </div>
