@@ -30,7 +30,7 @@ const MapaGoogle = ({ tipo }) => {
     }, [tipo]);
 
     return (
-        <LoadScript googleMapsApiKey="AIzaSyAPuWmLXqe5uyLJZnh9SNQTLco_s-SFCYI">
+        <LoadScript googleMapsApiKey="API">
             <GoogleMap
                 mapContainerStyle={containerStyle}
                 center={mapCenter} // Usa el estado dinámico del centro
