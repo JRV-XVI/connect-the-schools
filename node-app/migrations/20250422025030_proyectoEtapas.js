@@ -22,6 +22,7 @@ exports.up = function(knex) {
 			.notNullable()
 			.unsigned();
 		t.specificType('archivo', 'BYTEA')
+		t.date('fechaEntrega')
 	});
 };
 

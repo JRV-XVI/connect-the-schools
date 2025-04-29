@@ -44,17 +44,6 @@ const ProyectoDetallado = ({
     });
   };
 
-  const formatTime = (dateString) => {
-    if (!dateString) return '00:00';
-    
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('es-ES', { 
-      hour: '2-digit', 
-      minute: '2-digit',
-      hour12: false // Usar formato 24h
-    });
-  };
-
   // Calcular el porcentaje de progreso basado en fechas
   const calcularProgreso = () => {
     const inicio = new Date(proyecto.fechaInicio);
