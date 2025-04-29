@@ -308,7 +308,7 @@ const Gestiones = ({
             <th>RFC</th>
             <th>Categoría</th>
             <th>Subcategoría</th>
-            <th>Descripción</th>
+            <th>Observación</th>
             <th>Acciones</th>
           </tr>
         );
@@ -530,18 +530,18 @@ const Gestiones = ({
                     </button>
                     {mostrarAcciones && (
                       <>
-                      <button 
-                        className="btn btn-outline-success" 
-                        title="Aprobar"
-                        onClick={() => onAprobar(item)}>
-                        <i className="fas fa-check"></i>
-                      </button>
-                      <button 
-                        className="btn btn-outline-danger" 
-                        title="Rechazar"
-                        onClick={() => onRechazar(item)}>
-                        <i className="fas fa-times"></i>
-                      </button>
+                        <button 
+                          className="btn btn-outline-success" 
+                          title="Aprobar"
+                          onClick={() => onAprobar(item)}>
+                          <i className="fas fa-check"></i>
+                        </button>
+                        <button 
+                          className="btn btn-outline-danger" 
+                          title="Rechazar"
+                          onClick={() => onRechazar(item)}>
+                          <i className="fas fa-times"></i>
+                        </button>
                       </>
                     )}
                   </div>

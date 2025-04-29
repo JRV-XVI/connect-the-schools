@@ -122,22 +122,20 @@ const Administrador = () => {
     async function fetchDatosVinculaciones() {
       try {
         const datos = await get("/vinculaciones");
-
         const datosAdaptados = {
           titulo: "Vinculaciones",
           items: datos.map(item => ({
             titulo: item.necesidad.categoria || "Sin categoría",
             descripcion: item.observacion || "Sin descripción",
             categoria: item.necesidad.subcategoria,
-            cantidad: item.prioridad != null ? String(item.prioridad) : "0", // lo convierto a string para mantener mismo tipo que tus dummys
-            color: "secondary", // Aquí también puedes mapear colores si lo deseas
+            cantidad: item.prioridad != null ? String(item.prioridad) : "0",
+            color: "secondary",
             datosOriginales: item
           }))
         };
-
         setDatosGestionVinculaciones(datosAdaptados);
       } catch (error) {
-        console.error("Error al obtener datos de apoyos:", error);
+        console.error("Error al obtener datos de vinculaciones:", error);
       }
     }
 
@@ -362,7 +360,63 @@ const Administrador = () => {
     setMostrarModalEtapas(true);
   };
   
-  // Agregar estas funciones junto a tus otros manejadores
+  const handleRechazarVinculacion = async (vinculacion) => {
+    console.log("Rechazando vinculación:", vinculacion);
+    
+    try {
+      // Verificar que la vinculación contenga los datos necesarios
+      if (!vinculacion || !vinculacion.aliado?.rfc || !vinculacion.escuela?.cct || 
+          !vinculacion.necesidad?.idNecesidad || !vinculacion.apoyo?.idApoyo) {
+        console.error("Error: vinculación no tiene los datos requeridos", vinculacion);
+        alert("Error: La vinculación no contiene todos los datos necesarios");
+        return;
+      }
+      
+      // Datos para la solicitud de rechazo
+      const datosRechazo = {
+        rfc: vinculacion.aliado.rfc,
+        cct: vinculacion.escuela.cct,
+        idNecesidad: vinculacion.necesidad.idNecesidad,
+        idApoyo: vinculacion.apoyo.idApoyo
+      };
+      
+      console.log("Enviando solicitud de rechazo:", datosRechazo);
+      
+      // FIXED: Changed the endpoint from "/vinculacion" to "/vinculacion/rechazar"
+      const resultado = await delete("/vinculacion", datosRechazo);
+      
+      console.log("Respuesta del servidor:", resultado);
+      
+      // Rest of the notification logic remains the same...
+      const notificacionEscuela = {
+        cct: vinculacion.escuela.cct,
+        titulo: "Vinculación rechazada",
+        mensaje: `La vinculación para "${vinculacion.necesidad.categoria}: ${vinculacion.necesidad.subcategoria}" ha sido rechazada por el administrador.`
+      };
+      
+      const notificacionAliado = {
+        rfc: vinculacion.aliado.rfc,
+        titulo: "Vinculación rechazada",
+        mensaje: `La vinculación para apoyar con "${vinculacion.apoyo.categoria}: ${vinculacion.apoyo.subcategoria}" ha sido rechazada por el administrador.`
+      };
+      
+      try {
+        await post("/notificacion", notificacionEscuela);
+        console.log("Notificación enviada a la escuela");
+        
+        await post("/notificacion", notificacionAliado);
+        console.log("Notificación enviada al aliado");
+      } catch (errorNotificacion) {
+        console.error("Error al enviar notificaciones:", errorNotificacion);
+      }
+      
+      alert('Vinculación rechazada exitosamente y notificaciones enviadas');
+      
+    } catch (error) {
+      console.error("Error al rechazar la vinculación:", error);
+      alert(`Error al rechazar la vinculación: ${error.message || "Revisa la conexión con el servidor"}`);
+    }
+  };
   
   // Función para aprobar necesidades
   const handleAprobarNecesidad = async (necesidad) => {
@@ -1022,9 +1076,16 @@ const Administrador = () => {
                           handleAprobarVinculacion(item);
                         }
                       }}
-                      tipo="vinculacion"  // Cambiar de "admin" a "vinculacion"
+                      onRechazar={(item) => {
+                        if (item && item.datosOriginales) {
+                          handleRechazarVinculacion(item.datosOriginales);
+                        } else {
+                          handleRechazarVinculacion(item);
+                        }
+                      }}
+                      tipo="vinculacion"
                       mostrarAcciones={true}
-                      mostrarFiltros={false}  // Ocultar filtros para vinculaciones
+                      mostrarFiltros={false}
                     />
                   </div>
                 </div>
@@ -1247,16 +1308,28 @@ const Administrador = () => {
             </Modal.Body>
             <Modal.Footer>
               {tipoDetalle === "vinculacion" && (
-                <Button 
-                  variant="outline-success"
-                  onClick={() => {
-                    setMostrarModal(false);
-                    handleAprobarVinculacion(detalleSeleccionado);
-                  }}
-                >
-                  <i className="fas fa-check me-2"></i>
-                  Crear Proyecto
-                </Button>
+                <>
+                  <Button 
+                    variant="outline-success"
+                    onClick={() => {
+                      setMostrarModal(false);
+                      handleAprobarVinculacion(detalleSeleccionado);
+                    }}
+                  >
+                    <i className="fas fa-check me-2"></i>
+                    Crear Proyecto
+                  </Button>
+                  <Button 
+                    variant="outline-danger"
+                    onClick={() => {
+                      setMostrarModal(false);
+                      handleRechazarVinculacion(detalleSeleccionado);
+                    }}
+                  >
+                    <i className="fas fa-times me-2"></i>
+                    Rechazar Vinculación
+                  </Button>
+                </>
               )}
               {tipoDetalle === "necesidad" && (
                 <>
