@@ -5,6 +5,7 @@ import Pendientes from "../components/pendientes.jsx";
 import Proyecto from "../components/proyectos.jsx";
 import NecesidadApoyo from "../components/necesidadApoyo.jsx";
 import DiagnosticoNecesidades from '../components/DiagnosticoNecesidades'; // Ruta corregida
+import MapaEscuelas from "../components/mapasEscuela.jsx";
 import { useEffect } from "react";
 
 import { StatCardGroup } from "../components/cartas.jsx";
@@ -19,6 +20,7 @@ import axios from 'axios';
 import { Container } from 'react-bootstrap';
 import '../../styles/escuela.css';
 import Logo from "../assets/MPJ.png";
+import MapaGoogle from "../components/mapaGoogle.jsx";
 
 
 const Escuela = ({ userData, onLogout }) => { 
@@ -271,6 +273,14 @@ const mapearCategoriaATipo = (categoria) => {
                   onViewNecesidad={handleViewNecesidad}
                   userData={userData}
                 />
+              </section>
+
+              {/* Mapa de Aliados para EScuelas */}
+              <section className="mb-4">
+                <h2 className="mb-4">Mapa de Escuelas</h2>
+                <Container className="map-container">
+                  <MapaGoogle />
+                </Container>
               </section>
             </>
           )}
