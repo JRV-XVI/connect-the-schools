@@ -160,20 +160,30 @@ const Aliado = ({ userData, onLogout }) => {
   const [apoyos, setApoyos] = useState([]);
 
   // Estado para sincronizar con el componente de búsqueda
-  const [apoyosDisponibles, setApoyosDisponibles] = useState(apoyosDisponiblesAliado);
+  const [apoyosDisponibles, setApoyosDisponibles] = useState([
+    {
+      id: "default",
+      titulo: "Cargando apoyos disponibles...",
+      tipo: "material",
+      descripcion: "Por favor espere mientras se cargan sus apoyos disponibles"
+    }
+  ]);
 
-  // Efecto para mantener sincronizados los apoyos disponibles
   useEffect(() => {
-    // Transformar apoyos al formato esperado por el componente Búsqueda
+    // Transformar apoyos al formato esperado por el componente Búsqueda con campos correctos
     const apoyosFormateados = apoyos
-      .filter(a => a.estado === "Disponible")
+      // Asegúrate que sólo filtras si realmente quieres excluir algunos
+      //.filter(a => a.estado === "Disponible" || a.estadoValidacion === 1)
       .map(a => ({
-        id: a.id,
-        titulo: a.titulo,
-        tipo: a.tipo,
-        descripcion: a.descripcion
+        id: a.id || a.idNecesidadApoyo,
+        titulo: a.titulo || a.descripcion || "Apoyo sin título", // Usar descripción como respaldo
+        tipo: a.tipo || mapearCategoriaAliado(a.categoria),
+        descripcion: a.descripcion || "",
+        categoria: a.categoria || "",
+        subcategoria: a.subcategoria || ""
       }));
     
+    console.log("Apoyos formateados disponibles para vinculación:", apoyosFormateados);
     setApoyosDisponibles(apoyosFormateados);
   }, [apoyos]);
 
@@ -437,6 +447,16 @@ const Aliado = ({ userData, onLogout }) => {
           withCredentials: true
         });
         console.log("[INFO] Apoyos cargados:", response.data);
+        
+        // Inspección detallada de la primera entrada para diagnóstico
+        if (response.data.length > 0) {
+          console.log("[DEBUG] Primer apoyo - campos disponibles:", 
+            Object.keys(response.data[0]));
+          console.log("[DEBUG] Primer apoyo - estado:", 
+            response.data[0].estado || response.data[0].estadoValidacion);
+        } else {
+          console.log("[WARN] No se encontraron apoyos para mostrar");
+        }
   
         const apoyosConTipo = response.data.map(apoyo => ({
           ...apoyo,
