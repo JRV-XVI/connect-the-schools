@@ -18,6 +18,7 @@ import { proyectosAdministrador } from '../data/proyectos/proyectosAdministrador
 // import { gestionVinculaciones } from '../data/gestiones/gestionVinculaciones.js';
 import Logo from "../assets/MPJ.png";
 import { string } from "prop-types";
+import MapaGoogle from "../components/mapaGoogle.jsx";
 
 const Administrador = () => {
   // Estado para controlar qué tipo de validación se está mostrando (proyecto, usuario, etc.)
@@ -434,6 +435,13 @@ const Administrador = () => {
                 )}
                 {/*FIN DE LA INFORMACION*/}
               </div>
+            </div>
+          </section>
+
+          <section>
+            <h2 className="mb-4">Mapa de escuelas</h2>
+            <div className="map-container">
+              <MapaGoogle tipo="admin" />
             </div>
           </section>
 

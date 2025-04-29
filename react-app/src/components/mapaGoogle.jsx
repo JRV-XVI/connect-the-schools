@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
+import { GoogleMap, Marker, InfoWindow, LoadScript } from '@react-google-maps/api';
 
 const MapaGoogle = ({ tipo }) => {
     const [ubicaciones, setUbicaciones] = useState([]);
@@ -13,7 +13,9 @@ const MapaGoogle = ({ tipo }) => {
 
     useEffect(() => {
         const endpoint =
-            tipo === "aliados"
+            tipo === "admin"
+                ? "http://localhost:4001/api/ubicaciones" // Endpoint combinado para admin
+                : tipo === "aliados"
                 ? "http://localhost:4001/api/aliados/ubicaciones"
                 : "http://localhost:4001/api/escuelas/ubicaciones";
 
@@ -30,16 +32,20 @@ const MapaGoogle = ({ tipo }) => {
     }, [tipo]);
 
     return (
-        <LoadScript googleMapsApiKey="API">
+        <LoadScript googleMapsApiKey="apikey">
             <GoogleMap
                 mapContainerStyle={containerStyle}
-                center={mapCenter} // Usa el estado dinámico del centro
-                zoom={12} // Ajusta el nivel de zoom según sea necesario
+                center={mapCenter} 
+                zoom={12}
             >
                 {ubicaciones.map((item) => (
                     <Marker
                         key={item.id}
                         position={{ lat: parseFloat(item.latitud), lng: parseFloat(item.longitud) }}
+                        icon={{
+                            url: item.tipo === 'escuela' ? '/icons/blue-marker.png' : '/icons/red-marker.png', // Íconos personalizados
+                            scaledSize: { width: 20, height: 30 }, // Ajusta el tamaño del ícono
+                        }}
                         onClick={() => {
                             setSelectedItem(item);
                             setMapCenter({ lat: parseFloat(item.latitud), lng: parseFloat(item.longitud) }); // Actualiza el centro al marcador seleccionado
@@ -58,6 +64,7 @@ const MapaGoogle = ({ tipo }) => {
                         <div>
                             <h4>{selectedItem.nombre_escuela || selectedItem.nombre_aliado}</h4>
                             <p>ID: {selectedItem.id}</p>
+                            <p>Tipo: {selectedItem.tipo === 'escuela' ? 'Escuela' : 'Aliado'}</p>
                         </div>
                     </InfoWindow>
                 )}
