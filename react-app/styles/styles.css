@@ -871,3 +871,21 @@ input:checked + .toggle-slider:before {
 .message.outgoing .message-footer {
     text-align: right;
 }
+
+/* Personalizar colores de paginación */
+.pagination .page-item.active .page-link {
+  background-color: #28a745; /* Color verde (success) */
+  border-color: #28a745;
+}
+
+.pagination .page-link:focus {
+  box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25); /* Sombra verde al enfocar */
+}
+
+.pagination .page-link {
+  color: #000; /* Color verde para textos */
+}
+
+.pagination .page-item.disabled .page-link {
+  color: #6c757d; /* Color gris para elementos deshabilitados */
+}

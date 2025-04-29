@@ -23,29 +23,48 @@ const obtenerNotificacionesPorUsuario = async (idUsuario) => {
  * @param {Object} params - Parámetros de la notificación
  * @returns {Promise<Object>} - Notificación creada
  */
+
 const crearNotificacion = async (params) => {
     try {
-        const { idUsuario, titulo, mensaje, fecha } = params;
-        
+        let { idUsuario, titulo, mensaje, rfc, cct } = params;
+
+        if (cct) {
+            const resultado = await db.query(`SELECT "idUsuario" FROM "perfilEscuela" WHERE "cct" = $1`, [cct]);
+            if (resultado.rows.length === 0) {
+                throw new Error('No se encontró escuela con ese CCT');
+            }
+            idUsuario = resultado.rows[0].idUsuario;
+        } else if (rfc) {
+            const resultado = await db.query(`SELECT "idUsuario" FROM "perfilAliado" WHERE "rfc" = $1`, [rfc]);
+            if (resultado.rows.length === 0) {
+                throw new Error('No se encontró aliado con ese RFC');
+            }
+            idUsuario = resultado.rows[0].idUsuario;
+        }
+
+        if (!idUsuario) {
+            throw new Error('Falta idUsuario, RFC o CCT para crear la notificación');
+        }
+
         const query = `
-            INSERT INTO notificaciones ("idUsuario", titulo, mensaje, fecha)
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO notificaciones ("idUsuario", titulo, mensaje)
+            VALUES ($1, $2, $3)
             RETURNING *`;
-        
+
         const valores = [
-            idUsuario, 
-            titulo, 
-            mensaje, 
-            fecha || new Date().toISOString().split('T')[0]
+            idUsuario,
+            titulo,
+            mensaje,
         ];
-        
-        const resultado = await db.query(query, valores);
-        return resultado.rows[0];
+
+        const resultadoInsert = await db.query(query, valores);
+        return resultadoInsert.rows[0];
     } catch (error) {
-        console.error('Error al crear notificación:', error);
+        console.error('Error al crear notificación:', error.message);
         throw new Error('Error al insertar en la base de datos');
     }
 };
+
 
 /**
  * Verifica si un usuario existe
