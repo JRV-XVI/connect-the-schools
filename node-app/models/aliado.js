@@ -8,6 +8,20 @@ const registroAliado = async () => {
 	const resultado = await db.query('SELECT * FROM ');
 };
 
+const obtenerUbicacionesAliados = async () => {
+    const query = `
+        SELECT 
+            pa."idUsuario" AS id, 
+            pa."razonSocial" AS nombre_aliado, 
+            pa."latitud", 
+            pa."longitud"
+        FROM "perfilAliado" pa
+        WHERE pa."latitud" IS NOT NULL AND pa."longitud" IS NOT NULL
+    `;
+    const { rows } = await db.query(query);
+    return rows;
+};
+
 const obtenerAliados = async () => {
 	const resultado = await db.query('SELECT * FROM "perfilAliado"');
 	return resultado.rows;
@@ -126,5 +140,5 @@ const eliminarAliado = async (id) => {
 };
 
 
-module.exports = { obtenerAliados, infoAliado, crearAliado, actualizarAliado, eliminarAliado, necesidadesCompatibles };
+module.exports = { obtenerAliados, infoAliado, crearAliado, actualizarAliado, eliminarAliado, necesidadesCompatibles, obtenerAliados, obtenerUbicacionesAliados };
 

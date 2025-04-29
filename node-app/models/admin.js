@@ -57,4 +57,18 @@ const verificarUsuarioExiste = async (idUsuario) => {
     return resultado.rows.length > 0;
 };
 
-module.exports = { obtenerAdmin, adminId, crearAdmin, eliminarAdminPorId, actualizarAdmin, verificarUsuarioExiste};
+const obtenerUbicacionesAliados = async () => {
+    const query = `
+        SELECT 
+            pa."idUsuario" AS id, 
+            pa."razonSocial" AS nombre_aliado, 
+            pa."latitud", 
+            pa."longitud"
+        FROM "perfilAliado" pa
+        WHERE pa."latitud" IS NOT NULL AND pa."longitud" IS NOT NULL
+    `;
+    const { rows } = await db.query(query);
+    return rows;
+};
+
+module.exports = { obtenerAdmin, adminId, crearAdmin, eliminarAdminPorId, actualizarAdmin, verificarUsuarioExiste, obtenerUbicacionesAliados};

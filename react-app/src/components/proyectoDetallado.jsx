@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { put, get} from "../api.js";
+const URL_BASE = 'http://localhost:4001/api';
 
 const ProyectoDetallado = ({
   proyecto,
@@ -17,9 +19,13 @@ const ProyectoDetallado = ({
   onSaveChanges = () => {},
   onDownloadDocument = () => {},
   onViewDocument = () => {},
+  userData = null
 }) => {
   const [activeTab, setActiveTab] = useState('timeline');
   const [mensaje, setMensaje] = useState('');
+  const [etapaSeleccionada, setEtapaSeleccionada] = useState(null);
+  const [archivoEtapa, setArchivoEtapa] = useState(null);
+  const [archivoExistente, setArchivoExistente] = useState(null);
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
@@ -30,6 +36,61 @@ const ProyectoDetallado = ({
       onSendMessage(mensaje);
       setMensaje('');
     }
+  };
+
+  const handleEtapaClick = (etapa) => {
+    setEtapaSeleccionada(etapa);
+  };
+
+  const handleFileChange = (e) => {
+    setArchivoEtapa(e.target.files[0]);
+  };
+
+  const fetchArchivo = async (idEtapa) => {
+    try {
+      const respuesta = await get(`/archivo/${idEtapa}`)
+      setArchivoExistente(respuesta);
+    } catch (error) {
+      console.log("Error en obtener el archivo", error)
+      setArchivoExistente([]);
+    }
+  };
+
+  const handleFileUpload = async () => {
+    try {
+      if (!archivoEtapa) {
+        alert('Por favor selecciona un archivo primero');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('archivo', archivoEtapa);
+
+      const respuesta = await fetch(`${URL_BASE}/archivo/${etapaSeleccionada.idEtapa}`, {
+        method: 'PUT',
+        body: formData
+      });
+
+      if (respuesta.ok) {
+        console.log("Archivo subido correctamente!", formData)
+        fetchArchivo(etapaSeleccionada.idEtapa);
+        setArchivoEtapa(null);
+      } else {
+        throw new Error(`Error ${respuesta.status}: ${respuesta.statusText}`)
+      }
+    } catch (error) {
+      console.log("Error al subir archivo", error)
+    }
+  };
+
+  const handleCancelUpload = () => {
+    setArchivoEtapa(null);
+    setEtapaSeleccionada(null);
+  };
+
+  // Agrega esta función para manejar la descarga
+  const handleDownloadFile = async () => {
+    window.open(`${URL_BASE}/archivo/${etapaSeleccionada.idEtapa}?download=true`);
   };
 
   // Función auxiliar para formatear fechas (YYYY-MM-DD a DD/MM/YYYY)
@@ -60,12 +121,8 @@ const ProyectoDetallado = ({
   };
 
   // Determinar la clase de estilo para fases según su estado
-  const getFaseClass = (estado) => {
-    switch (estado.toLowerCase()) {
-      case 'completado': return 'border-left-success';
-      case 'en progreso': return 'border-left-primary';
-      default: return 'border-left-secondary';
-    }
+  const getFaseClass = (estadoEntrega) => {
+    return estadoEntrega ? 'border-left-success' : 'border-left-secondary';
   };
 
   // Determinar la clase de badge según el estado del proyecto
@@ -91,6 +148,13 @@ const ProyectoDetallado = ({
       default: return 'fas fa-file text-secondary';
     }
   };
+
+  // 1. Agregar useEffect a nivel de componente
+  useEffect(() => {
+    if (etapaSeleccionada) {
+      fetchArchivo(etapaSeleccionada.idEtapa);
+    }
+  }, [etapaSeleccionada]);
 
   return (
     <div className="card mb-4">
@@ -150,7 +214,7 @@ const ProyectoDetallado = ({
                 type="button" 
                 role="tab"
               >
-                Cronograma
+                Etapas
               </button>
             </li>
             <li className="nav-item" role="presentation">
@@ -190,57 +254,100 @@ const ProyectoDetallado = ({
             {activeTab === 'timeline' && (
               <div className="tab-pane fade show active">
                 <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h6 className="mb-0">Fases del Proyecto</h6>
+                  <h6 className="mb-0">Etapas del Proyecto</h6>
                   <button className="btn btn-sm btn-outline-primary" onClick={onUpdateProgress}>
                     <i className="fas fa-pen me-1"></i> Actualizar avance
                   </button>
                 </div>
 
-                {fases.map((fase, index) => (
-                  <div className={`timeline-item ${fase.estado.toLowerCase()}`} key={index}>
-                    <div className={`card ${getFaseClass(fase.estado)} ${index > 0 ? 'mt-3' : ''}`}>
+                {fases.map((etapa, index) => (
+                  // Modifica la sección donde se renderizan las etapas
+                  <div className={`timeline-item ${etapa.estadoEntrega ? 'completado' : 'pendiente'}`} key={index}>
+                    <div 
+                      className={`card ${getFaseClass(etapa.estadoEntrega)} ${index > 0 ? 'mt-3' : ''} pointer`} 
+                      onClick={() => handleEtapaClick(etapa)}
+                      style={{ cursor: 'pointer' }}
+                    >
                       <div className="card-body py-3">
                         <div className="d-flex justify-content-between align-items-center">
                           <div>
-                            <h6 className="mb-1">{fase.nombre}</h6>
+                            <h6 className="mb-1">Etapa {etapa.orden}: {etapa.tituloEtapa}</h6>
                             <p className="mb-0 text-muted small">
-                              {formatDate(fase.fechaInicio)} - {formatDate(fase.fechaFin)}
+                              {etapa.descripcionEtapa}
                             </p>
                           </div>
-                          <span className={`badge ${getStateBadgeClass(fase.estado)}`}>
-                            {fase.estado}
-                            {fase.progreso && fase.estado.toLowerCase() === 'en progreso' ? ` (${fase.progreso}%)` : ''}
+                          <span className={`badge ${etapa.estadoEntrega ? 'bg-success' : 'bg-secondary'}`}>
+                            {etapa.estadoEntrega ? 'Completado' : 'Pendiente'}
                           </span>
                         </div>
-                        {fase.entregables && fase.entregables.length > 0 && (
-                          <div className="mt-2 small">
-                            <p className="mb-1">
-                              {fase.estado.toLowerCase() === 'completado' 
-                                ? 'Entregables completados:' 
-                                : fase.estado.toLowerCase() === 'en progreso' 
-                                  ? 'Actividades en curso:' 
-                                  : 'Entregables planificados:'}
-                            </p>
-                            <ul className="mb-0">
-                              {fase.entregables.map((entregable, i) => (
-                                <li key={i} className={`text-${entregable.estado === 'completado' ? 'success' : entregable.estado === 'en progreso' ? 'primary' : 'muted'}`}>
-                                  {entregable.estado === 'completado' ? (
-                                    <i className="fas fa-check-circle me-1"></i>
-                                  ) : entregable.estado === 'en progreso' ? (
-                                    <i className="fas fa-spinner me-1"></i>
-                                  ) : (
-                                    <i className="far fa-circle me-1"></i>
-                                  )}
-                                  {entregable.nombre}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>
                 ))}
+
+                {/* Modal para subir archivo */}
+                {etapaSeleccionada && (
+                  <div className="modal-backdrop show" style={{ display: 'block' }}></div>
+                )}
+
+                {etapaSeleccionada && (
+                  <div className="modal" tabIndex="-1" role="dialog" style={{ display: 'block' }}>
+                    <div className="modal-dialog" role="document">
+                      <div className="modal-content">
+                        <div className="modal-header">
+                          <h5 className="modal-title">Archivo de Etapa: {etapaSeleccionada.tituloEtapa}</h5>
+                          <button type="button" className="btn-close" onClick={handleCancelUpload}></button>
+                        </div>
+                        <div className="modal-body">
+                          <div className="mb-3">
+                            <label htmlFor="fileInput" className="form-label">Selecciona un archivo:</label>
+                            <input 
+                              type="file" 
+                              className="form-control" 
+                              id="fileInput" 
+                              onChange={handleFileChange} 
+                            />
+                          </div>
+                          {/* Sección de archivo existente */}
+                          {archivoExistente && (
+                            <div className="mt-4 pt-3 border-top">
+                              <h6 className="mb-3">Archivo actual:</h6>
+                              <div className="d-flex align-items-center p-2 border rounded">
+                                <div className="me-3">
+                                  <i className={`${getDocumentIcon(archivoExistente.tipoContenido)} fa-2x`}></i>
+                                </div>
+                                <div className="flex-grow-1">
+                                  <div className="fw-bold">Nombre Archivo: </div>
+                                  <small className="text-muted">
+                                    Subido el {new Date(archivoExistente.fechaSubida).toLocaleDateString()}
+                                  </small>
+                                </div>
+                                <button 
+                                  className="btn btn-sm btn-outline-primary" 
+                                  onClick={() => handleDownloadFile()}
+                                >
+                                  <i className="fas fa-download"></i>
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <div className="modal-footer">
+                          <button type="button" className="btn btn-secondary" onClick={handleCancelUpload}>Cancelar</button>
+                          <button 
+                            type="button" 
+                            className="btn btn-primary" 
+                            onClick={handleFileUpload}
+                            disabled={!archivoEtapa}
+                          >
+                            Subir archivo
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
               </div>
             )}
 
@@ -368,9 +475,7 @@ const ProyectoDetallado = ({
                     <thead>
                       <tr>
                         <th>Documento</th>
-                        <th>Tipo</th>
-                        <th>Fase</th>
-                        <th>Subido por</th>
+                        <th>Etapa</th>
                         <th>Fecha</th>
                         <th>Acciones</th>
                       </tr>
@@ -389,9 +494,7 @@ const ProyectoDetallado = ({
                               </div>
                             </div>
                           </td>
-                          <td>{documento.categoria}</td>
-                          <td>{documento.fase}</td>
-                          <td>{documento.autor}</td>
+                          <td>Etapa : </td>
                           <td>{formatDate(documento.fecha)}</td>
                           <td>
                             <button 

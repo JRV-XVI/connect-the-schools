@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { get, post, put } from '../api.js'
+import { get, post, put, del } from '../api.js';
 import Sidebar from "../components/barraLateral.jsx";
 import Navbar from "../components/barraNavegacion.jsx";
 import Pendientes from "../components/pendientes.jsx";
@@ -13,7 +13,8 @@ import { navbarAdministrador } from "../data/barraNavegacion/barraNavegacionAdmi
 import { cartasAdministrador } from "../data/cartas/cartasAdministrador.js";
 import { proyectosAdministrador } from '../data/proyectos/proyectosAdministrador.js';
 import Logo from "../assets/MPJ.png";
-import { string } from "prop-types";
+import MapaGoogle from "../components/mapaGoogle.jsx";
+import { Modal, Button, Badge } from 'react-bootstrap';
 
 const Administrador = () => {
   // Estado para controlar qué tipo de validación se está mostrando (proyecto, usuario, etc.)
@@ -24,7 +25,7 @@ const Administrador = () => {
   const [datosGestionNecesidades, setDatosGestionNecesidades] = useState({});
   const [datosGestionApoyos, setDatosGestionApoyos] = useState({});
   const [datosGestionVinculaciones, setDatosGestionVinculaciones] = useState({});
-  
+
   // Estados para ProyectoDetallado
   const [selectedProject, setSelectedProject] = useState(null);
   const [showProjectDetail, setShowProjectDetail] = useState(false);
@@ -34,6 +35,7 @@ const Administrador = () => {
     mensajes: [],
     documentos: []
   });
+
 
   const [mostrarModalEtapas, setMostrarModalEtapas] = useState(false);
   const [vinculacionSeleccionada, setVinculacionSeleccionada] = useState(null);
@@ -49,59 +51,67 @@ const Administrador = () => {
     ]
   });
 
+  // Modificar la función fetchDatosNecesidades
+  // Modificar la función fetchDatosNecesidades
   useEffect(() => {
     async function fetchDatosNecesidades() {
       try {
         const datos = await get("/necesidades");
         console.log("Datos necesidades:", datos);
-    
+
+        // Estructura correcta para necesidades (estructura plana, no anidada)
         const datosAdaptados = {
           titulo: "Necesidades Escolares",
-          textoBoton: "Ver todas las necesidades",
           items: datos.map(item => ({
             titulo: item.categoria || "Sin categoría",
             descripcion: item.descripcion || "Sin descripción",
-            estado: item.estadoValidacion === 1 ? "No aprobado" : (item.estadoValidacion === 2 ? "Pendiente" : "Aprobada"),
+            categoria: item.categoria || "Sin categoría",
+            subcategoria: item.subcategoria || "No especificada",
+            estado: item.estadoValidacion === 1 ? "No aprobado" :
+              item.estadoValidacion === 2 ? "Pendiente" : "Aprobada",
             cantidad: item.prioridad != null ? String(item.prioridad) : "0",
-            color: "primary",
+            color: "secondary",
             datosOriginales: item
           }))
         };
-    
+
         setDatosGestionNecesidades(datosAdaptados);
       } catch (error) {
         console.error("Error al obtener datos de necesidades:", error);
       }
     }
-  
+
     fetchDatosNecesidades();
   }, []);
 
+  // De la misma forma, modificar fetchDatosApoyos
   useEffect(() => {
     async function fetchDatosApoyos() {
       try {
         const datos = await get("/apoyos");
         console.log("Datos apoyos:", datos);
-    
+
         const datosAdaptados = {
           titulo: "Ofertas de Apoyo",
-          textoBoton: "Ver todas las ofertas",
           items: datos.map(item => ({
             titulo: item.categoria || "Sin categoría",
             descripcion: item.descripcion || "Sin descripción",
             estado: item.estadoValidacion === 1 ? "No aprobado" : (item.estadoValidacion === 2 ? "Pendiente" : "Aprobada"),
             cantidad: item.prioridad != null ? String(item.prioridad) : "0",
             color: "secondary",
+            // Agregar explícitamente estos campos
+            categoria: item.categoria || "Sin categoría",
+            subcategoria: item.subcategoria || "No especificada",
             datosOriginales: item
           }))
         };
-    
+
         setDatosGestionApoyos(datosAdaptados);
       } catch (error) {
         console.error("Error al obtener datos de apoyos:", error);
       }
     }
-  
+
     fetchDatosApoyos();
   }, []);
 
@@ -111,23 +121,20 @@ const Administrador = () => {
     async function fetchDatosVinculaciones() {
       try {
         const datos = await get("/vinculaciones");
-
         const datosAdaptados = {
           titulo: "Vinculaciones",
-          textoBoton: "Ver todas las vinculaciones",
           items: datos.map(item => ({
             titulo: item.necesidad.categoria || "Sin categoría",
             descripcion: item.observacion || "Sin descripción",
             categoria: item.necesidad.subcategoria,
-            cantidad: item.prioridad != null ? String(item.prioridad) : "0", // lo convierto a string para mantener mismo tipo que tus dummys
-            color: "secondary", // Aquí también puedes mapear colores si lo deseas
+            cantidad: item.prioridad != null ? String(item.prioridad) : "0",
+            color: "secondary",
             datosOriginales: item
           }))
         };
-
         setDatosGestionVinculaciones(datosAdaptados);
       } catch (error) {
-        console.error("Error al obtener datos de apoyos:", error);
+        console.error("Error al obtener datos de vinculaciones:", error);
       }
     }
 
@@ -137,7 +144,7 @@ const Administrador = () => {
   useEffect(() => {
     const fetchProjectDetails = async () => {
       if (!selectedProject) return;
-      
+
       try {
         // Aquí normalmente cargarías datos del backend
         // Por ahora simulamos datos de ejemplo
@@ -224,7 +231,7 @@ const Administrador = () => {
         console.error("[ERROR] Error al cargar detalles del proyecto:", error.response?.data || error.message);
       }
     };
-    
+
     fetchProjectDetails();
   }, [selectedProject]);
 
@@ -240,25 +247,19 @@ const Administrador = () => {
   const [detalleSeleccionado, setDetalleSeleccionado] = useState(null);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [tipoDetalle, setTipoDetalle] = useState(""); // Para identificar el tipo de detalle (necesidad, apoyo o vinculación)
-  
+
   const handleVerDetalles = (item, tipo) => {
     console.log("Ver detalles:", tipo, item);
-    
+
     // Only proceed if item is defined
     if (!item) {
       console.error(`No se pudo mostrar detalle de tipo ${tipo}: datos indefinidos`);
       return; // Don't show modal if data is undefined
     }
-    
+
     setDetalleSeleccionado(item);
     setTipoDetalle(tipo);
     setMostrarModal(true);
-  };
-
-  const handleVerPendientes = () => {
-    console.log("Ver todos los pendientes");
-    // Al hacer clic en "Ver todos los pendientes", mostrar la sección de validación
-    setMostrarValidacionProyectos(true);
   };
 
   const handleVerProyectos = () => {
@@ -274,7 +275,7 @@ const Administrador = () => {
   const handleActionProyecto = (proyecto) => {
     console.log("Acción en proyecto:", proyecto.nombre, "Estado:", proyecto.estado);
   };
-  
+
   // Manejadores para ProyectoDetallado
   const handleGoBack = () => {
     setShowProjectDetail(false);
@@ -299,7 +300,7 @@ const Administrador = () => {
 
   const handleSendMessage = (mensaje) => {
     console.log("Enviando mensaje para el proyecto:", selectedProject?.nombre, mensaje);
-    
+
     // Actualizar los mensajes localmente
     const newMessage = {
       contenido: mensaje,
@@ -307,7 +308,7 @@ const Administrador = () => {
       hora: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false }),
       esPropio: true
     };
-    
+
     setProjectData(prev => ({
       ...prev,
       mensajes: [...prev.mensajes, newMessage]
@@ -338,7 +339,7 @@ const Administrador = () => {
   const handleAprobarVinculacion = (vinculacion) => {
     console.log("Aprobando vinculación:", vinculacion);
     setVinculacionSeleccionada(vinculacion);
-    
+
     // Inicializar el formulario con datos y etapas predeterminadas según formato requerido
     setDatosProyecto({
       descripcion: "Proyecto de Vinculación 2025",
@@ -354,72 +355,169 @@ const Administrador = () => {
         { tituloEtapa: "Evaluación", descripcionEtapa: "Análisis de resultados", orden: 3 }
       ]
     });
-    
+
     setMostrarModalEtapas(true);
   };
-  
-  // Agregar estas funciones junto a tus otros manejadores
-  
+
+  const handleRechazarVinculacion = async (vinculacion) => {
+    console.log("Rechazando vinculación:", vinculacion);
+
+    try {
+      // Verificar que la vinculación contenga los datos necesarios
+      if (!vinculacion || !vinculacion.aliado?.rfc || !vinculacion.escuela?.cct ||
+        !vinculacion.necesidad?.idNecesidad || !vinculacion.apoyo?.idApoyo) {
+        console.error("Error: vinculación no tiene los datos requeridos", vinculacion);
+        alert("Error: La vinculación no contiene todos los datos necesarios");
+        return;
+      }
+
+      // Datos para la solicitud de rechazo
+      const datosRechazo = {
+        rfc: vinculacion.aliado.rfc,
+        cct: vinculacion.escuela.cct,
+        idNecesidad: vinculacion.necesidad.idNecesidad,
+        idApoyo: vinculacion.apoyo.idApoyo
+      };
+
+      console.log("Enviando solicitud de rechazo:", datosRechazo);
+
+      // FIXED: Changed the endpoint from "/vinculacion" to "/vinculacion/rechazar"
+      const resultado = await del("/vinculacion", datosRechazo);
+
+      console.log("Respuesta del servidor:", resultado);
+
+      // Rest of the notification logic remains the same...
+      const notificacionEscuela = {
+        cct: vinculacion.escuela.cct,
+        titulo: "Vinculación rechazada",
+        mensaje: `La vinculación para "${vinculacion.necesidad.categoria}: ${vinculacion.necesidad.subcategoria}" ha sido rechazada por el administrador.`
+      };
+
+      const notificacionAliado = {
+        rfc: vinculacion.aliado.rfc,
+        titulo: "Vinculación rechazada",
+        mensaje: `La vinculación para apoyar con "${vinculacion.apoyo.categoria}: ${vinculacion.apoyo.subcategoria}" ha sido rechazada por el administrador.`
+      };
+
+      try {
+        await post("/notificacion", notificacionEscuela);
+        console.log("Notificación enviada a la escuela");
+
+        await post("/notificacion", notificacionAliado);
+        console.log("Notificación enviada al aliado");
+      } catch (errorNotificacion) {
+        console.error("Error al enviar notificaciones:", errorNotificacion);
+      }
+
+      alert('Vinculación rechazada exitosamente y notificaciones enviadas');
+
+    } catch (error) {
+      console.error("Error al rechazar la vinculación:", error);
+      alert(`Error al rechazar la vinculación: ${error.message || "Revisa la conexión con el servidor"}`);
+    }
+  };
+
   // Función para aprobar necesidades
   const handleAprobarNecesidad = async (necesidad) => {
     console.log("Aprobando necesidad:", necesidad);
     try {
-      // Verifica si el ID existe y es válido - CORREGIDO para usar idNecesidadApoyo
+      // Verifica si el ID existe y es válido
       if (!necesidad.idNecesidadApoyo) {
         console.error("Error: necesidad no tiene un ID válido", necesidad);
         alert('Error: La necesidad no tiene un ID válido');
         return;
       }
-      
+
       const necesidadId = necesidad.idNecesidadApoyo;
-      
+
       // Objeto de datos para enviar al backend
       const datosAprobacion = {
         id: necesidadId,
         estadoValidacion: 3 // Código de estado para "Aprobado"
       };
-      
+
       console.log(`Enviando petición PUT a /necesidadApoyo/${necesidadId}`, datosAprobacion);
-      
+
       // Llamada al endpoint para aprobar necesidad
       const respuesta = await put(`/necesidadApoyo/${necesidadId}`, datosAprobacion);
-      
-      console.log("Respuesta del servidor:", respuesta);
-      alert('Necesidad aprobada exitosamente');
 
+      console.log("Respuesta del servidor:", respuesta);
+
+      // MODIFICADO: Enviar notificación usando el mismo patrón que funciona en enviarProyecto
+      const idUsuario = necesidad.idUsuario || necesidad.usuario?.idUsuario;
+
+      if (idUsuario) {
+        const notificacionEscuela = {
+          idUsuario: idUsuario,
+          titulo: "¡Necesidad Aprobada!",
+          mensaje: `Su necesidad "${necesidad.categoria}: ${necesidad.subcategoria}" ha sido aprobada y está lista para ser atendida.`
+        };
+
+        try {
+          console.log("Enviando notificación a usuario con ID:", idUsuario);
+          await post("/notificacion", notificacionEscuela);
+          console.log("Notificación enviada sobre necesidad aprobada");
+        } catch (errorNotificacion) {
+          console.error("Error al enviar notificación:", errorNotificacion);
+        }
+      } else {
+        console.warn("No se encontró idUsuario para enviar notificación de necesidad aprobada");
+      }
+
+      alert('Necesidad aprobada exitosamente');
     } catch (error) {
       console.error("Error al aprobar la necesidad:", error);
       alert(`Error al aprobar la necesidad: ${error.message || "Revisa la conexión con el servidor"}`);
     }
   };
-  
-  // De forma similar para apoyos:
+
   const handleAprobarApoyo = async (apoyo) => {
     console.log("Aprobando apoyo:", apoyo);
     try {
-      // Verifica si el ID existe y es válido - CORREGIDO para usar idNecesidadApoyo
+      // Verifica si el ID existe y es válido
       if (!apoyo.idNecesidadApoyo) {
         console.error("Error: apoyo no tiene un ID válido", apoyo);
         alert('Error: El apoyo no tiene un ID válido');
         return;
       }
-      
+
       const apoyoId = apoyo.idNecesidadApoyo;
-      
+
       // Objeto de datos para enviar al backend
       const datosAprobacion = {
         id: apoyoId,
         estadoValidacion: 3 // Código de estado para "Aprobado"
       };
-      
+
       console.log(`Enviando petición PUT a /necesidadApoyo/${apoyoId}`, datosAprobacion);
-      
+
       // Llamada al endpoint para aprobar apoyo
       const respuesta = await put(`/necesidadApoyo/${apoyoId}`, datosAprobacion);
-      
+
       console.log("Respuesta del servidor:", respuesta);
+
+      // MODIFICADO: Enviar notificación usando el mismo patrón que funciona en enviarProyecto
+      const idUsuario = apoyo.idUsuario || apoyo.usuario?.idUsuario;
+
+      if (idUsuario) {
+        const notificacionAliado = {
+          idUsuario: idUsuario,
+          titulo: "¡Apoyo Aprobado!",
+          mensaje: `Su ofrecimiento de apoyo "${apoyo.categoria}: ${apoyo.subcategoria}" ha sido aprobado y ahora está disponible para vinculación con escuelas.`
+        };
+
+        try {
+          console.log("Enviando notificación al usuario con ID:", idUsuario);
+          await post("/notificacion", notificacionAliado);
+          console.log("Notificación enviada sobre apoyo aprobado");
+        } catch (errorNotificacion) {
+          console.error("Error al enviar notificación:", errorNotificacion);
+        }
+      } else {
+        console.warn("No se encontró idUsuario para enviar notificación de apoyo aprobado");
+      }
+
       alert('Apoyo aprobado exitosamente');
-      
     } catch (error) {
       console.error("Error al aprobar el apoyo:", error);
       alert(`Error al aprobar el apoyo: ${error.message || "Revisa la conexión con el servidor"}`);
@@ -429,37 +527,56 @@ const Administrador = () => {
   const handleRechazarNecesidad = async (necesidad) => {
     console.log("Rechazando necesidad:", necesidad);
     try {
-      // Verifica si el ID existe y es válido
       if (!necesidad.idNecesidadApoyo) {
         console.error("Error: necesidad no tiene un ID válido", necesidad);
         alert('Error: La necesidad no tiene un ID válido');
         return;
       }
-      
+
       const necesidadId = necesidad.idNecesidadApoyo;
-      
+
       // Objeto de datos para enviar al backend
       const datosRechazo = {
         id: necesidadId,
         estadoValidacion: 1 // Código de estado para "No aprobado"
       };
-      
+
       console.log(`Enviando petición PUT a /necesidadApoyo/${necesidadId}`, datosRechazo);
-      
+
       // Llamada al endpoint para rechazar necesidad
       const respuesta = await put(`/necesidadApoyo/${necesidadId}`, datosRechazo);
-      
+
+
       console.log("Respuesta del servidor:", respuesta);
+
+      // MODIFICADO: Enviar notificación usando el mismo patrón que funciona en enviarProyecto
+      const idUsuario = necesidad.idUsuario || necesidad.usuario?.idUsuario;
+
+      if (idUsuario) {
+        const notificacionEscuela = {
+          idUsuario: idUsuario,
+          titulo: "Necesidad No Aprobada",
+          mensaje: `Su necesidad "${necesidad.categoria}: ${necesidad.subcategoria}" no ha sido aprobada. Por favor, contacte con administración para más detalles.`
+        };
+
+        try {
+          console.log("Enviando notificación de rechazo al usuario con ID:", idUsuario);
+          await post("/notificacion", notificacionEscuela);
+          console.log("Notificación enviada sobre necesidad rechazada");
+        } catch (errorNotificacion) {
+          console.error("Error al enviar notificación:", errorNotificacion);
+        }
+      } else {
+        console.warn("No se encontró idUsuario para enviar notificación de necesidad rechazada");
+      }
+
       alert('Necesidad rechazada exitosamente');
-      
-      
     } catch (error) {
       console.error("Error al rechazar la necesidad:", error);
       alert(`Error al rechazar la necesidad: ${error.message || "Revisa la conexión con el servidor"}`);
     }
   };
-  
-  // Función para rechazar apoyos
+
   const handleRechazarApoyo = async (apoyo) => {
     console.log("Rechazando apoyo:", apoyo);
     try {
@@ -469,37 +586,49 @@ const Administrador = () => {
         alert('Error: El apoyo no tiene un ID válido');
         return;
       }
-      
+
       const apoyoId = apoyo.idNecesidadApoyo;
-      
+
       // Objeto de datos para enviar al backend
       const datosRechazo = {
         id: apoyoId,
         estadoValidacion: 1 // Código de estado para "No aprobado"
       };
-      
+
       console.log(`Enviando petición PUT a /necesidadApoyo/${apoyoId}`, datosRechazo);
-      
-      // Llamada al endpoint para rechazar apoyo
+
       const respuesta = await put(`/necesidadApoyo/${apoyoId}`, datosRechazo);
-      
+
       console.log("Respuesta del servidor:", respuesta);
+
+      // MODIFICADO: Enviar notificación usando el mismo patrón que funciona en enviarProyecto
+      const idUsuario = apoyo.idUsuario || apoyo.usuario?.idUsuario;
+
+      if (idUsuario) {
+        const notificacionAliado = {
+          idUsuario: idUsuario,
+          titulo: "Apoyo No Aprobado",
+          mensaje: `Su ofrecimiento de apoyo "${apoyo.categoria}: ${apoyo.subcategoria}" ha sido aprobado y ahora está disponible para vinculación con escuelas.`
+        };
+
+        try {
+          console.log("Enviando notificación de rechazo al usuario con ID:", idUsuario);
+          await post("/notificacion", notificacionAliado);
+          console.log("Notificación enviada sobre apoyo rechazado");
+        } catch (errorNotificacion) {
+          console.error("Error al enviar notificación:", errorNotificacion);
+        }
+      } else {
+        console.warn("No se encontró idUsuario para enviar notificación de apoyo rechazado");
+      }
+
       alert('Apoyo rechazado exitosamente');
-      
-      
     } catch (error) {
       console.error("Error al rechazar el apoyo:", error);
       alert(`Error al rechazar el apoyo: ${error.message || "Revisa la conexión con el servidor"}`);
     }
   };
 
-  // Función auxiliar para obtener una fecha predeterminada (6 meses desde hoy)
-  const obtenerFechaFinPredeterminada = () => {
-    const fecha = new Date();
-    fecha.setMonth(fecha.getMonth() + 6);
-    return fecha.toISOString().split('T')[0]; // Formato YYYY-MM-DD
-  };
-  
   // Manejar cambios en los campos del proyecto (descripción y fecha)
   const handleCambioDatosProyecto = (e) => {
     const { name, value } = e.target;
@@ -508,7 +637,7 @@ const Administrador = () => {
       [name]: value
     }));
   };
-  
+
   // Manejar cambios en los campos de una etapa
   const handleCambioEtapa = (index, campo, valor) => {
     const nuevasEtapas = [...datosProyecto.etapas];
@@ -521,7 +650,7 @@ const Administrador = () => {
       etapas: nuevasEtapas
     }));
   };
-  
+
   // Agregar una nueva etapa
   const agregarEtapa = () => {
     const nuevaOrden = datosProyecto.etapas.length + 1;
@@ -530,28 +659,28 @@ const Administrador = () => {
       etapas: [...prev.etapas, { tituloEtapa: "", descripcionEtapa: "", orden: nuevaOrden }]
     }));
   };
-  
+
   // Eliminar una etapa
   const eliminarEtapa = (index) => {
     if (datosProyecto.etapas.length <= 1) {
       return; // Siempre mantener al menos una etapa
     }
-    
+
     const nuevasEtapas = datosProyecto.etapas.filter((_, i) => i !== index);
-    
+
     // Reordenar las etapas restantes
     const etapasReordenadas = nuevasEtapas.map((etapa, i) => ({
       ...etapa,
       orden: i + 1
     }));
-    
+
     setDatosProyecto(prev => ({
       ...prev,
       etapas: etapasReordenadas
     }));
   };
-  
-  // Enviar los datos del proyecto al backend
+
+  // Modificar la función enviarProyecto para incluir el envío de notificaciones
   const enviarProyecto = async () => {
     try {
       // Validar que todas las etapas tengan título
@@ -575,34 +704,58 @@ const Administrador = () => {
           orden: etapa.orden
         }))
       };
-  
+
       // Si necesitas el ID de la vinculación, añádelo aquí
       if (vinculacionSeleccionada && vinculacionSeleccionada.id) {
         datosFormateados.idVinculacion = vinculacionSeleccionada.id;
       }
-  
+
       console.log("Enviando datos:", JSON.stringify(datosFormateados, null, 2));
-      
+
       // Realizar la llamada POST al endpoint especificado
       const respuesta = await post("/vinculacion/aceptar", datosFormateados);
-      
+
       console.log("Respuesta del servidor:", respuesta);
-      
+
+      // NUEVO: Enviar notificaciones a la escuela y al aliado
+      // 1. Notificación a la escuela
+      const notificacionEscuela = {
+        cct: datosProyecto.cct,
+        titulo: "¡Proyecto creado con éxito!",
+        mensaje: `Se ha creado el proyecto "${datosProyecto.descripcion}" para atender su necesidad. Puede revisar los detalles en la sección de proyectos.`
+      };
+
+      // 2. Notificación al aliado
+      const notificacionAliado = {
+        rfc: datosProyecto.rfc,
+        titulo: "¡Proyecto en marcha!",
+        mensaje: `Se ha creado el proyecto "${datosProyecto.descripcion}" para la vinculación que ofreció. Revise los detalles en su panel de proyectos.`
+      };
+
+      // Enviar notificaciones de forma asíncrona
+      try {
+        await post("/notificacion", notificacionEscuela);
+        console.log("Notificación enviada a la escuela");
+
+        await post("/notificacion", notificacionAliado);
+        console.log("Notificación enviada al aliado");
+      } catch (errorNotificacion) {
+        console.error("Error al enviar notificaciones:", errorNotificacion);
+        // No bloqueamos la creación del proyecto si fallan las notificaciones
+      }
+
       // Cerrar el modal y mostrar mensaje de éxito
       setMostrarModalEtapas(false);
-      alert('Proyecto creado exitosamente');
-      
-      // Opcional: Recargar los datos de vinculaciones para actualizar la UI
-      fetchDatosVinculaciones();
-      
+      alert('Proyecto creado exitosamente y notificaciones enviadas');
+
     } catch (error) {
       console.error("Error al crear el proyecto:", error);
       alert(`Error al crear el proyecto: ${error.message || "Revisa la conexión con el servidor"}`);
     }
   };
-  
+
   // Manejadores para validaciones de pendientes
-  const handlePendienteClick = (item, index) => {
+  const handlePendienteClick = (item) => {
     if (item.tipo === 'proyecto') {
       // Si ya está activo, lo desactivamos (toggle)
       setValidacionActiva(validacionActiva === 'proyecto' ? null : 'proyecto');
@@ -623,11 +776,6 @@ const Administrador = () => {
   const handleProyectoValidado = (data, isApproved) => {
     console.log(`Proyecto ${isApproved ? 'aprobado' : 'rechazado'}:`, data);
     // Aquí podrías actualizar la lista de proyectos pendientes después de validar
-  };
-
-  // Nuevos manejadores para gestiones
-  const handleVerGestionUsuarios = () => {
-    console.log("Ver todos los usuarios pendientes");
   };
 
   const handleVerNecesidades = () => {
@@ -659,7 +807,7 @@ const Administrador = () => {
         isOpen={sidebarOpen}
         toggleSidebar={toggleSidebar}
       />
-    
+
       {/* Contenido del dashboard */}
       <div className="main-content">
         <Navbar
@@ -668,7 +816,7 @@ const Administrador = () => {
           notificaciones={notificaciones}
           menuItems={menuItems}
         />
-  
+
         {/* Botón para mostrar sidebar en dispositivos móviles */}
         <button
           className="d-md-none menu-toggle btn btn-sm btn-primary position-fixed"
@@ -677,376 +825,564 @@ const Administrador = () => {
         >
           <i className="fas fa-bars"></i>
         </button>
-  
+
         <div className="content px-3 py-3">
           <h2 className="mb-4">Dashboard Administrador</h2>
-    
+
           {/* Cartas estadísticas */}
           <section className="mb-4">
             <StatCardGroup cards={cartasAdministrador} />
           </section>
 
-         {/* Sección de Proyectos y Validaciones Pendientes */}
-         <section className="mb-4">
-          <div className="row">
-            <div className="col-xl-8 col-lg-7">
-              <Proyecto
-                titulo={proyectosTitulo}
-                proyectos={proyectosItems}
-                tipo="admin"
-                textoBoton={proyectosTextoBoton}
-                onButtonClick={handleVerProyectos}
-                onViewClick={handleVerDetallesProyecto}
-                onActionClick={handleActionProyecto}
-                allProjects={proyectosTodos}
-              />
-            </div>
-            <div className="col-xl-4 col-lg-5">
-              {/* Componente de validaciones pendientes actualizado */}
-                  <div className="card h-100">
-                    <div className="card-header d-flex justify-content-between align-items-center">
-                      <h5 className="mb-0">Validaciones Pendientes</h5>
-                      {pendientesAdministrador?.textoBoton && (
-                        <button
-                          className="btn btn-sm btn-primary"
-                          onClick={() => console.log("Ver todas las validaciones")}
-                        >
-                          {pendientesAdministrador.textoBoton}
-                        </button>
-                      )}
-                    </div>
-                    <div className="card-body">
-                      <ul className="list-group list-group-flush">
-                        {pendientesTodos.map((item, index) => (
-                          <li
-                            className="list-group-item px-0 cursor-pointer"
-                            key={index}
-                            onClick={() => handlePendienteClick(item, index)}
-                            style={{ cursor: 'pointer' }}
-                          >
-                            <div className="d-flex justify-content-between align-items-center">
-                              <div>
-                                <h6 className="mb-0">{item.titulo}</h6>
-                                <small className="text-muted">{item.descripcion}</small>
-                              </div>
-                              <span className={`badge bg-${item.color || 'primary'} rounded-pill`}>{item.cantidad}</span>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+          {/* Sección de Proyectos y Validaciones Pendientes */}
+          <section className="mb-4">
+            <div className="row">
+              <div className="col-xl-8 col-lg-7">
+                <Proyecto
+                  titulo={proyectosTitulo}
+                  proyectos={proyectosItems}
+                  tipo="admin"
+                  textoBoton={proyectosTextoBoton}
+                  onButtonClick={handleVerProyectos}
+                  onViewClick={handleVerDetallesProyecto}
+                  onActionClick={handleActionProyecto}
+                  allProjects={proyectosTodos}
+                />
+              </div>
+              <div className="col-xl-4 col-lg-5">
+                {/* Componente de validaciones pendientes actualizado */}
+                <div className="card h-100">
+                  <div className="card-header d-flex justify-content-between align-items-center">
+                    <h5 className="mb-0">Validaciones Pendientes</h5>
+                    {pendientesAdministrador?.textoBoton && (
+                      <button
+                        className="btn btn-sm btn-primary"
+                        onClick={() => console.log("Ver todas las validaciones")}
+                      >
+                        {pendientesAdministrador.textoBoton}
+                      </button>
+                    )}
                   </div>
+                  <div className="card-body">
+                    <ul className="list-group list-group-flush">
+                      {pendientesTodos.map((item, index) => (
+                        <li
+                          className="list-group-item px-0 cursor-pointer"
+                          key={index}
+                          onClick={() => handlePendienteClick(item, index)}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <div className="d-flex justify-content-between align-items-center">
+                            <div>
+                              <h6 className="mb-0">{item.titulo}</h6>
+                              <small className="text-muted">{item.descripcion}</small>
+                            </div>
+                            <span className={`badge bg-${item.color || 'primary'} rounded-pill`}>{item.cantidad}</span>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          {/* ProyectoDetallado - Mostrado justo después de las validaciones y proyectos */}
+          {showProjectDetail && selectedProject && (
+            <section className="mb-4">
+              <div className="card">
+                <div className="card-header d-flex justify-content-between align-items-center">
+                  <h5 className="mb-0">Detalle del Proyecto: {selectedProject.nombre}</h5>
+                  <button
+                    className="btn btn-sm btn-outline-secondary"
+                    onClick={handleGoBack}
+                  >
+                    <i className="fas fa-times me-1"></i> Cerrar
+                  </button>
+                </div>
+                <div className="card-body">
+                  <ProyectoDetallado
+                    proyecto={selectedProject}
+                    fases={projectData.fases}
+                    evidencias={projectData.evidencias}
+                    mensajes={projectData.mensajes}
+                    documentos={projectData.documentos}
+                    onExportReport={handleExportReport}
+                    onAddRecord={handleAddRecord}
+                    onUpdateProgress={handleUpdateProgress}
+                    onUploadEvidence={handleUploadEvidence}
+                    onSendMessage={handleSendMessage}
+                    onUploadDocument={handleUploadDocument}
+                    onGoBack={handleGoBack}
+                    onGenerateReport={handleGenerateReport}
+                    onSaveChanges={handleSaveChanges}
+                    onDownloadDocument={handleDownloadDocument}
+                    onViewDocument={handleViewDocument}
+                  />
                 </div>
               </div>
             </section>
-                    {/* ProyectoDetallado - Mostrado justo después de las validaciones y proyectos */}
-                    {showProjectDetail && selectedProject && (
-                      <section className="mb-4">
-                        <div className="card">
-                          <div className="card-header d-flex justify-content-between align-items-center">
-                            <h5 className="mb-0">Detalle del Proyecto: {selectedProject.nombre}</h5>
-                            <button
-                              className="btn btn-sm btn-outline-secondary"
-                              onClick={handleGoBack}
-                            >
-                              <i className="fas fa-times me-1"></i> Cerrar
-                            </button>
-                          </div>
-                          <div className="card-body">
-                            <ProyectoDetallado
-                              proyecto={selectedProject}
-                              fases={projectData.fases}
-                              evidencias={projectData.evidencias}
-                              mensajes={projectData.mensajes}
-                              documentos={projectData.documentos}
-                              onExportReport={handleExportReport}
-                              onAddRecord={handleAddRecord}
-                              onUpdateProgress={handleUpdateProgress}
-                              onUploadEvidence={handleUploadEvidence}
-                              onSendMessage={handleSendMessage}
-                              onUploadDocument={handleUploadDocument}
-                              onGoBack={handleGoBack}
-                              onGenerateReport={handleGenerateReport}
-                              onSaveChanges={handleSaveChanges}
-                              onDownloadDocument={handleDownloadDocument}
-                              onViewDocument={handleViewDocument}
-                            />
-                          </div>
-                        </div>
-                      </section>
-                    )}
-              {/* Sección expandible de Validación de Proyectos */}
-              {validacionActiva === 'proyecto' && (
-                <section className="mb-4">
-                  <div className="card">
-                    <div className="card-header d-flex justify-content-between align-items-center">
-                      <h5 className="mb-0">Validación de Proyectos</h5>
-                      <button
-                        className="btn btn-sm btn-outline-secondary"
-                        onClick={cerrarValidacion}
-                      >
-                        <i className="fas fa-times me-1"></i> Cerrar
-                      </button>
-                    </div>
-                    <div className="card-body">
-                      <Pendientes
-                        titulo={proyectosPendientes.titulo}
-                        items={proyectosPendientes.items}
-                        tipo="proyecto"
-                        badgeText={proyectosPendientes.badgeText}
-                        badgeColor={proyectosPendientes.badgeColor}
-                        textoBoton={proyectosPendientes.textoBoton}
-                        onButtonClick={() => console.log("Ver todos los proyectos pendientes")}
-                        apiUrl={proyectosPendientes.apiUrl || "/api/v1"}
-                        onValidate={handleProyectoValidado}
-                        fullHeight={false}
-                        hideTitulo={true} // Ocultar título ya que está en el card-header
-                      />
-                    </div>
-                  </div>
-                </section>
-              )}
-
-              {/* Validación de Usuarios */}
-              {validacionActiva === 'usuario' && (
-                <section className="mb-4">
-                  <div className="card">
-                    <div className="card-header d-flex justify-content-between align-items-center">
-                      <h5 className="mb-0">Validación de Usuarios</h5>
-                      <button
-                        className="btn btn-sm btn-outline-secondary"
-                        onClick={cerrarValidacion}
-                      >
-                        <i className="fas fa-times me-1"></i> Cerrar
-                      </button>
-                    </div>
-                    <div className="card-body">
-                      <p>Contenido para validación de usuarios...</p>
-                    </div>
-                  </div>
-                </section>
-              )}
-
-              {/* GESTIONES - Cada gestión en su propia sección */}
-              <h4 className="mb-3 mt-5">Gestiones del Sistema</h4>
-              
-              {/* Gestión de Necesidades */}
-              <section className="mb-4">
-                <div className="row">
-                  <div className="col-12">
-                    <Gestiones
-                      titulo={datosGestionNecesidades.titulo}
-                      items={datosGestionNecesidades.items}
-                      textoBoton={datosGestionNecesidades.textoBoton}
-                      onButtonClick={handleVerNecesidades}
-                      onVerDetalles={(item) => {
-                        if (item && item.datosOriginales) {
-                          handleVerDetalles(item.datosOriginales, "necesidad");
-                        } else {
-                          handleVerDetalles(item, "necesidad");
-                        }
-                      }}
-                      onAprobar={(item) => {
-                        if (item && item.datosOriginales) {
-                          handleAprobarNecesidad(item.datosOriginales);
-                        } else {
-                          handleAprobarNecesidad(item);
-                        }
-                      }}
-                      onRechazar={(item) => {
-                        if (item && item.datosOriginales) {
-                          handleRechazarNecesidad(item.datosOriginales);
-                        } else {
-                          handleRechazarNecesidad(item);
-                        }
-                      }}
-                      tipo="admin"
-                      mostrarAcciones={true}
-                    />
-                  </div>
+          )}
+          {/* Sección expandible de Validación de Proyectos */}
+          {validacionActiva === 'proyecto' && (
+            <section className="mb-4">
+              <div className="card">
+                <div className="card-header d-flex justify-content-between align-items-center">
+                  <h5 className="mb-0">Validación de Proyectos</h5>
+                  <button
+                    className="btn btn-sm btn-outline-secondary"
+                    onClick={cerrarValidacion}
+                  >
+                    <i className="fas fa-times me-1"></i> Cerrar
+                  </button>
                 </div>
-              </section>
-
-              {/* Gestión de Apoyos */}
-              <section className="mb-4">
-                <div className="row">
-                  <div className="col-12">
-                    <Gestiones
-                      titulo={datosGestionApoyos.titulo}
-                      items={datosGestionApoyos.items}
-                      textoBoton={datosGestionApoyos.textoBoton}
-                      onButtonClick={handleVerOfertas}
-                      onVerDetalles={(item) => {
-                        if (item && item.datosOriginales) {
-                          handleVerDetalles(item.datosOriginales, "apoyo");
-                        } else {
-                          handleVerDetalles(item, "apoyo");
-                        }
-                      }}
-                      onAprobar={(item) => {
-                        if (item && item.datosOriginales) {
-                          handleAprobarApoyo(item.datosOriginales);
-                        } else {
-                          handleAprobarApoyo(item);
-                        }
-                      }}
-                      onRechazar={(item) => {
-                        if (item && item.datosOriginales) {
-                          handleRechazarApoyo(item.datosOriginales);
-                        } else {
-                          handleRechazarApoyo(item);
-                        }
-                      }}
-                      tipo="admin"
-                      mostrarAcciones={true}
-                    />
-                  </div>
-                </div>
-              </section>
-
-              {/* Gestión de Vinculaciones */}
-              <section className="mb-4">
-                <div className="row">
-                  <div className="col-12">
-                    <Gestiones
-                      titulo={datosGestionVinculaciones.titulo}
-                      items={datosGestionVinculaciones.items}
-                      textoBoton={datosGestionVinculaciones.textoBoton}
-                      onButtonClick={handleVerVinculaciones}
-                      onVerDetalles={(item) => {
-                        if (item && item.datosOriginales) {
-                          handleVerDetalles(item.datosOriginales, "vinculacion");
-                        } else {
-                          handleVerDetalles(item, "vinculacion");
-                        }
-                      }}
-                      onAprobar={(item) => {
-                        if (item && item.datosOriginales) {
-                          handleAprobarVinculacion(item.datosOriginales);
-                        } else {
-                          handleAprobarVinculacion(item);
-                        }
-                      }}
-                      tipo="admin"
-                      mostrarAcciones={true}
-                    />
-                  </div>
-                </div>
-              </section>
-        </div>
-        
-        {/* Modal para mostrar detalles - CORRECTAMENTE POSICIONADO */}
-        {mostrarModal && detalleSeleccionado && (
-          <div className="modal fade show d-block" tabIndex="-1" role="dialog" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-            <div className="modal-dialog" role="document">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title">
-                    {tipoDetalle === "necesidad" ? "Detalle de Necesidad" : 
-                     tipoDetalle === "apoyo" ? "Detalle de Apoyo" : "Detalle de Vinculación"}
-                  </h5>
-                  <button type="button" className="btn-close" onClick={() => setMostrarModal(false)}></button>
-                </div>
-                    
-                <div className="modal-body">
-                  {/* Contenido condicional según el tipo de detalle */}
-                  {tipoDetalle === "necesidad" && (
-                    <>
-                      <h6>Información de la Necesidad</h6>
-                      <p><strong>Categoría:</strong> {detalleSeleccionado.categoria || "No especificado"}</p>
-                      <p><strong>Subcategoría:</strong> {detalleSeleccionado.subcategoria || "No especificado"}</p>
-                      <p><strong>Descripción:</strong> {detalleSeleccionado.descripcion || "Sin descripción"}</p>
-                      <p><strong>Prioridad:</strong> {detalleSeleccionado.prioridad || "No especificada"}</p>
-                      <p><strong>Estado:</strong> {detalleSeleccionado.estadoValidacion === 1 ? "No aprobado" : 
-                                                detalleSeleccionado.estadoValidacion === 2 ? "Pendiente" : "Aprobada"}</p>
-                      
-                      {/* Usuario relacionado con la necesidad */}
-                      {detalleSeleccionado.usuario && (
-                        <>
-                          <h6 className="mt-3">Usuario</h6>
-                          <p><strong>Nombre:</strong> {detalleSeleccionado.usuario.nombre || "No especificado"}</p>
-                          <p><strong>Email:</strong> {detalleSeleccionado.usuario.email || "No especificado"}</p>
-                          <p><strong>Rol:</strong> {detalleSeleccionado.usuario.rol || "No especificado"}</p>
-                        </>
-                      )}
-                      
-                      {/* Escuela relacionada si está disponible */}
-                      {detalleSeleccionado.escuela && (
-                        <>
-                          <h6 className="mt-3">Escuela</h6>
-                          <p><strong>CCT:</strong> {detalleSeleccionado.escuela.cct || "No especificado"}</p>
-                          <p><strong>Nombre:</strong> {detalleSeleccionado.escuela.nombre || "No especificado"}</p>
-                        </>
-                      )}
-                    </>
-                  )}
-                  
-                  {tipoDetalle === "apoyo" && (
-                    <>
-                      <h6>Información del Apoyo</h6>
-                      <p><strong>Categoría:</strong> {detalleSeleccionado.categoria || "No especificado"}</p>
-                      <p><strong>Subcategoría:</strong> {detalleSeleccionado.subcategoria || "No especificado"}</p>
-                      <p><strong>Descripción:</strong> {detalleSeleccionado.descripcion || "Sin descripción"}</p>
-                      <p><strong>Prioridad:</strong> {detalleSeleccionado.prioridad || "No especificada"}</p>
-                      <p><strong>Estado:</strong> {detalleSeleccionado.estadoValidacion === 1 ? "No aprobado" : 
-                                                detalleSeleccionado.estadoValidacion === 2 ? "Pendiente" : "Aprobada"}</p>
-                      
-                      {/* Usuario relacionado con el apoyo */}
-                      {detalleSeleccionado.usuario && (
-                        <>
-                          <h6 className="mt-3">Usuario</h6>
-                          <p><strong>Nombre:</strong> {detalleSeleccionado.usuario.nombre || "No especificado"}</p>
-                          <p><strong>Email:</strong> {detalleSeleccionado.usuario.email || "No especificado"}</p>
-                          <p><strong>Rol:</strong> {detalleSeleccionado.usuario.rol || "No especificado"}</p>
-                        </>
-                      )}
-                      
-                      {/* Aliado relacionado si está disponible */}
-                      {detalleSeleccionado.aliado && (
-                        <>
-                          <h6 className="mt-3">Aliado</h6>
-                          <p><strong>RFC:</strong> {detalleSeleccionado.aliado.rfc || "No especificado"}</p>
-                          <p><strong>Razón Social:</strong> {detalleSeleccionado.aliado.razonSocial || "No especificado"}</p>
-                        </>
-                      )}
-                    </>
-                  )}
-                  
-                  {tipoDetalle === "vinculacion" && (
-                    <>
-                      <h6>Escuela</h6>
-                      <p><strong>CCT:</strong> {detalleSeleccionado.escuela?.cct}</p>
-                      <p><strong>Nivel Educativo:</strong> {detalleSeleccionado.escuela?.nivelEducativo}</p>
-                      <p><strong>Sector:</strong> {detalleSeleccionado.escuela?.sector}</p>
-                      <p><strong>Estudiantes:</strong> {detalleSeleccionado.escuela?.numeroEstudiantes}</p>
-                      <p><strong>Director:</strong> {detalleSeleccionado.escuela?.nombreDirector}</p>
-
-                      <h6>Aliado</h6>
-                      <p><strong>RFC:</strong> {detalleSeleccionado.aliado?.rfc}</p>
-                      <p><strong>Razón Social:</strong> {detalleSeleccionado.aliado?.razonSocial}</p>
-
-                      <h6>Necesidad</h6>
-                      <p><strong>Categoría:</strong> {detalleSeleccionado.necesidad?.categoria}</p>
-                      <p><strong>Subcategoría:</strong> {detalleSeleccionado.necesidad?.subcategoria}</p>
-                      <p><strong>Descripción:</strong> {detalleSeleccionado.necesidad?.descripcion}</p>
-
-                      <h6>Apoyo</h6>
-                      <p><strong>Categoría:</strong> {detalleSeleccionado.apoyo?.categoria}</p>
-                      <p><strong>Subcategoría:</strong> {detalleSeleccionado.apoyo?.subcategoria}</p>
-                      <p><strong>Descripción:</strong> {detalleSeleccionado.apoyo?.descripcion}</p>
-
-                      <h6>Observación</h6>
-                      <p>{detalleSeleccionado.observacion}</p>
-                    </>
-                  )}
-                </div>
-
-                <div className="modal-footer">
-                  <button type="button" className="btn btn-secondary" onClick={() => setMostrarModal(false)}>Cerrar</button>
+                <div className="card-body">
+                  <Pendientes
+                    titulo={proyectosPendientes.titulo}
+                    items={proyectosPendientes.items}
+                    tipo="proyecto"
+                    badgeText={proyectosPendientes.badgeText}
+                    badgeColor={proyectosPendientes.badgeColor}
+                    textoBoton={proyectosPendientes.textoBoton}
+                    onButtonClick={() => console.log("Ver todos los proyectos pendientes")}
+                    apiUrl={proyectosPendientes.apiUrl || "/api/v1"}
+                    onValidate={handleProyectoValidado}
+                    fullHeight={false}
+                    hideTitulo={true} // Ocultar título ya que está en el card-header
+                  />
                 </div>
               </div>
+            </section>
+          )}
+
+          {/* Validación de Usuarios */}
+          {validacionActiva === 'usuario' && (
+            <section className="mb-4">
+              <div className="card">
+                <div className="card-header d-flex justify-content-between align-items-center">
+                  <h5 className="mb-0">Validación de Usuarios</h5>
+                  <button
+                    className="btn btn-sm btn-outline-secondary"
+                    onClick={cerrarValidacion}
+                  >
+                    <i className="fas fa-times me-1"></i> Cerrar
+                  </button>
+                </div>
+                <div className="card-body">
+                  <p>Contenido para validación de usuarios...</p>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* GESTIONES - Cada gestión en su propia sección */}
+          <h4 className="mb-3 mt-5">Gestiones del Sistema</h4>
+
+          {/* Gestión de Necesidades */}
+          <section className="mb-4">
+            <div className="row">
+              <div className="col-12">
+                <Gestiones
+                  titulo={datosGestionNecesidades.titulo}
+                  items={datosGestionNecesidades.items}
+                  textoBoton={datosGestionNecesidades.textoBoton}
+                  onButtonClick={handleVerNecesidades}
+                  onVerDetalles={(item) => {
+                    if (item && item.datosOriginales) {
+                      handleVerDetalles(item.datosOriginales, "necesidad");
+                    } else {
+                      handleVerDetalles(item, "necesidad");
+                    }
+                  }}
+                  onAprobar={(item) => {
+                    if (item && item.datosOriginales) {
+                      handleAprobarNecesidad(item.datosOriginales);
+                    } else {
+                      handleAprobarNecesidad(item);
+                    }
+                  }}
+                  onRechazar={(item) => {
+                    if (item && item.datosOriginales) {
+                      handleRechazarNecesidad(item.datosOriginales);
+                    } else {
+                      handleRechazarNecesidad(item);
+                    }
+                  }}
+                  tipo="admin"
+                  mostrarAcciones={true}
+                />
+              </div>
             </div>
-          </div>
+          </section>
+
+          {/* Gestión de Apoyos */}
+          <section className="mb-4">
+            <div className="row">
+              <div className="col-12">
+                <Gestiones
+                  titulo={datosGestionApoyos.titulo}
+                  items={datosGestionApoyos.items}
+                  textoBoton={datosGestionApoyos.textoBoton}
+                  onButtonClick={handleVerOfertas}
+                  onVerDetalles={(item) => {
+                    if (item && item.datosOriginales) {
+                      handleVerDetalles(item.datosOriginales, "apoyo");
+                    } else {
+                      handleVerDetalles(item, "apoyo");
+                    }
+                  }}
+                  onAprobar={(item) => {
+                    if (item && item.datosOriginales) {
+                      handleAprobarApoyo(item.datosOriginales);
+                    } else {
+                      handleAprobarApoyo(item);
+                    }
+                  }}
+                  onRechazar={(item) => {
+                    if (item && item.datosOriginales) {
+                      handleRechazarApoyo(item.datosOriginales);
+                    } else {
+                      handleRechazarApoyo(item);
+                    }
+                  }}
+                  tipo="admin"
+                  mostrarAcciones={true}
+                />
+              </div>
+            </div>
+          </section>
+
+          {/* Gestión de Vinculaciones */}
+          <section className="mb-4">
+            <div className="row">
+              <div className="col-12">
+                <Gestiones
+                  titulo={datosGestionVinculaciones.titulo}
+                  items={datosGestionVinculaciones.items}
+                  textoBoton={datosGestionVinculaciones.textoBoton}
+                  onButtonClick={handleVerVinculaciones}
+                  onVerDetalles={(item) => {
+                    if (item && item.datosOriginales) {
+                      handleVerDetalles(item.datosOriginales, "vinculacion");
+                    } else {
+                      handleVerDetalles(item, "vinculacion");
+                    }
+                  }}
+                  onAprobar={(item) => {
+                    if (item && item.datosOriginales) {
+                      handleAprobarVinculacion(item.datosOriginales);
+                    } else {
+                      handleAprobarVinculacion(item);
+                    }
+                  }}
+                  onRechazar={(item) => {
+                    if (item && item.datosOriginales) {
+                      handleRechazarVinculacion(item.datosOriginales);
+                    } else {
+                      handleRechazarVinculacion(item);
+                    }
+                  }}
+                  tipo="vinculacion"
+                  mostrarAcciones={true}
+                  mostrarFiltros={false}
+                />
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {/* Modal para mostrar detalles - REEMPLAZA EL MODAL EXISTENTE CON ESTE */}
+        {mostrarModal && detalleSeleccionado && (
+          <Modal show={mostrarModal} onHide={() => setMostrarModal(false)} size="lg">
+            <Modal.Header closeButton>
+              <Modal.Title>
+                <h4>{
+                  tipoDetalle === "vinculacion"
+                    ? (detalleSeleccionado.necesidad?.categoria || detalleSeleccionado.categoria || "Vinculación")
+                    : (detalleSeleccionado.categoria || detalleSeleccionado.titulo || "Detalle")
+                }</h4>
+              </Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <div>
+                {/* Título y badges para todos los tipos */}
+                <h4>{detalleSeleccionado.categoria || detalleSeleccionado.titulo}</h4>
+
+                <div className="mb-3">
+                  <Badge bg="danger" className="me-2">
+                    Categoría: {
+                      tipoDetalle === "vinculacion"
+                        ? (detalleSeleccionado.necesidad?.categoria || 'No especificada')
+                        : (detalleSeleccionado.categoria || 'No especificada')
+                    }
+                  </Badge>
+                  <Badge bg="success">
+                    Subcategoría: {
+                      tipoDetalle === "vinculacion"
+                        ? (detalleSeleccionado.necesidad?.subcategoria || 'No especificada')
+                        : (detalleSeleccionado.subcategoria || 'No especificada')
+                    }
+                  </Badge>
+                  {detalleSeleccionado.prioridad && (
+                    <Badge bg="warning" className="ms-2">
+                      Prioridad: {detalleSeleccionado.prioridad}
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Contenido específico según el tipo de detalle */}
+                {tipoDetalle === "necesidad" && (
+                  <>
+                    <div className="card mb-3">
+                      <div className="card-header bg-light">
+                        <h6 className="mb-0">Información de la Necesidad</h6>
+                      </div>
+                      <div className="card-body">
+                        <p><strong>Descripción:</strong> {detalleSeleccionado.descripcion || "Sin descripción"}</p>
+                        <p><strong>Estado:</strong> {detalleSeleccionado.estadoValidacion === 1 ? "No aprobado" :
+                          detalleSeleccionado.estadoValidacion === 2 ? "Pendiente" : "Aprobada"}</p>
+
+                        {/* Fecha de creación con icono */}
+                        <div className="mt-3">
+                          <i className="fas fa-calendar-alt me-2 text-muted"></i>
+                          <strong>Fecha de creación:</strong> {
+                            detalleSeleccionado.fechaCreacion ? new Date(detalleSeleccionado.fechaCreacion).toLocaleString() :
+                              '01/01/2025'
+                          }
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Usuario relacionado con la necesidad */}
+                    {detalleSeleccionado.usuario && (
+                      <div className="card mb-3">
+                        <div className="card-header bg-light">
+                          <h6 className="mb-0">Usuario</h6>
+                        </div>
+                        <div className="card-body">
+                          <p><strong>Nombre:</strong> {detalleSeleccionado.usuario.nombre || "No especificado"}</p>
+                          <p><strong>Email:</strong> {detalleSeleccionado.usuario.email || "No especificado"}</p>
+                          <p><strong>Rol:</strong> {detalleSeleccionado.usuario.rol || "No especificado"}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Escuela relacionada si está disponible */}
+                    {detalleSeleccionado.escuela && (
+                      <div className="card mb-3">
+                        <div className="card-header bg-light">
+                          <h6 className="mb-0">Escuela</h6>
+                        </div>
+                        <div className="card-body">
+                          <p><strong>CCT:</strong> {detalleSeleccionado.escuela.cct || "No especificado"}</p>
+                          <p><strong>Nombre:</strong> {detalleSeleccionado.escuela.nombre || "No especificado"}</p>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {tipoDetalle === "apoyo" && (
+                  <>
+                    <div className="card mb-3">
+                      <div className="card-header bg-light">
+                        <h6 className="mb-0">Información del Apoyo</h6>
+                      </div>
+                      <div className="card-body">
+                        <p><strong>Descripción:</strong> {detalleSeleccionado.descripcion || "Sin descripción"}</p>
+                        <p><strong>Estado:</strong> {detalleSeleccionado.estadoValidacion === 1 ? "No aprobado" :
+                          detalleSeleccionado.estadoValidacion === 2 ? "Pendiente" : "Aprobada"}</p>
+
+                        {/* Fecha de creación con icono */}
+                        <div className="mt-3">
+                          <i className="fas fa-calendar-alt me-2 text-muted"></i>
+                          <strong>Fecha de creación:</strong> {
+                            detalleSeleccionado.fechaCreacion ? new Date(detalleSeleccionado.fechaCreacion).toLocaleString() :
+                              '01/01/2025'
+                          }
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Usuario relacionado con el apoyo */}
+                    {detalleSeleccionado.usuario && (
+                      <div className="card mb-3">
+                        <div className="card-header bg-light">
+                          <h6 className="mb-0">Usuario</h6>
+                        </div>
+                        <div className="card-body">
+                          <p><strong>Nombre:</strong> {detalleSeleccionado.usuario.nombre || "No especificado"}</p>
+                          <p><strong>Email:</strong> {detalleSeleccionado.usuario.email || "No especificado"}</p>
+                          <p><strong>Rol:</strong> {detalleSeleccionado.usuario.rol || "No especificado"}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Aliado relacionado si está disponible */}
+                    {detalleSeleccionado.aliado && (
+                      <div className="card mb-3">
+                        <div className="card-header bg-light">
+                          <h6 className="mb-0">Aliado</h6>
+                        </div>
+                        <div className="card-body">
+                          <p><strong>RFC:</strong> {detalleSeleccionado.aliado.rfc || "No especificado"}</p>
+                          <p><strong>Razón Social:</strong> {detalleSeleccionado.aliado.razonSocial || "No especificado"}</p>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {tipoDetalle === "vinculacion" && (
+                  <>
+                    <div className="card mb-3">
+                      <div className="card-header bg-light">
+                        <h6 className="mb-0">Escuela</h6>
+                      </div>
+                      <div className="card-body">
+                        <div className="row">
+                          <div className="col-md-6">
+                            <p><strong>CCT:</strong> {detalleSeleccionado.escuela?.cct}</p>
+                            <p><strong>Nivel Educativo:</strong> {detalleSeleccionado.escuela?.nivelEducativo}</p>
+                            <p><strong>Sector:</strong> {detalleSeleccionado.escuela?.sector}</p>
+                          </div>
+                          <div className="col-md-6">
+                            <p><strong>Estudiantes:</strong> {detalleSeleccionado.escuela?.numeroEstudiantes}</p>
+                            <p><strong>Director:</strong> {detalleSeleccionado.escuela?.nombreDirector}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="card mb-3">
+                      <div className="card-header bg-light">
+                        <h6 className="mb-0">Aliado</h6>
+                      </div>
+                      <div className="card-body">
+                        <p><strong>RFC:</strong> {detalleSeleccionado.aliado?.rfc}</p>
+                        <p><strong>Razón Social:</strong> {detalleSeleccionado.aliado?.razonSocial}</p>
+                      </div>
+                    </div>
+
+                    <div className="row">
+                      <div className="col-md-6">
+                        <div className="card mb-3">
+                          <div className="card-header bg-light">
+                            <h6 className="mb-0">Necesidad</h6>
+                          </div>
+                          <div className="card-body">
+                            <p><strong>Categoría:</strong> {detalleSeleccionado.necesidad?.categoria}</p>
+                            <p><strong>Subcategoría:</strong> {detalleSeleccionado.necesidad?.subcategoria}</p>
+                            <p><strong>Descripción:</strong> {detalleSeleccionado.necesidad?.descripcion}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="card mb-3">
+                          <div className="card-header bg-light">
+                            <h6 className="mb-0">Apoyo</h6>
+                          </div>
+                          <div className="card-body">
+                            <p><strong>Categoría:</strong> {detalleSeleccionado.apoyo?.categoria}</p>
+                            <p><strong>Subcategoría:</strong> {detalleSeleccionado.apoyo?.subcategoria}</p>
+                            <p><strong>Descripción:</strong> {detalleSeleccionado.apoyo?.descripcion}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {detalleSeleccionado.observacion && (
+                      <div className="card mb-3">
+                        <div className="card-header bg-light">
+                          <h6 className="mb-0">Observación</h6>
+                        </div>
+                        <div className="card-body">
+                          <p>{detalleSeleccionado.observacion}</p>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </Modal.Body>
+            <Modal.Footer>
+              {tipoDetalle === "vinculacion" && (
+                <>
+                  <Button
+                    variant="outline-success"
+                    onClick={() => {
+                      setMostrarModal(false);
+                      handleAprobarVinculacion(detalleSeleccionado);
+                    }}
+                  >
+                    <i className="fas fa-check me-2"></i>
+                    Crear Proyecto
+                  </Button>
+                  <Button
+                    variant="outline-danger"
+                    onClick={() => {
+                      setMostrarModal(false);
+                      handleRechazarVinculacion(detalleSeleccionado);
+                    }}
+                  >
+                    <i className="fas fa-times me-2"></i>
+                    Rechazar Vinculación
+                  </Button>
+                </>
+              )}
+              {tipoDetalle === "necesidad" && (
+                <>
+                  <Button
+                    variant="outline-success"
+                    onClick={() => {
+                      setMostrarModal(false);
+                      handleAprobarNecesidad(detalleSeleccionado);
+                    }}
+                  >
+                    <i className="fas fa-check me-2"></i>
+                    Aprobar
+                  </Button>
+                  <Button
+                    variant="outline-danger"
+                    onClick={() => {
+                      setMostrarModal(false);
+                      handleRechazarNecesidad(detalleSeleccionado);
+                    }}
+                  >
+                    <i className="fas fa-times me-2"></i>
+                    Rechazar
+                  </Button>
+                </>
+              )}
+              {tipoDetalle === "apoyo" && (
+                <>
+                  <Button
+                    variant="outline-success"
+                    onClick={() => {
+                      setMostrarModal(false);
+                      handleAprobarApoyo(detalleSeleccionado);
+                    }}
+                  >
+                    <i className="fas fa-check me-2"></i>
+                    Aprobar
+                  </Button>
+                  <Button
+                    variant="outline-danger"
+                    onClick={() => {
+                      setMostrarModal(false);
+                      handleRechazarApoyo(detalleSeleccionado);
+                    }}
+                  >
+                    <i className="fas fa-times me-2"></i>
+                    Rechazar
+                  </Button>
+                </>
+              )}
+              <Button variant="secondary" onClick={() => setMostrarModal(false)}>
+                Cerrar
+              </Button>
+            </Modal.Footer>
+          </Modal>
         )}
 
         {/* Modal para crear proyecto con etapas dinámicas */}
@@ -1058,7 +1394,7 @@ const Administrador = () => {
                   <h5 className="modal-title">Crear Proyecto de Vinculación</h5>
                   <button type="button" className="btn-close" onClick={() => setMostrarModalEtapas(false)}></button>
                 </div>
-                
+
                 <div className="modal-body">
                   <form>
                     <div className="mb-3">
@@ -1073,7 +1409,7 @@ const Administrador = () => {
                         required
                       />
                     </div>
-                    
+
                     <div className="mb-3">
                       <label htmlFor="fechaFin" className="form-label">Fecha de Finalización</label>
                       <input
@@ -1086,9 +1422,9 @@ const Administrador = () => {
                         required
                       />
                     </div>
-                    
+
                     <hr className="my-4" />
-                    
+
                     <div className="d-flex justify-content-between align-items-center mb-3">
                       <h6 className="mb-0">Etapas del Proyecto</h6>
                       <button
@@ -1099,7 +1435,7 @@ const Administrador = () => {
                         <i className="fas fa-plus me-1"></i> Agregar Etapa
                       </button>
                     </div>
-                    
+
                     {datosProyecto.etapas.map((etapa, index) => (
                       <div key={index} className="card mb-3 p-3 border-secondary">
                         <div className="d-flex justify-content-between align-items-center mb-2">
@@ -1113,7 +1449,7 @@ const Administrador = () => {
                             <i className="fas fa-times"></i> Eliminar
                           </button>
                         </div>
-                        
+
                         <div className="mb-3">
                           <label htmlFor={`titulo-${index}`} className="form-label">Título de la Etapa</label>
                           <input
@@ -1126,7 +1462,7 @@ const Administrador = () => {
                             required
                           />
                         </div>
-                        
+
                         <div className="mb-2">
                           <label htmlFor={`descripcion-${index}`} className="form-label">Descripción de la Etapa</label>
                           <textarea
@@ -1146,19 +1482,26 @@ const Administrador = () => {
 
                 <div className="modal-footer">
                   <button type="button" className="btn btn-secondary" onClick={() => setMostrarModalEtapas(false)}>Cancelar</button>
-                  <button 
-                    type="button" 
-                    className="btn btn-primary" 
+                  <button
+                    type="button"
+                    className="btn btn-primary"
                     onClick={enviarProyecto}
                     disabled={datosProyecto.etapas.some(e => !e.tituloEtapa.trim())}
                   >
                     Crear Proyecto
                   </button>
-                  </div>
+                </div>
               </div>
             </div>
           </div>
         )}
+
+        <section>
+          <h2 className="mb-4">Mapa de escuelas</h2>
+          <div className="map-container">
+            <MapaGoogle tipo="admin" />
+          </div>
+        </section>
       </div>
     </div>
   );

@@ -1,0 +1,76 @@
+import React, { useEffect, useState } from 'react';
+import { GoogleMap, Marker, InfoWindow, LoadScript } from '@react-google-maps/api';
+
+const MapaGoogle = ({ tipo }) => {
+    const [ubicaciones, setUbicaciones] = useState([]);
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [mapCenter, setMapCenter] = useState({ lat: 20.6597, lng: -103.3496 }); // Inicializa en Guadalajara
+
+    const containerStyle = {
+        width: '100%',
+        height: '500px',
+    };
+
+    useEffect(() => {
+        const endpoint =
+            tipo === "admin"
+                ? "http://localhost:4001/api/ubicaciones" // Endpoint combinado para admin
+                : tipo === "aliados"
+                    ? "http://localhost:4001/api/aliados/ubicaciones"
+                    : "http://localhost:4001/api/escuelas/ubicaciones";
+
+        fetch(endpoint)
+            .then((response) => response.json())
+            .then((data) => {
+                if (Array.isArray(data)) {
+                    setUbicaciones(data.filter((item) => item.latitud && item.longitud));
+                } else {
+                    console.error('El formato de datos no es válido:', data);
+                }
+            })
+            .catch((error) => console.error('Error al cargar ubicaciones:', error));
+    }, [tipo]);
+
+    return (
+        <LoadScript googleMapsApiKey="apikey">
+            <GoogleMap
+                mapContainerStyle={containerStyle}
+                center={mapCenter}
+                zoom={12}
+            >
+                {ubicaciones.map((item) => (
+                    <Marker
+                        key={item.id}
+                        position={{ lat: parseFloat(item.latitud), lng: parseFloat(item.longitud) }}
+                        icon={{
+                            url: item.tipo === 'escuela' ? '/icons/blue-marker.png' : '/icons/red-marker.png', // Íconos personalizados
+                            scaledSize: { width: 20, height: 30 }, // Ajusta el tamaño del ícono
+                        }}
+                        onClick={() => {
+                            setSelectedItem(item);
+                            setMapCenter({ lat: parseFloat(item.latitud), lng: parseFloat(item.longitud) }); // Actualiza el centro al marcador seleccionado
+                        }}
+                    />
+                ))}
+
+                {selectedItem && (
+                    <InfoWindow
+                        position={{
+                            lat: parseFloat(selectedItem.latitud),
+                            lng: parseFloat(selectedItem.longitud),
+                        }}
+                        onCloseClick={() => setSelectedItem(null)} // No cambia el centro al cerrar
+                    >
+                        <div>
+                            <h4>{selectedItem.nombre_escuela || selectedItem.nombre_aliado}</h4>
+                            <p>ID: {selectedItem.id}</p>
+                            <p>Tipo: {selectedItem.tipo === 'escuela' ? 'Escuela' : 'Aliado'}</p>
+                        </div>
+                    </InfoWindow>
+                )}
+            </GoogleMap>
+        </LoadScript>
+    );
+};
+
+export default MapaGoogle;

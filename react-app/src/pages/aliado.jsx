@@ -20,6 +20,7 @@ import { tabsApoyos, columnasApoyos, datosApoyos } from '../data/necesidadApoyo/
 import { escuelasData, opcionesFiltros, apoyosDisponiblesAliado } from '../data/busqueda/busquedaEscuelas.js';
 import { proyectoDetallado } from '../data/proyectoDetallado/proyectoDetallado.js';
 import Logo from "../assets/MPJ.png";
+import MapaGoogle from "../components/mapaGoogle.jsx";
 
 const Aliado = ({ userData, onLogout }) => {  
   const usuario = userData || {  nombre: "Aliado", foto: "" };
@@ -32,9 +33,10 @@ const Aliado = ({ userData, onLogout }) => {
   const pendientesTitulo = pendientesAliado?.titulo || "Validaciones Pendientes";
   const pendientesTextoBoton = pendientesAliado?.textoBoton || "Ver todos los pendientes";
 
-  // Obtenemos todos los proyectos y los limitamos a 3 para el dashboard
+  // PROYECTOS / ETAPAS / MENSAJES -> VARIABLES
   const [proyectos, setProyectos] = useState([]);
   const [mensajes, setMensajes] = useState([]);
+  const [etapas, setEtapas] = useState([]);
 
   const proyectosTodos = proyectosAliado?.proyectos || [];
   const proyectosItems = proyectosTodos.slice(0, 3);
@@ -65,6 +67,7 @@ const Aliado = ({ userData, onLogout }) => {
   //---------RENDER DATOS---------//
   //-----------------------------//
 
+  // Obtener proyectos del usuario logeado
   useEffect(() => {
     fetchProyectos();
   }, [usuario.idUsuario]);
@@ -160,20 +163,30 @@ const Aliado = ({ userData, onLogout }) => {
   const [apoyos, setApoyos] = useState([]);
 
   // Estado para sincronizar con el componente de búsqueda
-  const [apoyosDisponibles, setApoyosDisponibles] = useState(apoyosDisponiblesAliado);
+  const [apoyosDisponibles, setApoyosDisponibles] = useState([
+    {
+      id: "default",
+      titulo: "Cargando apoyos disponibles...",
+      tipo: "material",
+      descripcion: "Por favor espere mientras se cargan sus apoyos disponibles"
+    }
+  ]);
 
-  // Efecto para mantener sincronizados los apoyos disponibles
   useEffect(() => {
-    // Transformar apoyos al formato esperado por el componente Búsqueda
+    // Transformar apoyos al formato esperado por el componente Búsqueda con campos correctos
     const apoyosFormateados = apoyos
-      .filter(a => a.estado === "Disponible")
+      // Asegúrate que sólo filtras si realmente quieres excluir algunos
+      //.filter(a => a.estado === "Disponible" || a.estadoValidacion === 1)
       .map(a => ({
-        id: a.id,
-        titulo: a.titulo,
-        tipo: a.tipo,
-        descripcion: a.descripcion
+        id: a.id || a.idNecesidadApoyo,
+        titulo: a.titulo || a.descripcion || "Apoyo sin título", // Usar descripción como respaldo
+        tipo: a.tipo || mapearCategoriaAliado(a.categoria),
+        descripcion: a.descripcion || "",
+        categoria: a.categoria || "",
+        subcategoria: a.subcategoria || ""
       }));
     
+    console.log("Apoyos formateados disponibles para vinculación:", apoyosFormateados);
     setApoyosDisponibles(apoyosFormateados);
   }, [apoyos]);
 
@@ -231,6 +244,7 @@ const Aliado = ({ userData, onLogout }) => {
     console.log("Ver id del proyecto:", proyecto.id);
 
     fetchMensajes(proyecto.id);
+    fetchEtapas(proyecto.id);
     
     setTimeout(() => {
       const seccionDetalles = document.getElementById('seccionProyectoDetallado');
@@ -243,6 +257,25 @@ const Aliado = ({ userData, onLogout }) => {
   const handleActionProyecto = (proyecto) => {
     console.log("Acción en proyecto:", proyecto.nombre, "Estado:", proyecto.estado);
   };
+
+  //----------------------------------//
+  //---------ETAPAS PROYECTO---------//
+  //--------------------------------//
+
+  const fetchEtapas = async (idProyecto) =>{
+    try {
+      const respuesta = await get(`/proyecto/${idProyecto}/etapas`);
+      setEtapas(respuesta);
+      console.log(`Etapas del proyecto ${idProyecto}`, respuesta)
+    } catch (error) {
+      console.log("Error al obtener las etapas:", error);
+      setEtapas([]);
+    }
+  };
+
+  //---------------------------------//
+  //---------OFERTAS APOYOS---------//
+  //-------------------------------//
   
   // Manejadores para ofertas de apoyo
   const handleAddApoyo = async (nuevaOferta) => {
@@ -373,7 +406,7 @@ const Aliado = ({ userData, onLogout }) => {
         const idMensajeria = mensajerias[0].idMensajeria;
         const respuestaMensajes = await get(`/mensajeria/${idMensajeria}/mensajes`);
 
-        // Paso 3: Transformar los mensajes para la UI
+        // Paso 3: Transformar los mensajes para el front
         const mensajesFormateados = respuestaMensajes.map(mensaje => {
           const fecha = new Date(mensaje.fechaEnvio);
           return {
@@ -437,6 +470,16 @@ const Aliado = ({ userData, onLogout }) => {
           withCredentials: true
         });
         console.log("[INFO] Apoyos cargados:", response.data);
+        
+        // Inspección detallada de la primera entrada para diagnóstico
+        if (response.data.length > 0) {
+          console.log("[DEBUG] Primer apoyo - campos disponibles:", 
+            Object.keys(response.data[0]));
+          console.log("[DEBUG] Primer apoyo - estado:", 
+            response.data[0].estado || response.data[0].estadoValidacion);
+        } else {
+          console.log("[WARN] No se encontraron apoyos para mostrar");
+        }
   
         const apoyosConTipo = response.data.map(apoyo => ({
           ...apoyo,
@@ -624,7 +667,7 @@ const Aliado = ({ userData, onLogout }) => {
             <section id="seccionProyectoDetallado" className="mb-4">
               <ProyectoDetallado
                 proyecto={proyectoSeleccionado}
-                fases={fases}
+                fases={etapas}
                 evidencias={evidencias}
                 mensajes={mensajes}
                 documentos={documentos}
@@ -639,6 +682,7 @@ const Aliado = ({ userData, onLogout }) => {
                 onSaveChanges={handleSaveChanges}
                 onDownloadDocument={handleDownloadDocument}
                 onViewDocument={handleViewDocument}
+                userData={userData}
               />
             </section>
           )}
@@ -651,6 +695,13 @@ const Aliado = ({ userData, onLogout }) => {
               onEditApoyo={handleEditApoyo}
               onViewApoyo={handleViewApoyo}
             />
+          </section>
+
+          <section>
+            <h2 className="mb-4">Mapa de escuelas</h2>
+            <div className="map-container">
+              <MapaGoogle tipo="escuelas" />
+            </div>
           </section>
 
           {/* Búsqueda de Escuelas */}
