@@ -238,9 +238,9 @@ const Aliado = ({ userData, onLogout }) => {
     setMostrarProyectoDetallado(true);
     
     // Obtener mensajes del proyecto
-    console.log("Ver id del proyecto:", proyectoSeleccionado.id);
+    console.log("Ver id del proyecto:", proyecto.id);
 
-    fetchMensajes(proyectoSeleccionado.id);
+    fetchMensajes(proyecto.id);
     
     setTimeout(() => {
       const seccionDetalles = document.getElementById('seccionProyectoDetallado');
@@ -643,7 +643,7 @@ const Aliado = ({ userData, onLogout }) => {
           {mostrarProyectoDetallado && (
             <section id="seccionProyectoDetallado" className="mb-4">
               <ProyectoDetallado
-                proyecto={proyecto}
+                proyecto={proyectoSeleccionado}
                 fases={fases}
                 evidencias={evidencias}
                 mensajes={mensajes}
