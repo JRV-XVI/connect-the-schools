@@ -8,6 +8,20 @@ const registroAliado = async () => {
 	const resultado = await db.query('SELECT * FROM ');
 };
 
+const obtenerUbicacionesAliados = async () => {
+	const query = `
+        SELECT 
+            pa."idUsuario" AS id, 
+            pa."razonSocial" AS nombre_aliado, 
+            pa."latitud", 
+            pa."longitud"
+        FROM "perfilAliado" pa
+        WHERE pa."latitud" IS NOT NULL AND pa."longitud" IS NOT NULL
+    `;
+	const { rows } = await db.query(query);
+	return rows;
+};
+
 const obtenerAliados = async () => {
 	const resultado = await db.query('SELECT * FROM "perfilAliado"');
 	return resultado.rows;
@@ -25,7 +39,10 @@ async function crearAliado(data) {
 		phone,
 		allyName,
 		userType,
-		direction,
+		ciudad,
+		estado,
+		calle,
+		postal,
 		rfc,
 		socialReason,
 		phoneRepresentative,
@@ -36,7 +53,7 @@ async function crearAliado(data) {
 	const fechaCreacion = new Date();
 
 	// Insertar en Usuario
-	const idUsuario = await db.query(`INSERT INTO Usuario (correo, contraseña, "tipoPerfil", "estadoCuenta", "fechaCreacion", telefono, nombre, direccion) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING "idUsuario"`, [
+	const idUsuario = await db.query(`INSERT INTO Usuario (correo, contraseña, "tipoPerfil", "estadoCuenta", "fechaCreacion", telefono, nombre, ciudad, estado, calle, "codigoPostal") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING "idUsuario"`, [
 		email,
 		password,
 		userType,
@@ -44,7 +61,10 @@ async function crearAliado(data) {
 		fechaCreacion,
 		phone,
 		allyName,
-		direction
+		ciudad,
+		estado,
+		calle,
+		postal
 	]);
 	var id = idUsuario.rows[0].idUsuario;
 
@@ -126,5 +146,5 @@ const eliminarAliado = async (id) => {
 };
 
 
-module.exports = { obtenerAliados, infoAliado, crearAliado, actualizarAliado, eliminarAliado, necesidadesCompatibles };
+module.exports = { obtenerAliados, infoAliado, crearAliado, actualizarAliado, eliminarAliado, necesidadesCompatibles, obtenerAliados, obtenerUbicacionesAliados };
 

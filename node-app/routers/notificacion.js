@@ -31,7 +31,7 @@ const validarIdUsuario = (req, res, next) => {
  */
 const verificarUsuarioExiste = async (req, res, next) => {
     try {
-        const idUsuario = Number(req.body.idUsuario);
+        const idUsuario = Number(req.idUsuario);
 
         if (!idUsuario) {
             return res.status(400).json({

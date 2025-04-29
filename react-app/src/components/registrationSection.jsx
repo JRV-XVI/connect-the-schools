@@ -9,7 +9,10 @@ const SchoolRegistrationForm = () => {
     confirmPassword: '',
     phone: '',
     schoolName: '',
-    direction: '',
+    city: '',
+    state: '',
+    street: '',
+    postal: '',
     educationalLevel: '',
     sector: '',
     numberStudents: 0,
@@ -28,7 +31,7 @@ const SchoolRegistrationForm = () => {
   const handleChange = (e) => {
     // Extraer el nombre del campo eliminando el prefijo 'school-'
     const fieldName = e.target.id.replace('school-', '');
-    
+
     setFormData({
       ...formData,
       [fieldName]: e.target.value
@@ -64,7 +67,10 @@ const SchoolRegistrationForm = () => {
           contrasena: formData.password,
           telefono: formData.phone,
           nombre_escuela: formData.schoolName,
-          direccion: formData.direction,
+          ciudad: formData.city,
+          estado: formData.state,
+          calle: formData.street,
+          postal: formData.postal,
           nivel_educativo: formData.educationalLevel,
           sector: formData.sector,
           numero_estudiantes: Number(formData.numberStudents),
@@ -169,15 +175,47 @@ const SchoolRegistrationForm = () => {
             />
           </Form.Group>
           {/* Resto de campos actualizando los IDs con el prefijo "school-" */}
-          <Form.Group as={Col} md={6} controlId="school-direction">
-            <Form.Label>Dirección</Form.Label>
+
+          <Form.Group as={Col} md={6} controlId="school-city">
+            <Form.Label>Ciudad</Form.Label>
             <Form.Control
               type="text"
-              value={formData.direction}
+              value={formData.city}
               onChange={handleChange}
               required
             />
           </Form.Group>
+
+          <Form.Group as={Col} md={6} controlId="school-state">
+            <Form.Label>Estado</Form.Label>
+            <Form.Control
+              type="text"
+              value={formData.state}
+              onChange={handleChange}
+              required
+            />
+          </Form.Group>
+
+          <Form.Group as={Col} md={6} controlId="school-street">
+            <Form.Label>Calle</Form.Label>
+            <Form.Control
+              type="text"
+              value={formData.street}
+              onChange={handleChange}
+              required
+            />
+          </Form.Group>
+
+          <Form.Group as={Col} md={6} controlId="school-postal">
+            <Form.Label>Codigo postal</Form.Label>
+            <Form.Control
+              type="text"
+              value={formData.postal}
+              onChange={handleChange}
+              required
+            />
+          </Form.Group>
+
           <Form.Group as={Col} md={6} controlId="school-educationalLevel">
             <Form.Label>Nivel educativo</Form.Label>
             <Form.Select
@@ -266,7 +304,10 @@ const AllyRegistrationForm = () => {
     confirmPassword: '',
     phone: '',
     allyName: '',
-    direction: '',
+    city: '',
+    state: '',
+    street: '',
+    postal: '',
     rfc: '',
     socialReason: '',
     phoneRepresentative: '',
@@ -283,7 +324,7 @@ const AllyRegistrationForm = () => {
   const handleChange = (e) => {
     // Extraer el nombre del campo eliminando el prefijo 'ally-'
     const fieldName = e.target.id.replace('ally-', '');
-    
+
     setFormData({
       ...formData,
       [fieldName]: e.target.value
@@ -333,7 +374,10 @@ const AllyRegistrationForm = () => {
           contrasena: formData.password,    // Mapear password a contrasena
           telefono: formData.phone,         // Mapear phone a telefono
           nombre_aliado: formData.allyName,
-          direccion: formData.direction,
+          ciudad: formData.city,
+          estado: formData.state,
+          calle: formData.street,
+          postal: formData.postal,
           rfc: formData.rfc,
           razon_social: formData.socialReason,
           telefono_representante: formData.phoneRepresentative,
@@ -433,15 +477,49 @@ const AllyRegistrationForm = () => {
               required
             />
           </Form.Group>
-          <Form.Group as={Col} md={6} controlId="direction">
-            <Form.Label>Dirección</Form.Label>
+
+
+          <Form.Group as={Col} md={6} controlId="city">
+            <Form.Label>Ciudad</Form.Label>
             <Form.Control
               type="text"
-              value={formData.direction}
+              value={formData.city}
               onChange={handleChange}
               required
             />
           </Form.Group>
+
+          <Form.Group as={Col} md={6} controlId="state">
+            <Form.Label>Estado</Form.Label>
+            <Form.Control
+              type="text"
+              value={formData.state}
+              onChange={handleChange}
+              required
+            />
+          </Form.Group>
+
+
+          <Form.Group as={Col} md={6} controlId="street">
+            <Form.Label>Calle</Form.Label>
+            <Form.Control
+              type="text"
+              value={formData.street}
+              onChange={handleChange}
+              required
+            />
+          </Form.Group>
+
+          <Form.Group as={Col} md={6} controlId="postal">
+            <Form.Label>Codigo postal</Form.Label>
+            <Form.Control
+              type="text"
+              value={formData.postal}
+              onChange={handleChange}
+              required
+            />
+          </Form.Group>
+
           <Form.Group as={Col} md={6} controlId="emailRepresentative">
             <Form.Label>Correo del representante</Form.Label>
             <Form.Control

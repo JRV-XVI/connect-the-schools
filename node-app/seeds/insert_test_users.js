@@ -18,7 +18,10 @@ exports.seed = async function(knex) {
       telefono: '1234567890',
       nombre: 'Escuela Test',
       tipoPerfil: 1,
-      direccion: 'Dirección Escuela'
+      calle: 'Calle Escuela 1',
+      codigoPostal: '12345',
+      ciudad: 'Ciudad Escuela',
+      estado: 'Estado Escuela'
     },
     {
       correo: 'aliado@test.com',
@@ -28,7 +31,10 @@ exports.seed = async function(knex) {
       telefono: '0987654321',
       nombre: 'Aliado Test',
       tipoPerfil: 2,
-      direccion: 'Dirección Aliado'
+      calle: 'Calle Aliado 1',
+      codigoPostal: '54321',
+      ciudad: 'Ciudad Aliado',
+      estado: 'Estado Aliado'
     },
     {
       correo: 'admin@test.com',
@@ -38,9 +44,11 @@ exports.seed = async function(knex) {
       telefono: '1122334455',
       nombre: 'Admin Test',
       tipoPerfil: 3,
-      direccion: 'Dirección Admin'
+      calle: 'Calle Admin 1',
+      codigoPostal: '00000',
+      ciudad: 'Ciudad Admin',
+      estado: 'Estado Admin'
     },
-    
     {
       correo: 'escuela2@test.com',
       contraseña: '123456',
@@ -48,8 +56,11 @@ exports.seed = async function(knex) {
       fechaCreacion: '2025-04-25',
       telefono: '5544332211',
       nombre: 'Escuela Secundaria',
-      tipoPerfil: 1,            // Escuela
-      direccion: 'Avenida Educación 456'
+      tipoPerfil: 1,
+      calle: 'Avenida Educación 456',
+      codigoPostal: '67890',
+      ciudad: 'Ciudad Secundaria',
+      estado: 'Estado Secundaria'
     },
     {
       correo: 'escuela3@test.com',
@@ -58,8 +69,11 @@ exports.seed = async function(knex) {
       fechaCreacion: '2025-04-26',
       telefono: '6677889900',
       nombre: 'Preparatoria Técnica',
-      tipoPerfil: 1,            // Escuela
-      direccion: 'Calle Tecnológica 321'
+      tipoPerfil: 1,
+      calle: 'Calle Tecnológica 321',
+      codigoPostal: '78901',
+      ciudad: 'Ciudad Técnica',
+      estado: 'Estado Técnica'
     },
     {
       correo: 'aliado2@test.com',
@@ -68,8 +82,11 @@ exports.seed = async function(knex) {
       fechaCreacion: '2025-04-25',
       telefono: '9988776655',
       nombre: 'Empresa Aliada',
-      tipoPerfil: 2,            // Aliado
-      direccion: 'Boulevard Corporativo 789'
+      tipoPerfil: 2,
+      calle: 'Boulevard Corporativo 789',
+      codigoPostal: '13579',
+      ciudad: 'Ciudad Aliada',
+      estado: 'Estado Aliada'
     },
     {
       correo: 'aliado3@test.com',
@@ -78,8 +95,11 @@ exports.seed = async function(knex) {
       fechaCreacion: '2025-04-26',
       telefono: '1231231234',
       nombre: 'Fundación Educativa',
-      tipoPerfil: 2,            // Aliado
-      direccion: 'Plaza Central 111'
+      tipoPerfil: 2,
+      calle: 'Plaza Central 111',
+      codigoPostal: '24680',
+      ciudad: 'Ciudad Fundación',
+      estado: 'Estado Fundación'
     }
   ]);
 
@@ -109,7 +129,7 @@ exports.seed = async function(knex) {
     }
   ]);
 
-// Inserta los perfiles escuelas despues de aliados
+  // Inserta los perfiles escuelas despues de aliados
   await knex('perfilEscuela').insert([
     {
       cct: "CCT00900D",
