@@ -16,8 +16,8 @@ const MapaGoogle = ({ tipo }) => {
             tipo === "admin"
                 ? "http://localhost:4001/api/ubicaciones" // Endpoint combinado para admin
                 : tipo === "aliados"
-                ? "http://localhost:4001/api/aliados/ubicaciones"
-                : "http://localhost:4001/api/escuelas/ubicaciones";
+                    ? "http://localhost:4001/api/aliados/ubicaciones"
+                    : "http://localhost:4001/api/escuelas/ubicaciones";
 
         fetch(endpoint)
             .then((response) => response.json())
@@ -35,7 +35,7 @@ const MapaGoogle = ({ tipo }) => {
         <LoadScript googleMapsApiKey="apikey">
             <GoogleMap
                 mapContainerStyle={containerStyle}
-                center={mapCenter} 
+                center={mapCenter}
                 zoom={12}
             >
                 {ubicaciones.map((item) => (
