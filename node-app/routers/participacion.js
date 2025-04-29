@@ -33,6 +33,35 @@ participacion.post('/vinculacion', async (req, res, next) => {
     }
 });
 
+// Realizar una vinculacion de un aliado a una escuala
+participacion.delete('/vinculacion', async (req, res, next) => {
+    try {
+        // Match frontend field names
+        const {
+            rfc,
+            cct,
+            idNecesidad,
+            idApoyo,
+        } = req.body;
+
+        const resultado = await modelo.eliminarVinculacion({
+            rfc,
+            cct,
+            idNecesidad,
+            idApoyo,
+        });
+        res.status(200).send(resultado);
+    } catch (error) {
+        if (error.status === 500 || !error.status) {
+            console.error("Error al eliminar vinculacion:", error);
+            return res.status(400).json({
+                error: "Fallo la eliminacion de vinculacion"
+            });
+        }
+        next(error);
+    }
+});
+
 participacion.get('/vinculaciones', async (req, res, next) => {
     try {
         const vinculaciones = await modelo.obtenerVinculaciones();
