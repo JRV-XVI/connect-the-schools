@@ -69,6 +69,10 @@ etapa.get('/archivo/:idEtapa', validarEtapa, async (req, res, next) => {
     }
 });
 
+etapa.get('/archivos/:idEtapa', async (req, res, next) => {
+    const resultado = [];
+});
+
 
 // Crear una entrega en una etapa
 etapa.put('/archivo/:idEtapa', validarEtapa, upload.single('archivo'), async (req, res, next) => {
