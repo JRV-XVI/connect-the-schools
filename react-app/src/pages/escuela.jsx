@@ -148,6 +148,7 @@ const mapearCategoriaATipo = (categoria) => {
           progreso: proyecto.progreso || 0,
           estado: proyecto.validacionAdmin ? 'En tiempo' : 'Pendiente',
           escuela: proyecto.nombreEscuela || 'Escuela asociada',
+          estudiantes: proyecto.numeroEstudiantes || 0
         }));
         console.log("Proyectos normales: ", respuesta);
         setProyectos(proyectosFormateados);
@@ -223,7 +224,7 @@ const mapearCategoriaATipo = (categoria) => {
           return {
             esPropio: mensaje.idUsuario === usuario.idUsuario,
             remitente: mensaje.idUsuario === usuario.idUsuario,
-            hora: fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+            hora: mensaje.fechaEnvio,
             contenido: mensaje.contenido
           };
         });
@@ -273,6 +274,11 @@ const mapearCategoriaATipo = (categoria) => {
       throw error;
     }
   };
+
+  // Refrescar mensajes cada 2 segundos si hay un proyecto seleccionado
+  if (proyectoSeleccionado) {
+    setTimeout(fetchMensajes, 2000, proyectoSeleccionado.id)
+  }
 
   const handleActionProyecto = (proyecto) => {
     console.log("Acción en proyecto:", proyecto.nombre, "Estado:", proyecto.estado);

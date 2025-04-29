@@ -16,10 +16,10 @@ import Logo from "../assets/MPJ.png";
 import MapaGoogle from "../components/mapaGoogle.jsx";
 import { Modal, Button, Badge } from 'react-bootstrap';
 
-const Administrador = () => {
+const Administrador = ({userData, onLogout}) => {
   // Estado para controlar qué tipo de validación se está mostrando (proyecto, usuario, etc.)
   const [validacionActiva, setValidacionActiva] = useState(null);
-  const usuario = navbarAdministrador?.usuario || { nombre: "Administrador", foto: "" };
+  const usuario = userData || { nombre: "Administrador", foto: "" };
   const notificaciones = navbarAdministrador?.notificaciones || [];
   const menuItems = navbarAdministrador?.menuItems || [];
   const [datosGestionNecesidades, setDatosGestionNecesidades] = useState({});
@@ -35,6 +35,10 @@ const Administrador = () => {
     mensajes: [],
     documentos: []
   });
+  // Añadir estos estados después de la declaración de projectData
+  const [proyectos, setProyectos] = useState([]);
+  const [mensajes, setMensajes] = useState([]);
+  const [etapas, setEtapas] = useState([]);
 
 
   const [mostrarModalEtapas, setMostrarModalEtapas] = useState(false);
@@ -141,99 +145,113 @@ const Administrador = () => {
     fetchDatosVinculaciones();
   }, []); // Este useEffect también solo se ejecuta una vez al cargar el componente
 
+  // Obtener todos los proyectos del sistema
   useEffect(() => {
-    const fetchProjectDetails = async () => {
-      if (!selectedProject) return;
+    fetchProyectos();
+  }, []);
 
-      try {
-        // Aquí normalmente cargarías datos del backend
-        // Por ahora simulamos datos de ejemplo
-        setProjectData({
-          fases: [
-            {
-              nombre: "Fase de Planificación",
-              fechaInicio: "2025-03-01",
-              fechaFin: "2025-03-15",
-              estado: "Completado",
-              entregables: [
-                { nombre: "Plan de proyecto", estado: "completado" },
-                { nombre: "Presupuesto inicial", estado: "completado" }
-              ]
-            },
-            {
-              nombre: "Fase de Implementación",
-              fechaInicio: "2025-03-16",
-              fechaFin: "2025-04-30",
-              estado: "En Progreso",
-              progreso: 40,
-              entregables: [
-                { nombre: "Instalación de equipo", estado: "en progreso" },
-                { nombre: "Capacitación inicial", estado: "pendiente" }
-              ]
-            },
-            {
-              nombre: "Fase de Cierre",
-              fechaInicio: "2025-05-01",
-              fechaFin: "2025-05-15",
-              estado: "Pendiente",
-              entregables: [
-                { nombre: "Informe final", estado: "pendiente" },
-                { nombre: "Evaluación de resultados", estado: "pendiente" }
-              ]
-            }
-          ],
-          evidencias: [
-            {
-              titulo: "Reunión inicial",
-              descripcion: "Primera reunión con el equipo directivo",
-              fecha: "2025-03-03",
-              imagen: "https://via.placeholder.com/300x200?text=Reunión+Inicial",
-              fase: "Planificación"
-            }
-          ],
-          mensajes: [
-            {
-              remitente: "Director Escuela",
-              contenido: "Buen día, ¿cómo va el avance del proyecto?",
-              fecha: "2025-03-20",
-              hora: "09:30",
-              esPropio: false
-            },
-            {
-              contenido: "Estamos en proceso de instalación del equipo, todo va según lo planeado",
-              fecha: "2025-03-20",
-              hora: "10:15",
-              esPropio: true
-            }
-          ],
-          documentos: [
-            {
-              nombre: "Plan de Proyecto.pdf",
-              tipo: "pdf",
-              categoria: "Documentación",
-              fase: "Planificación",
-              autor: "MPJ",
-              fecha: "2025-03-05",
-              tamaño: "2.3 MB"
-            },
-            {
-              nombre: "Presupuesto Inicial.xlsx",
-              tipo: "excel",
-              categoria: "Financiero",
-              fase: "Planificación",
-              autor: "Administrador MPJ",
-              fecha: "2025-03-10",
-              tamaño: "1.1 MB"
-            }
-          ]
-        });
-      } catch (error) {
-        console.error("[ERROR] Error al cargar detalles del proyecto:", error.response?.data || error.message);
+  //--------------------------//
+  //---------PROYECTO---------//
+  //--------------------------//
+
+  // Función para obtener proyectos
+  const fetchProyectos = async () => {
+    try {
+      // Paso 1: Obtener proyectos con el ID real del usuario
+      const respuesta = await get(`/proyecto/usuario/${usuario.idUsuario}`);
+      
+      // Paso 2: Comprobar si hay proyectos y actualizar el estado
+      if (respuesta && Array.isArray(respuesta)) {
+        // Formateo de datos
+        const proyectosFormateados = respuesta.map(proyecto => ({
+          id: proyecto.idProyecto,
+          nombre: proyecto.descripcion,
+          fechaInicio: new Date(proyecto.fechaCreacion).toLocaleDateString(),
+          fechaFin: proyecto.fechaFin ? new Date(proyecto.fechaFin).toLocaleDateString() : 'No definida',
+          progreso: proyecto.progreso || 0,
+          estado: proyecto.progreso === 100 ? 'Completado' : 'Pendiente',
+          escuela: proyecto.nombreEscuela || 'Escuela asociada',
+          aliado: proyecto.nombreAliado || 'Aliado asociado',
+          estudiantes: proyecto.numeroEstudiantes || 0
+        }));
+        console.log("Proyectos normales: ", respuesta);
+        setProyectos(proyectosFormateados);
+        console.log("Proyectos formateados:", proyectosFormateados);
+      } else {
+        setProyectos([]);
+        console.log("No se encontraron proyectos");
       }
-    };
+    } catch (error) {
+      console.error("Error al obtener proyectos:", error);
+      setProyectos([]);
+    }
+  };
 
-    fetchProjectDetails();
-  }, [selectedProject]);
+  //----------------------------------//
+  //---------ETAPAS PROYECTO---------//
+  //--------------------------------//
+
+  const fetchEtapas = async (idProyecto) =>{
+    try {
+      const respuesta = await get(`/proyecto/${idProyecto}/etapas`);
+      setEtapas(respuesta);
+      console.log(`Etapas del proyecto ${idProyecto}`, respuesta)
+    } catch (error) {
+      console.log("Error al obtener las etapas:", error);
+      setEtapas([]);
+    }
+  };
+
+  //----------------------------//
+  //---------MENSAJERIA---------//
+  //----------------------------//
+
+  // Obtener todos los mensajes por proyecto
+  const fetchMensajes = async (idProyecto) => {
+    try {
+      // Paso 1: Obtener la mensajería asociada al proyecto
+      const mensajerias = await get(`/proyecto/${idProyecto}/mensajeria`);
+      
+      // Verificar si se encontraron mensajerías
+      if (mensajerias && mensajerias.length > 0) {
+        // Paso 2: Obtener los mensajes usando el idMensajeria
+        const idMensajeria = mensajerias[0].idMensajeria;
+        const respuestaMensajes = await get(`/mensajeria/${idMensajeria}/mensajes`);
+
+        // Paso 3: Transformar los mensajes para el front
+        const mensajesFormateados = respuestaMensajes.map(mensaje => {
+          const fecha = new Date(mensaje.fechaEnvio);
+          return {
+            esPropio: mensaje.idUsuario === usuario.idUsuario,
+            remitente: mensaje.idUsuario === usuario.idUsuario,
+            hora: mensaje.fechaEnvio,
+            contenido: mensaje.contenido
+          };
+        });
+
+        setMensajes(mensajesFormateados);
+        console.log(mensajesFormateados);
+      } else {
+        setMensajes([]);
+      }
+    } catch (error) {
+      console.error("Error al obtener mensajes:", error);
+      setMensajes([]);
+    }
+  };
+
+  // Añadir después de los useEffect existentes
+
+  // Actualización periódica de mensajes
+  useEffect(() => {
+    if (selectedProject && showProjectDetail) {
+      const interval = setInterval(() => {
+        fetchMensajes(selectedProject.id);
+      }, 10000); // Actualizar cada 10 segundos
+      
+      return () => clearInterval(interval);
+    }
+  }, [selectedProject, showProjectDetail]);
 
   // Obtenemos todos los pendientes para el dashboard
   const pendientesTodos = pendientesAdministrador?.items || [];
@@ -264,12 +282,26 @@ const Administrador = () => {
 
   const handleVerProyectos = () => {
     console.log("Ver todos los proyectos");
+    setMostrarProyectoDetallado(false);
   };
 
   const handleVerDetallesProyecto = (proyecto) => {
     console.log("Ver detalles del proyecto:", proyecto.nombre);
     setSelectedProject(proyecto);
     setShowProjectDetail(true);
+    
+    // Obtener mensajes del proyecto
+    console.log("Ver id del proyecto:", proyecto.id);
+
+    fetchMensajes(proyecto.id);
+    fetchEtapas(proyecto.id);
+    
+    setTimeout(() => {
+      const seccionDetalles = document.getElementById('seccionProyectoDetallado');
+      if (seccionDetalles) {
+        seccionDetalles.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
   };
 
   const handleActionProyecto = (proyecto) => {
@@ -298,25 +330,13 @@ const Administrador = () => {
     console.log("Subiendo evidencia para el proyecto:", selectedProject?.nombre);
   };
 
-  const handleSendMessage = (mensaje) => {
-    console.log("Enviando mensaje para el proyecto:", selectedProject?.nombre, mensaje);
-
-    // Actualizar los mensajes localmente
-    const newMessage = {
-      contenido: mensaje,
-      fecha: new Date().toISOString(),
-      hora: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false }),
-      esPropio: true
-    };
-
-    setProjectData(prev => ({
-      ...prev,
-      mensajes: [...prev.mensajes, newMessage]
-    }));
+  const handleSendMessage = () => {
+    // Función vacía o con alerta
+    alert("Los administradores solo pueden visualizar mensajes, no enviarlos.");
+    return null;
   };
 
   const handleUploadDocument = () => {
-    console.log("Subiendo documento para el proyecto:", selectedProject?.nombre);
   };
 
   const handleGenerateReport = () => {
@@ -840,13 +860,13 @@ const Administrador = () => {
               <div className="col-xl-8 col-lg-7">
                 <Proyecto
                   titulo={proyectosTitulo}
-                  proyectos={proyectosItems}
+                  proyectos={proyectos}
                   tipo="admin"
                   textoBoton={proyectosTextoBoton}
-                  onButtonClick={handleVerProyectos}
+                  onButtonClick={null}
                   onViewClick={handleVerDetallesProyecto}
                   onActionClick={handleActionProyecto}
-                  allProjects={proyectosTodos}
+                  allProjects={proyectos}
                 />
               </div>
               <div className="col-xl-4 col-lg-5">
@@ -903,15 +923,15 @@ const Administrador = () => {
                 <div className="card-body">
                   <ProyectoDetallado
                     proyecto={selectedProject}
-                    fases={projectData.fases}
+                    fases={etapas}
                     evidencias={projectData.evidencias}
-                    mensajes={projectData.mensajes}
+                    mensajes={mensajes}
                     documentos={projectData.documentos}
                     onExportReport={handleExportReport}
                     onAddRecord={handleAddRecord}
                     onUpdateProgress={handleUpdateProgress}
                     onUploadEvidence={handleUploadEvidence}
-                    onSendMessage={handleSendMessage}
+                    onSendMessage={null}
                     onUploadDocument={handleUploadDocument}
                     onGoBack={handleGoBack}
                     onGenerateReport={handleGenerateReport}
