@@ -6,14 +6,13 @@ import Proyecto from "../components/proyectos.jsx";
 import NecesidadApoyo from "../components/necesidadApoyo.jsx";
 import DiagnosticoNecesidades from '../components/DiagnosticoNecesidades'; // Ruta corregida
 import MapaEscuelas from "../components/mapasEscuela.jsx";
-import ProyectoDetallado from '../components/proyectoDetallado.jsx'; 
+import ProyectoDetallado from '../components/proyectoDetallado.jsx';
 import { useEffect } from "react";
 import { get, post } from "../api.js";
 
 import { StatCardGroup } from "../components/cartas.jsx";
 import { sidebarEscuela } from "../data/barraLateral/barraLateralEscuela.js";
 import { navbarEscuela } from "../data/barraNavegacion/barraNavegacionEscuela.js";
-import { cartasEscuela } from "../data/cartas/cartasEscuela.js";
 import { pendientesEscuela } from '../data/pendientes/pendientesEscuela.js';
 import { proyectosEscuela } from '../data/proyectos/proyectosEscuela.js';
 import { tabsNecesidades, columnasNecesidades, datosNecesidades } from '../data/necesidadApoyo/necesidades.js';
@@ -25,11 +24,11 @@ import Logo from "../assets/MPJ.png";
 import MapaGoogle from "../components/mapaGoogle.jsx";
 import { proyectoDetallado } from '../data/proyectoDetallado/proyectoDetallado.js';
 
-const Escuela = ({ userData, onLogout }) => { 
+const Escuela = ({ userData, onLogout }) => {
   const usuario = userData || { nombre: "Escuela", foto: "" };
   const notificaciones = navbarEscuela?.notificaciones || [];
   const menuItems = navbarEscuela?.menuItems || [];
-  
+
   // Obtenemos todos los pendientes y los limitamos a 4 para el dashboard
   const pendientesTodos = pendientesEscuela?.items || [];
   const pendientesItems = pendientesTodos.slice(0, 5); // Limitamos a 5 pendientes
@@ -64,7 +63,7 @@ const Escuela = ({ userData, onLogout }) => {
   useEffect(() => {
     fetchProyectos();
   }, [usuario.idUsuario]);
-  
+
   // Estado para el proyecto seleccionado y su detalle
   const [selectedProject, setSelectedProject] = useState(null);
   const [showProjectDetail, setShowProjectDetail] = useState(false);
@@ -75,46 +74,46 @@ const Escuela = ({ userData, onLogout }) => {
     documentos: []
   });
 
-useEffect(() => {
-  const fetchNecesidades = async () => {
-    if (!userData?.idUsuario) return;
+  useEffect(() => {
+    const fetchNecesidades = async () => {
+      if (!userData?.idUsuario) return;
 
-    try {
-      const response = await axios.get(`http://localhost:4001/api/necesidades-escuela/${userData.idUsuario}`, {
-        withCredentials: true
-      });
-      console.log("[INFO] Necesidades escolares cargadas:", response.data);
-      const necesidadesConTipo = response.data.map(nec => ({
-        ...nec,
-        tipo: mapearCategoriaATipo(nec.categoria)
-      }));
-      
-      setNecesidades(necesidadesConTipo);
-    } catch (error) {
-      console.error("[ERROR] Error al cargar necesidades escolares:", error.response?.data || error.message);
+      try {
+        const response = await axios.get(`http://localhost:4001/api/necesidades-escuela/${userData.idUsuario}`, {
+          withCredentials: true
+        });
+        console.log("[INFO] Necesidades escolares cargadas:", response.data);
+        const necesidadesConTipo = response.data.map(nec => ({
+          ...nec,
+          tipo: mapearCategoriaATipo(nec.categoria)
+        }));
+
+        setNecesidades(necesidadesConTipo);
+      } catch (error) {
+        console.error("[ERROR] Error al cargar necesidades escolares:", error.response?.data || error.message);
+      }
+    };
+
+    fetchNecesidades();
+  }, [userData?.idUsuario]);
+
+  const mapearCategoriaATipo = (categoria) => {
+    switch (categoria?.toLowerCase()) {
+      case 'infraestructura':
+        return 'infraestructura';
+      case 'equipamiento tecnológico':
+        return 'equipamiento';
+      case 'material didáctico':
+        return 'material';
+      case 'capacitación':
+      case 'formación docente':
+      case 'formación niñas y niños':
+      case 'formación a familias':
+        return 'capacitacion';
+      default:
+        return 'infraestructura'; // O cualquier default
     }
   };
-
-  fetchNecesidades();
-}, [userData?.idUsuario]);
-
-const mapearCategoriaATipo = (categoria) => {
-  switch (categoria?.toLowerCase()) {
-    case 'infraestructura':
-      return 'infraestructura';
-    case 'equipamiento tecnológico':
-      return 'equipamiento';
-    case 'material didáctico':
-      return 'material';
-    case 'capacitación':
-    case 'formación docente':
-    case 'formación niñas y niños':
-    case 'formación a familias':
-      return 'capacitacion';
-    default:
-      return 'infraestructura'; // O cualquier default
-  }
-};
 
   // Función para cambiar entre secciones del dashboard
   const handleSectionChange = (section) => {
@@ -136,7 +135,7 @@ const mapearCategoriaATipo = (categoria) => {
     try {
       // Paso 1: Obtener proyectos con el ID real del usuario
       const respuesta = await get(`/proyecto/usuario/${usuario.idUsuario}`);
-      
+
       // Paso 2: Comprobar si hay proyectos y actualizar el estado
       if (respuesta && Array.isArray(respuesta)) {
         // Formateo de datos
@@ -171,13 +170,13 @@ const mapearCategoriaATipo = (categoria) => {
     console.log("Ver detalles del proyecto:", proyecto.nombre);
     setProyectoSeleccionado(proyecto);
     setMostrarProyectoDetallado(true);
-    
+
     // Obtener mensajes del proyecto
     console.log("Ver id del proyecto:", proyecto.id);
 
     fetchMensajes(proyecto.id);
     fetchEtapas(proyecto.id);
-    
+
     setTimeout(() => {
       const seccionDetalles = document.getElementById('seccionProyectoDetallado');
       if (seccionDetalles) {
@@ -190,7 +189,7 @@ const mapearCategoriaATipo = (categoria) => {
   //---------ETAPAS PROYECTO---------//
   //--------------------------------//
 
-  const fetchEtapas = async (idProyecto) =>{
+  const fetchEtapas = async (idProyecto) => {
     try {
       const respuesta = await get(`/proyecto/${idProyecto}/etapas`);
       setEtapas(respuesta);
@@ -210,7 +209,7 @@ const mapearCategoriaATipo = (categoria) => {
     try {
       // Paso 1: Obtener la mensajería asociada al proyecto
       const mensajerias = await get(`/proyecto/${idProyecto}/mensajeria`);
-      
+
       // Verificar si se encontraron mensajerías
       if (mensajerias && mensajerias.length > 0) {
         // Paso 2: Obtener los mensajes usando el idMensajeria
@@ -240,30 +239,30 @@ const mapearCategoriaATipo = (categoria) => {
   };
 
   // Crear mensajes
-  const handleSendMessage = async ( mensaje, idUsuario) => {
+  const handleSendMessage = async (mensaje, idUsuario) => {
     try {
 
       const idProyecto = proyectoSeleccionado.id;
-  
+
       // Obtener la mensajería asociada al proyecto
       const mensajerias = await get(`/proyecto/${idProyecto}/mensajeria`);
-      
+
       if (mensajerias && mensajerias.length > 0) {
         const idMensajeria = mensajerias[0].idMensajeria;
-        
+
         // Enviar el mensaje con los datos requeridos
         const datosEnvio = {
           idUsuario: usuario.idUsuario, // ID del usuario actual
           contenido: mensaje
         };
-        
+
         console.log("Mensaje:", datosEnvio)
         const respuestaEnvio = await post(`/mensajeria/${idMensajeria}/mensajes`, datosEnvio);
         console.log("Mensaje enviado:", respuestaEnvio);
-        
+
         // Actualizar la lista de mensajes
         fetchMensajes(idProyecto);
-        
+
         return respuestaEnvio;
       } else {
         throw new Error("No se encontró una mensajería asociada a este proyecto");
@@ -277,7 +276,7 @@ const mapearCategoriaATipo = (categoria) => {
   const handleActionProyecto = (proyecto) => {
     console.log("Acción en proyecto:", proyecto.nombre, "Estado:", proyecto.estado);
   };
-  
+
   // Agregar esta función
   const handleGoBack = () => {
     setMostrarProyectoDetallado(false);
@@ -286,27 +285,27 @@ const mapearCategoriaATipo = (categoria) => {
   const handleExportReport = () => {
     console.log("Exportando reporte del proyecto:", proyectoSeleccionado?.nombre);
   };
-  
+
   const handleAddRecord = (record) => {
     console.log("Agregando registro al proyecto:", proyectoSeleccionado?.nombre, record);
   };
-  
+
   const handleUpdateProgress = () => {
     console.log("Actualizando progreso del proyecto:", proyectoSeleccionado?.nombre);
   };
-  
+
   const handleUploadEvidence = () => {
     console.log("Subiendo evidencia para el proyecto:", proyectoSeleccionado?.nombre);
   };
-  
+
   const handleUploadDocument = () => {
     console.log("Subiendo documento para el proyecto:", proyectoSeleccionado?.nombre);
   };
-  
+
   const handleGenerateReport = () => {
     console.log("Generando reporte para el proyecto:", proyectoSeleccionado?.nombre);
   };
-  
+
   const handleSaveChanges = () => {
     console.log("Guardando cambios del proyecto:", proyectoSeleccionado?.nombre);
   };
@@ -318,7 +317,7 @@ const mapearCategoriaATipo = (categoria) => {
   const handleViewDocument = (documento) => {
     console.log("Visualizando documento:", documento.nombre);
   };
-  
+
   // Nuevos manejadores para necesidades escolares (componente NecesidadApoyo)
   const handleAddNecesidad = () => {
     console.log("Agregar nueva necesidad escolar");
@@ -339,13 +338,48 @@ const mapearCategoriaATipo = (categoria) => {
   const handleVerHistorial = () => {
     console.log("Ver historial de necesidades escolares");
   };
-  
+
   // Control del sidebar
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  
+
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
+
+  const cartasEscuela = [
+    {
+      title: "Necesidades identificadas",
+      value: 0,
+      icon: "fa-school",
+      color: "success",
+      trend: "Calculado dinámicamente",
+      isTrendPositive: true
+    },
+    {
+      title: "Cantidad alumnos",
+      value: 0,
+      icon: "fa-handshake",
+      color: "danger",
+      trend: "Calculado dinámicamente",
+      isTrendPositive: true
+    },
+    {
+      title: "Proyectos activos",
+      value: proyectosTodos.length || 0, // puedes reemplazar con otro estado real cuando lo tengas
+      icon: "fa-diagram-project",
+      color: "primary",
+      trend: "Calculado dinámicamente",
+      isTrendPositive: true
+    },
+    {
+      title: "Vinculaciones disponibles",
+      value: 0,
+      icon: "fa-clipboard-check",
+      color: "warning",
+      trend: "Calculado dinámicamente",
+      isTrendPositive: true
+    }
+  ];
 
   return (
     <div className="dashboard-container">
@@ -359,43 +393,43 @@ const mapearCategoriaATipo = (categoria) => {
         activeSection={activeSection}
         onSectionChange={handleSectionChange}
       />
-      
+
       {/* Contenido principal */}
       <div className="main-content">
         {/* Barra de navegación superior */}
-        <Navbar 
+        <Navbar
           tipoUsuario="Escuela"
           usuario={usuario}
           notificaciones={notificaciones}
           menuItems={menuItems}
         />
-        
+
         {/* Botón para mostrar sidebar en dispositivos móviles */}
-        <button 
+        <button
           className="d-md-none menu-toggle btn btn-sm btn-primary position-fixed"
           style={{ top: '10px', left: '10px', zIndex: 1040 }}
           onClick={toggleSidebar}
         >
           <i className="fas fa-bars"></i>
         </button>
-        
+
         {/* Contenido del dashboard */}
         <div className="content px-3 py-3">
           {/* Dashboard principal */}
           {activeSection === 'dashboard' && (
             <>
               <h2 className="mb-4">Dashboard Escuela</h2>
-              
+
               {/* Cartas estadísticas */}
               <section className="mb-4">
                 <StatCardGroup cards={cartasEscuela} />
               </section>
-              
+
               {/* Sección de Proyectos y Pendientes */}
               <section className="mb-4">
                 <div className="row">
                   <div className="col-xl-8 col-lg-7">
-                    <Proyecto 
+                    <Proyecto
                       titulo={proyectosTitulo}
                       proyectos={proyectos}
                       tipo="escuela"
@@ -407,7 +441,7 @@ const mapearCategoriaATipo = (categoria) => {
                     />
                   </div>
                   <div className="col-xl-4 col-lg-5">
-                    <Pendientes 
+                    <Pendientes
                       titulo={pendientesTitulo}
                       items={pendientesItems}
                       tipo="escuela"
@@ -418,7 +452,7 @@ const mapearCategoriaATipo = (categoria) => {
                   </div>
                 </div>
               </section>
-              
+
               {/* Detalle del proyecto (ahora aparece debajo de proyectos y pendientes) */}
               {mostrarProyectoDetallado && (
                 <section id="seccionProyectoDetallado" className="mb-4">
@@ -442,10 +476,10 @@ const mapearCategoriaATipo = (categoria) => {
                   />
                 </section>
               )}
-              
+
               {/* NUEVA SECCIÓN: Gestión de necesidades escolares */}
               <section>
-                <NecesidadApoyo 
+                <NecesidadApoyo
                   necesidades={necesidades}
                   setNecesidades={setNecesidades}
                   onAddNecesidad={handleAddNecesidad}
@@ -459,19 +493,19 @@ const mapearCategoriaATipo = (categoria) => {
               <section className="mb-4">
                 <h2 className="mb-4">Mapa de Escuelas</h2>
                 <Container className="map-container">
-                  <MapaGoogle tipo="aliados"/>
+                  <MapaGoogle tipo="aliados" />
                 </Container>
               </section>
             </>
           )}
-          
+
           {/* Vista de proyectos */}
           {activeSection === 'proyectos' && (
             <>
               <h2 className="mb-4">Proyectos de la Escuela</h2>
               <div className="card">
                 <div className="card-body">
-                  <Proyecto 
+                  <Proyecto
                     titulo="Todos los proyectos"
                     proyectos={proyectosTodos}
                     tipo="escuela"

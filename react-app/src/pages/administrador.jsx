@@ -10,7 +10,6 @@ import ProyectoDetallado from '../components/proyectoDetallado.jsx'; // Importam
 import { StatCardGroup } from "../components/cartas.jsx";
 import { sidebarAdministrador } from "../data/barraLateral/barraLateralAdministrador.js";
 import { navbarAdministrador } from "../data/barraNavegacion/barraNavegacionAdministrador.js";
-import { cartasAdministrador } from "../data/cartas/cartasAdministrador.js";
 import { proyectosAdministrador } from '../data/proyectos/proyectosAdministrador.js';
 import Logo from "../assets/MPJ.png";
 import MapaGoogle from "../components/mapaGoogle.jsx";
@@ -234,6 +233,41 @@ const Administrador = () => {
 
     fetchProjectDetails();
   }, [selectedProject]);
+
+  const cartasAdministrador = [
+    {
+      title: "Necesidades pendientes",
+      value: datosGestionNecesidades.items?.length || 0,
+      icon: "fa-school",
+      color: "success",
+      trend: "Calculado dinámicamente",
+      isTrendPositive: true
+    },
+    {
+      title: "Apoyos pendientes",
+      value: datosGestionApoyos.items?.length || 0,
+      icon: "fa-handshake",
+      color: "danger",
+      trend: "Calculado dinámicamente",
+      isTrendPositive: true
+    },
+    {
+      title: "Proyectos Creados",
+      value: 0, // puedes reemplazar con otro estado real cuando lo tengas
+      icon: "fa-diagram-project",
+      color: "primary",
+      trend: "Calculado dinámicamente",
+      isTrendPositive: true
+    },
+    {
+      title: "Vinculaciones Pendientes",
+      value: datosGestionVinculaciones.items?.length || 0,
+      icon: "fa-clipboard-check",
+      color: "warning",
+      trend: "Calculado dinámicamente",
+      isTrendPositive: true
+    }
+  ];
 
   // Obtenemos todos los pendientes para el dashboard
   const pendientesTodos = pendientesAdministrador?.items || [];

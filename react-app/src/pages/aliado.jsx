@@ -9,10 +9,9 @@ import axios from "axios";
 import OfertaApoyo from "../components/OfertaApoyo.jsx";
 import Busqueda from "../components/busqueda.jsx";
 import ProyectoDetallado from "../components/proyectoDetallado.jsx";
-import { StatCardGroup } from "../components/cartas.jsx"; 
+import { StatCardGroup } from "../components/cartas.jsx";
 import { sidebarAliado } from "../data/barraLateral/barraLateralAliado.js";
 import { navbarAliado } from "../data/barraNavegacion/barraNavegacionAliado.js";
-import { cartasAliado } from "../data/cartas/cartasAliado.js"; 
 import { pendientesAliado } from '../data/pendientes/pendientesAliado.js';
 import { proyectosAliado } from '../data/proyectos/proyectosAliado.js';
 // Mantenemos la importación para migrar los datos iniciales
@@ -22,8 +21,8 @@ import { proyectoDetallado } from '../data/proyectoDetallado/proyectoDetallado.j
 import Logo from "../assets/MPJ.png";
 import MapaGoogle from "../components/mapaGoogle.jsx";
 
-const Aliado = ({ userData, onLogout }) => {  
-  const usuario = userData || {  nombre: "Aliado", foto: "" };
+const Aliado = ({ userData, onLogout }) => {
+  const usuario = userData || { nombre: "Aliado", foto: "" };
   const notificaciones = navbarAliado?.notificaciones || [];
   const menuItems = navbarAliado?.menuItems || [];
 
@@ -47,14 +46,14 @@ const Aliado = ({ userData, onLogout }) => {
   const [resultadosBusqueda, setResultadosBusqueda] = useState(escuelasData);
   const [paginaActual, setPaginaActual] = useState(1);
   const [cargandoBusqueda, setCargandoBusqueda] = useState(false);
-  
+
   // Configuración de paginación
   const escuelasPorPagina = 3;
   const totalPaginas = Math.ceil(resultadosBusqueda.length / escuelasPorPagina);
-  
+
   // Obtener escuelas para la página actual
   const escuelasPaginaActual = resultadosBusqueda.slice(
-    (paginaActual - 1) * escuelasPorPagina, 
+    (paginaActual - 1) * escuelasPorPagina,
     paginaActual * escuelasPorPagina
   );
 
@@ -78,7 +77,7 @@ const Aliado = ({ userData, onLogout }) => {
 
   // MODIFICADO: Función auxiliar para mapear categorías antiguas a nuevos tipos
   const mapearCategoriaATipo = (categoria) => {
-    switch(categoria) {
+    switch (categoria) {
       case "Infraestructura": return "material";
       case "Formación": return "servicios";
       case "Materiales": return "material";
@@ -107,11 +106,11 @@ const Aliado = ({ userData, onLogout }) => {
         }
         return [];
       });
-    } 
+    }
     // Si datosApoyos es un objeto con propiedades
     else if (datosApoyos && typeof datosApoyos === 'object') {
       const resultado = [];
-      
+
       // Intentar iterar sobre las propiedades del objeto
       Object.keys(datosApoyos).forEach(key => {
         const categoria = datosApoyos[key];
@@ -129,10 +128,10 @@ const Aliado = ({ userData, onLogout }) => {
           });
         }
       });
-      
+
       return resultado;
     }
-    
+
     // Si nada funciona, devolver datos de muestra simplificados
     return [
       {
@@ -185,7 +184,7 @@ const Aliado = ({ userData, onLogout }) => {
         categoria: a.categoria || "",
         subcategoria: a.subcategoria || ""
       }));
-    
+
     console.log("Apoyos formateados disponibles para vinculación:", apoyosFormateados);
     setApoyosDisponibles(apoyosFormateados);
   }, [apoyos]);
@@ -204,7 +203,7 @@ const Aliado = ({ userData, onLogout }) => {
     try {
       // Paso 1: Obtener proyectos con el ID real del usuario
       const respuesta = await get(`/proyecto/usuario/${usuario.idUsuario}`);
-      
+
       // Paso 2: Comprobar si hay proyectos y actualizar el estado
       if (respuesta && Array.isArray(respuesta)) {
         // Formateo de datos
@@ -239,13 +238,13 @@ const Aliado = ({ userData, onLogout }) => {
     console.log("Ver detalles del proyecto:", proyecto.nombre);
     setProyectoSeleccionado(proyecto);
     setMostrarProyectoDetallado(true);
-    
+
     // Obtener mensajes del proyecto
     console.log("Ver id del proyecto:", proyecto.id);
 
     fetchMensajes(proyecto.id);
     fetchEtapas(proyecto.id);
-    
+
     setTimeout(() => {
       const seccionDetalles = document.getElementById('seccionProyectoDetallado');
       if (seccionDetalles) {
@@ -262,7 +261,7 @@ const Aliado = ({ userData, onLogout }) => {
   //---------ETAPAS PROYECTO---------//
   //--------------------------------//
 
-  const fetchEtapas = async (idProyecto) =>{
+  const fetchEtapas = async (idProyecto) => {
     try {
       const respuesta = await get(`/proyecto/${idProyecto}/etapas`);
       setEtapas(respuesta);
@@ -276,7 +275,7 @@ const Aliado = ({ userData, onLogout }) => {
   //---------------------------------//
   //---------OFERTAS APOYOS---------//
   //-------------------------------//
-  
+
   // Manejadores para ofertas de apoyo
   const handleAddApoyo = async (nuevaOferta) => {
     try {
@@ -287,51 +286,51 @@ const Aliado = ({ userData, onLogout }) => {
         subcategoria: nuevaOferta.subcategoria || "General",
         estadoValidacion: nuevaOferta.estado || 0
       };
-      
-  
+
+
       const response = await axios.post('http://localhost:4001/api/apoyos-aliado', payload, {
         withCredentials: true
       });
-  
+
       console.log("[SUCCESS] Apoyo creado en base:", response.data);
-  
-    
+
+
       const apoyoNuevo = {
-        id: response.data.idNecesidadApoyo,                
-        descripcion: response.data.descripcion,            
-        categoria: response.data.categoria,             
+        id: response.data.idNecesidadApoyo,
+        descripcion: response.data.descripcion,
+        categoria: response.data.categoria,
         subcategoria: response.data.subcategoria || "General",
         fechaCreacion: response.data.fechaCreacion,
-        tipo: mapearCategoriaAliado(response.data.categoria), 
-        estado: "Disponible"                             
+        tipo: mapearCategoriaAliado(response.data.categoria),
+        estado: "Disponible"
       };
-  
+
       setApoyos((prev) => [...prev, apoyoNuevo]);
-  
+
       alert('¡Oferta de apoyo creada correctamente!');
     } catch (error) {
       console.error("[ERROR] Al crear apoyo:", error.response?.data || error.message);
       alert('Error al guardar apoyo. Inténtalo de nuevo.');
     }
   };
-  
-  
+
+
 
   const handleEditApoyo = (id, apoyoActualizado) => {
     console.log("Editando oferta de apoyo con ID:", id);
-    
+
     // Verificar si se debe eliminar el apoyo
     if (apoyoActualizado._delete) {
       setApoyos(apoyos.filter(apoyo => apoyo.id !== id));
       alert("Oferta de apoyo eliminada correctamente");
       return;
     }
-    
+
     // Actualizar el apoyo en el estado
-    setApoyos(apoyos.map(apoyo => 
-      apoyo.id === id ? {...apoyo, ...apoyoActualizado} : apoyo
+    setApoyos(apoyos.map(apoyo =>
+      apoyo.id === id ? { ...apoyo, ...apoyoActualizado } : apoyo
     ));
-    
+
     alert(`Oferta de apoyo "${apoyoActualizado.titulo}" actualizada correctamente`);
   };
 
@@ -343,24 +342,24 @@ const Aliado = ({ userData, onLogout }) => {
   // Manejadores para el componente de búsqueda
   const handleFilterChange = (filtros) => {
     console.log("Filtros aplicados:", filtros);
-    
+
     setCargandoBusqueda(true);
-    
+
     setTimeout(() => {
       let resultadosFiltrados = [...escuelasData];
-      
+
       if (filtros.soloCompatibles) {
         resultadosFiltrados = resultadosFiltrados.filter(
           escuela => escuela.compatibilidad === 'total'
         );
       }
-      
+
       if (filtros.nivelEducativo) {
         resultadosFiltrados = resultadosFiltrados.filter(
           escuela => escuela.nivelEducativo.toLowerCase() === filtros.nivelEducativo
         );
       }
-      
+
       setResultadosBusqueda(resultadosFiltrados);
       setPaginaActual(1);
       setCargandoBusqueda(false);
@@ -374,7 +373,7 @@ const Aliado = ({ userData, onLogout }) => {
   const handleVincular = (escuela, formData) => {
     console.log("Vinculando con escuela:", escuela.nombre);
     console.log("Datos del formulario:", formData);
-    
+
     alert(`Solicitud de vinculación con ${escuela.nombre} enviada correctamente`);
   };
 
@@ -399,7 +398,7 @@ const Aliado = ({ userData, onLogout }) => {
     try {
       // Paso 1: Obtener la mensajería asociada al proyecto
       const mensajerias = await get(`/proyecto/${idProyecto}/mensajeria`);
-      
+
       // Verificar si se encontraron mensajerías
       if (mensajerias && mensajerias.length > 0) {
         // Paso 2: Obtener los mensajes usando el idMensajeria
@@ -429,30 +428,30 @@ const Aliado = ({ userData, onLogout }) => {
   };
 
   // Crear mensajes
-  const handleSendMessage = async ( mensaje, idUsuario) => {
+  const handleSendMessage = async (mensaje, idUsuario) => {
     try {
 
       const idProyecto = proyectoSeleccionado.id;
-  
+
       // Obtener la mensajería asociada al proyecto
       const mensajerias = await get(`/proyecto/${idProyecto}/mensajeria`);
-      
+
       if (mensajerias && mensajerias.length > 0) {
         const idMensajeria = mensajerias[0].idMensajeria;
-        
+
         // Enviar el mensaje con los datos requeridos
         const datosEnvio = {
           idUsuario: usuario.idUsuario, // ID del usuario actual
           contenido: mensaje
         };
-        
+
         console.log("Mensaje:", datosEnvio)
         const respuestaEnvio = await post(`/mensajeria/${idMensajeria}/mensajes`, datosEnvio);
         console.log("Mensaje enviado:", respuestaEnvio);
-        
+
         // Actualizar la lista de mensajes
         fetchMensajes(idProyecto);
-        
+
         return respuestaEnvio;
       } else {
         throw new Error("No se encontró una mensajería asociada a este proyecto");
@@ -470,34 +469,34 @@ const Aliado = ({ userData, onLogout }) => {
           withCredentials: true
         });
         console.log("[INFO] Apoyos cargados:", response.data);
-        
+
         // Inspección detallada de la primera entrada para diagnóstico
         if (response.data.length > 0) {
-          console.log("[DEBUG] Primer apoyo - campos disponibles:", 
+          console.log("[DEBUG] Primer apoyo - campos disponibles:",
             Object.keys(response.data[0]));
-          console.log("[DEBUG] Primer apoyo - estado:", 
+          console.log("[DEBUG] Primer apoyo - estado:",
             response.data[0].estado || response.data[0].estadoValidacion);
         } else {
           console.log("[WARN] No se encontraron apoyos para mostrar");
         }
-  
+
         const apoyosConTipo = response.data.map(apoyo => ({
           ...apoyo,
           tipo: mapearCategoriaAliado(apoyo.categoria)
         }));
-  
+
         setApoyos(apoyosConTipo);
       } catch (error) {
         console.error("[ERROR] Error al cargar apoyos:", error.response?.data || error.message);
       }
     };
-  
+
     fetchApoyos();
   }, [usuario.idUsuario]);
 
   const mapearCategoriaAliado = (categoria) => {
     if (!categoria) return 'material'; // default
-    
+
     switch (categoria.toLowerCase()) {
       // Material
       case 'infraestructura':
@@ -507,7 +506,7 @@ const Aliado = ({ userData, onLogout }) => {
       case 'material bibliográfico':
       case 'material deportivo':
         return 'material';
-      
+
       // Servicios
       case 'capacitación':
       case 'formación docente':
@@ -518,7 +517,7 @@ const Aliado = ({ userData, onLogout }) => {
       case 'mantenimiento':
       case 'rehabilitación de espacios':
         return 'servicios';
-      
+
       // Económico
       case 'financiero':
       case 'apoyo económico':
@@ -528,7 +527,7 @@ const Aliado = ({ userData, onLogout }) => {
       case 'patrocinios':
       case 'donaciones monetarias':
         return 'economico';
-      
+
       // Voluntariado
       case 'voluntariado':
       case 'clases y talleres':
@@ -537,14 +536,14 @@ const Aliado = ({ userData, onLogout }) => {
       case 'mantenimiento y limpieza':
       case 'mentorías':
         return 'voluntariado';
-      
+
       default:
         return 'material';
     }
   };
-  
-  
-  
+
+
+
 
   const handleExportReport = () => {
     console.log("Exportando reporte del proyecto");
@@ -588,11 +587,46 @@ const Aliado = ({ userData, onLogout }) => {
 
   // Control del sidebar
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  
+
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
-  
+
+  const cartasAliado = [
+    {
+      title: "Proyectos activos",
+      value: proyectosAliado.proyectos?.length || 0,
+      icon: "fa-school",
+      color: "success",
+      trend: "Calculado dinámicamente",
+      isTrendPositive: true
+    },
+    {
+      title: "Apoyos por validar",
+      value: apoyosDisponibles.items?.length || 0,
+      icon: "fa-handshake",
+      color: "danger",
+      trend: "Calculado dinámicamente",
+      isTrendPositive: true
+    },
+    {
+      title: "Vinculaciones disponibles",
+      value: 0, // puedes reemplazar con otro estado real cuando lo tengas
+      icon: "fa-diagram-project",
+      color: "primary",
+      trend: "Calculado dinámicamente",
+      isTrendPositive: true
+    },
+    {
+      title: "Impacto estudiantes",
+      value: 0,
+      icon: "fa-clipboard-check",
+      color: "warning",
+      trend: "Calculado dinámicamente",
+      isTrendPositive: true
+    }
+  ];
+
   return (
     <div className="dashboard-container">
       {/* Sidebar fijo */}
@@ -603,41 +637,41 @@ const Aliado = ({ userData, onLogout }) => {
         isOpen={sidebarOpen}
         toggleSidebar={toggleSidebar}
       />
-      
+
       {/* Contenido principal */}
       <div className="main-content">
         {/* Barra de navegación superior */}
-        <Navbar 
+        <Navbar
           tipoUsuario="Aliado"
           usuario={usuario}
           notificaciones={notificaciones}
           menuItems={menuItems}
         />
-        
+
         {/* Botón para mostrar sidebar en dispositivos móviles */}
-        <button 
+        <button
           className="d-md-none menu-toggle btn btn-sm btn-primary position-fixed"
           style={{ top: '10px', left: '10px', zIndex: 1040 }}
           onClick={toggleSidebar}
         >
           <i className="fas fa-bars"></i>
         </button>
-        
+
         {/* Contenido del dashboard */}
         <div className="content px-3 py-3">
           <h2 className="mb-4">Dashboard Aliado</h2>
-          
+
           {/* Cartas estadísticas */}
           <section className="mb-4">
             <StatCardGroup cards={cartasAliado} />
           </section>
-          
+
           {/* Sección de Proyectos y Pendientes */}
           <section className="mb-4">
             <div className="row">
               <div className="col-xl-8 col-lg-7">
                 {/* Componente de Proyectos - Limitado a 3 */}
-                <Proyecto 
+                <Proyecto
                   titulo={proyectosTitulo}
                   proyectos={proyectos}
                   tipo="aliado"
@@ -650,7 +684,7 @@ const Aliado = ({ userData, onLogout }) => {
               </div>
               <div className="col-xl-4 col-lg-5">
                 {/* Componente de Pendientes - Limitado a 5 */}
-                <Pendientes 
+                <Pendientes
                   titulo={pendientesTitulo}
                   items={pendientesItems}
                   tipo="aliado"
@@ -661,7 +695,7 @@ const Aliado = ({ userData, onLogout }) => {
               </div>
             </div>
           </section>
-          
+
           {/* Detalle de Proyecto (condicional) */}
           {mostrarProyectoDetallado && (
             <section id="seccionProyectoDetallado" className="mb-4">
@@ -686,7 +720,7 @@ const Aliado = ({ userData, onLogout }) => {
               />
             </section>
           )}
-          
+
           {/* COMPONENTE REEMPLAZADO: Gestión de ofertas de apoyo */}
           <section className="mb-4">
             <OfertaApoyo
@@ -706,22 +740,22 @@ const Aliado = ({ userData, onLogout }) => {
 
           {/* Búsqueda de Escuelas */}
           <section id="seccionBusqueda" className="mt-5">
-          <Busqueda
-            titulo="Búsqueda de Escuelas"
-            resultados={escuelasPaginaActual}
-            opcionesFiltros={opcionesFiltros}
-            onFilterChange={handleFilterChange}
-            onMapView={handleMapView}
-            onVincular={handleVincular}
-            onVerDetalles={handleVerDetalles}
-            onPageChange={handlePageChange}
-            paginaActual={paginaActual}
-            totalPaginas={totalPaginas}
-            cargando={cargandoBusqueda}
-            apoyosDisponibles={apoyosDisponibles}
-            userData={userData}  // Aquí está pasando correctamente userData
-          />
-        </section>
+            <Busqueda
+              titulo="Búsqueda de Escuelas"
+              resultados={escuelasPaginaActual}
+              opcionesFiltros={opcionesFiltros}
+              onFilterChange={handleFilterChange}
+              onMapView={handleMapView}
+              onVincular={handleVincular}
+              onVerDetalles={handleVerDetalles}
+              onPageChange={handlePageChange}
+              paginaActual={paginaActual}
+              totalPaginas={totalPaginas}
+              cargando={cargandoBusqueda}
+              apoyosDisponibles={apoyosDisponibles}
+              userData={userData}  // Aquí está pasando correctamente userData
+            />
+          </section>
         </div>
       </div>
     </div>
