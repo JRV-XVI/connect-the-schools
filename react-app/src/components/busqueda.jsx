@@ -76,7 +76,7 @@ const Busqueda = ({
       }
       
       // Usar POST en lugar de GET y enviar el idUsuario en el cuerpo
-      const necesidades = await post(`/lista/necesidad`, {
+      const necesidades = await post("/lista/necesidad", {
         idUsuario: userData.idUsuario
       });
       
@@ -95,7 +95,7 @@ const Busqueda = ({
         const cct = necesidad.cct;
         
         if (!escuelasPorCCT[cct]) {
-          // Si es la primera necesidad de esta escuela, crear la estructura base
+          // First need for this school - create the base structure
           escuelasPorCCT[cct] = {
             id: cct,
             cct: cct,
@@ -289,7 +289,7 @@ const Busqueda = ({
         rfc: userData.rfc, 
         cct: escuelaSeleccionada.cct,
         idNecesidad: parseInt(necesidadSeleccionada?.idNecesidadApoyo || formData.necesidadSeleccionada, 10),
-        idApoyo: parseInt(apoyoSeleccionado?.idApoyo || formData.apoyoSeleccionado, 10),
+        idApoyo: parseInt(apoyoSeleccionado?.idNecesidadApoyo || formData.apoyoSeleccionado, 10),
         observacion: formData.descripcionServicios || "Sin observaciones",
       };
       

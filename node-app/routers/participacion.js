@@ -85,30 +85,23 @@ participacion.get('/vinculaciones', async (req, res, next) => {
 participacion.post('/vinculacion/aceptar', async (req, res, next) => {
     try {
         // Match frontend field names
-        const {
-            titulo1,
-            titulo2,
-            titulo3,
-            titulo4,
-            titulo5,
-            descripcion1,
-            descripcion2,
-            descripcion3,
-            descripcion4,
-            descripcion5,
-            descripcion
-        } = req.body;
+        const { descripcion, fechaFin, etapas, rfc, cct, idApoyo, idNecesidad } = req.body;
 
-        const resultado = await modelo.crearVinculacion({
+        const resultado = await modelo.crearProyecto({
             descripcion,
-            etapas
+            fechaFin,
+            etapas,
+            rfc,
+            cct,
+            idApoyo,
+            idNecesidad
         });
         res.status(201).send(resultado);
     } catch (error) {
         if (error.status === 500 || !error.status) {
-            console.error("Error al registrar la vinculacion:", error);
+            console.error("Error al registrar registrar proyecto:", error);
             return res.status(400).json({
-                error: "Fallo en la creacion de vinculacion"
+                error: "Fallo en la creacion de proyecto"
             });
         }
         next(error);

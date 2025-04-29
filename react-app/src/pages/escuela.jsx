@@ -4,7 +4,7 @@ import Navbar from "../components/barraNavegacion.jsx";
 import Pendientes from "../components/pendientes.jsx";
 import Proyecto from "../components/proyectos.jsx";
 import NecesidadApoyo from "../components/necesidadApoyo.jsx";
-import DiagnosticoNecesidades from '../components/DiagnosticoNecesidades'; // Ruta corregida
+import ProyectoDetallado from '../components/proyectoDetallado.jsx'; 
 import { useEffect } from "react";
 
 import { StatCardGroup } from "../components/cartas.jsx";
@@ -38,9 +38,19 @@ const Escuela = ({ userData, onLogout }) => {
   const proyectosTitulo = proyectosEscuela?.titulo || "Proyectos Recientes";
   const proyectosTextoBoton = proyectosEscuela?.textoBoton || "Ver todos";
 
-  // Estado para necesidades y sección activa - Importante: iniciar en 'dashboard'
+  // Estado para necesidades y sección activa
   const [necesidades, setNecesidades] = useState([]);
   const [activeSection, setActiveSection] = useState('dashboard');
+  
+  // Estado para el proyecto seleccionado y su detalle
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [showProjectDetail, setShowProjectDetail] = useState(false);
+  const [projectData, setProjectData] = useState({
+    fases: [],
+    evidencias: [],
+    mensajes: [],
+    documentos: []
+  });
 
 useEffect(() => {
   const fetchNecesidades = async () => {
@@ -53,7 +63,7 @@ useEffect(() => {
       console.log("[INFO] Necesidades escolares cargadas:", response.data);
       const necesidadesConTipo = response.data.map(nec => ({
         ...nec,
-        tipo: mapearCategoriaATipo(nec.categoria) // 🔥 función que mapea
+        tipo: mapearCategoriaATipo(nec.categoria)
       }));
       
       setNecesidades(necesidadesConTipo);
@@ -63,7 +73,102 @@ useEffect(() => {
   };
 
   fetchNecesidades();
-}, [userData?.idUsuario]); // <-- se ejecuta cuando el usuario ya esté disponible
+}, [userData?.idUsuario]);
+
+// Cargar datos del proyecto cuando se selecciona uno
+useEffect(() => {
+  const fetchProjectDetails = async () => {
+    if (!selectedProject) return;
+    
+    try {
+      // Aquí normalmente cargarías datos del backend
+      // Por ahora simulamos datos de ejemplo
+      setProjectData({
+        fases: [
+          {
+            nombre: "Fase de Planificación",
+            fechaInicio: "2025-03-01",
+            fechaFin: "2025-03-15",
+            estado: "Completado",
+            entregables: [
+              { nombre: "Plan de proyecto", estado: "completado" },
+              { nombre: "Presupuesto inicial", estado: "completado" }
+            ]
+          },
+          {
+            nombre: "Fase de Implementación",
+            fechaInicio: "2025-03-16",
+            fechaFin: "2025-04-30",
+            estado: "En Progreso",
+            progreso: 40,
+            entregables: [
+              { nombre: "Instalación de equipo", estado: "en progreso" },
+              { nombre: "Capacitación inicial", estado: "pendiente" }
+            ]
+          },
+          {
+            nombre: "Fase de Cierre",
+            fechaInicio: "2025-05-01",
+            fechaFin: "2025-05-15",
+            estado: "Pendiente",
+            entregables: [
+              { nombre: "Informe final", estado: "pendiente" },
+              { nombre: "Evaluación de resultados", estado: "pendiente" }
+            ]
+          }
+        ],
+        evidencias: [
+          {
+            titulo: "Reunión inicial",
+            descripcion: "Primera reunión con el equipo directivo",
+            fecha: "2025-03-03",
+            imagen: "https://via.placeholder.com/300x200?text=Reunión+Inicial",
+            fase: "Planificación"
+          }
+        ],
+        mensajes: [
+          {
+            remitente: "Coordinador MPJ",
+            contenido: "Buen día, ¿cómo va el avance del proyecto?",
+            fecha: "2025-03-20",
+            hora: "09:30",
+            esPropio: false
+          },
+          {
+            contenido: "Estamos en proceso de instalación del equipo, todo va según lo planeado",
+            fecha: "2025-03-20",
+            hora: "10:15",
+            esPropio: true
+          }
+        ],
+        documentos: [
+          {
+            nombre: "Plan de Proyecto.pdf",
+            tipo: "pdf",
+            categoria: "Documentación",
+            fase: "Planificación",
+            autor: "Coordinador MPJ",
+            fecha: "2025-03-05",
+            tamaño: "2.3 MB"
+          },
+          {
+            nombre: "Presupuesto Inicial.xlsx",
+            tipo: "excel",
+            categoria: "Financiero",
+            fase: "Planificación",
+            autor: "Administración Escuela",
+            fecha: "2025-03-10",
+            tamaño: "1.1 MB"
+          }
+        ]
+      });
+    } catch (error) {
+      console.error("[ERROR] Error al cargar detalles del proyecto:", error.response?.data || error.message);
+    }
+  };
+  
+  fetchProjectDetails();
+}, [selectedProject]);
 
 const mapearCategoriaATipo = (categoria) => {
   switch (categoria?.toLowerCase()) {
@@ -83,10 +188,9 @@ const mapearCategoriaATipo = (categoria) => {
   }
 };
 
-
   // Función para cambiar entre secciones del dashboard
   const handleSectionChange = (section) => {
-    console.log("Cambiando a sección:", section); // Debug para verificar cambios de sección
+    console.log("Cambiando a sección:", section);
     setActiveSection(section);
   };
 
@@ -97,20 +201,81 @@ const mapearCategoriaATipo = (categoria) => {
 
   const handleVerProyectos = () => {
     console.log("Ver todos los proyectos");
+    setActiveSection('proyectos');
   };
 
   const handleVerDetallesProyecto = (proyecto) => {
     console.log("Ver detalles del proyecto:", proyecto.nombre);
+    setSelectedProject(proyecto);
+    setShowProjectDetail(true);
   };
 
   const handleActionProyecto = (proyecto) => {
     console.log("Acción en proyecto:", proyecto.nombre, "Estado:", proyecto.estado);
   };
   
+  // Manejadores para el componente ProyectoDetallado
+  const handleGoBack = () => {
+    setShowProjectDetail(false);
+    setSelectedProject(null);
+  };
+
+  const handleExportReport = () => {
+    console.log("Exportando reporte del proyecto:", selectedProject?.nombre);
+  };
+
+  const handleAddRecord = (record) => {
+    console.log("Agregando registro al proyecto:", selectedProject?.nombre, record);
+  };
+
+  const handleUpdateProgress = () => {
+    console.log("Actualizando progreso del proyecto:", selectedProject?.nombre);
+  };
+
+  const handleUploadEvidence = () => {
+    console.log("Subiendo evidencia para el proyecto:", selectedProject?.nombre);
+  };
+
+  const handleSendMessage = (mensaje) => {
+    console.log("Enviando mensaje para el proyecto:", selectedProject?.nombre, mensaje);
+    
+    // Actualizar los mensajes localmente
+    const newMessage = {
+      contenido: mensaje,
+      fecha: new Date().toISOString(),
+      hora: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false }),
+      esPropio: true
+    };
+    
+    setProjectData(prev => ({
+      ...prev,
+      mensajes: [...prev.mensajes, newMessage]
+    }));
+  };
+
+  const handleUploadDocument = () => {
+    console.log("Subiendo documento para el proyecto:", selectedProject?.nombre);
+  };
+
+  const handleGenerateReport = () => {
+    console.log("Generando reporte para el proyecto:", selectedProject?.nombre);
+  };
+
+  const handleSaveChanges = () => {
+    console.log("Guardando cambios del proyecto:", selectedProject?.nombre);
+  };
+
+  const handleDownloadDocument = (documento) => {
+    console.log("Descargando documento:", documento.nombre);
+  };
+
+  const handleViewDocument = (documento) => {
+    console.log("Visualizando documento:", documento.nombre);
+  };
+  
   // Nuevos manejadores para necesidades escolares (componente NecesidadApoyo)
   const handleAddNecesidad = () => {
     console.log("Agregar nueva necesidad escolar");
-    setActiveSection('diagnostico');
   };
 
   const handleEditNecesidad = (item) => {
@@ -129,45 +294,6 @@ const mapearCategoriaATipo = (categoria) => {
     console.log("Ver historial de necesidades escolares");
   };
   
-  // Manejadores para DiagnosticoNecesidades
-  const handleAddNeed = async (newNeed) => {
-    try {
-      const payload = {
-        descripcion: newNeed.descripcion,
-        prioridad: newNeed.prioridad,
-        idCategoria: newNeed.idCategoria,
-        idSubcategoria: newNeed.idSubcategoria,
-        idUsuario: userData?.idUsuario, // <-- muy importante: ID del usuario escuela que está logueado
-      };
-  
-      console.log("[INFO] Enviando necesidad:", payload);
-  
-      const response = await axios.post('http://localhost:4001/api/usuarionecesidadApoyo', payload, {
-        withCredentials: true
-      });
-  
-      console.log("[SUCCESS] Necesidad creada:", response.data);
-  
-      // Actualizar lista local
-      const id = `need-${Date.now()}`;
-      setNecesidades([...necesidades, { id, ...newNeed }]);
-  
-      alert('¡Necesidad registrada exitosamente!');
-  
-    } catch (error) {
-      console.error("[ERROR] Al crear necesidad:", error.response?.data || error.message);
-      alert('Error al registrar necesidad. Verifica los campos.');
-    }
-  };
-
-  const handleEditNeed = (needId) => {
-    console.log("Editando necesidad con ID:", needId);
-  };
-
-  const handleViewNeed = (needId) => {
-    console.log("Viendo detalles de necesidad con ID:", needId);
-  };
-  
   // Control del sidebar
   const [sidebarOpen, setSidebarOpen] = useState(true);
   
@@ -175,13 +301,9 @@ const mapearCategoriaATipo = (categoria) => {
     setSidebarOpen(!sidebarOpen);
   };
 
-  // Debug para verificar el estado actual
-  console.log("Estado actual: activeSection =", activeSection);
-  console.log("Necesidades disponibles:", necesidades.length);
-  
   return (
     <div className="dashboard-container">
-      {/* Sidebar fijo - Asegurarse de pasar correctamente las props */}
+      {/* Sidebar fijo */}
       <Sidebar
         logo={Logo}
         title="Connect the Schools"
@@ -211,19 +333,9 @@ const mapearCategoriaATipo = (categoria) => {
           <i className="fas fa-bars"></i>
         </button>
         
-        {/* Contenido del dashboard - IMPORTANTE: incluir test buttons para depurar */}
+        {/* Contenido del dashboard */}
         <div className="content px-3 py-3">
-          {/* Botones de prueba para cambiar secciones directamente */}
-          <div className="mb-3 p-2 bg-light">
-            <button className="btn btn-sm btn-outline-dark me-2" onClick={() => setActiveSection('dashboard')}>
-              Dashboard
-            </button>
-            <button className="btn btn-sm btn-outline-dark me-2" onClick={() => setActiveSection('diagnostico')}>
-              Diagnóstico
-            </button>
-            <span className="ms-3 badge bg-secondary">Sección activa: {activeSection}</span>
-          </div>
-          
+          {/* Dashboard principal */}
           {activeSection === 'dashboard' && (
             <>
               <h2 className="mb-4">Dashboard Escuela</h2>
@@ -261,6 +373,30 @@ const mapearCategoriaATipo = (categoria) => {
                 </div>
               </section>
               
+              {/* Detalle del proyecto (ahora aparece debajo de proyectos y pendientes) */}
+              {showProjectDetail && selectedProject && (
+                <section className="mb-4">
+                  <ProyectoDetallado
+                    proyecto={selectedProject}
+                    fases={projectData.fases}
+                    evidencias={projectData.evidencias}
+                    mensajes={projectData.mensajes}
+                    documentos={projectData.documentos}
+                    onExportReport={handleExportReport}
+                    onAddRecord={handleAddRecord}
+                    onUpdateProgress={handleUpdateProgress}
+                    onUploadEvidence={handleUploadEvidence}
+                    onSendMessage={handleSendMessage}
+                    onUploadDocument={handleUploadDocument}
+                    onGoBack={handleGoBack}
+                    onGenerateReport={handleGenerateReport}
+                    onSaveChanges={handleSaveChanges}
+                    onDownloadDocument={handleDownloadDocument}
+                    onViewDocument={handleViewDocument}
+                  />
+                </section>
+              )}
+              
               {/* NUEVA SECCIÓN: Gestión de necesidades escolares */}
               <section>
                 <NecesidadApoyo 
@@ -275,17 +411,24 @@ const mapearCategoriaATipo = (categoria) => {
             </>
           )}
           
-          {/* IMPORTANTE: Verificar que esta condición se evalúa correctamente */}
-          {activeSection === 'diagnostico' && (
+          {/* Vista de proyectos */}
+          {activeSection === 'proyectos' && (
             <>
-              <h2 className="mb-4">Diagnóstico de Necesidades</h2>
-              <DiagnosticoNecesidades
-                necesidades={necesidades}
-                onAddNeed={handleAddNeed}
-                onEditNeed={handleEditNeed}
-                onViewNeed={handleViewNeed}
-                idUsuario={userData?.idUsuario}
-              />
+              <h2 className="mb-4">Proyectos de la Escuela</h2>
+              <div className="card">
+                <div className="card-body">
+                  <Proyecto 
+                    titulo="Todos los proyectos"
+                    proyectos={proyectosTodos}
+                    tipo="escuela"
+                    textoBoton="Historial completo"
+                    onViewClick={handleVerDetallesProyecto}
+                    onActionClick={handleActionProyecto}
+                    allProjects={proyectosTodos}
+                    fullView={true}
+                  />
+                </div>
+              </div>
             </>
           )}
         </div>

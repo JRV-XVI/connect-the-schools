@@ -53,15 +53,13 @@ const crearVinculacion = async (data) => {
 	} = data;
 
 	const idProyecto = null
-	const aceptacionAliado = true;
-	const aceptacionEscuela = false;
 
 	const resultado = await db.query(`
 		INSERT INTO "participacionProyecto" 
-			("idProyecto", cct, rfc, "idNecesidad", "idApoyo", observacion, "aceptacionAliado", "aceptacionEscuela")
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+			("idProyecto", cct, rfc, "idNecesidad", "idApoyo", observacion)
+		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING *
-	`, [idProyecto, cct, rfc, idNecesidad, idApoyo, observacion, aceptacionAliado, aceptacionEscuela]);
+	`, [idProyecto, cct, rfc, idNecesidad, idApoyo, observacion]);
 
 	return resultado.rows[0];
 
@@ -111,9 +109,8 @@ const obtenerVinculaciones = async () => {
 
 
 const crearProyecto = async (data) => {
-	const { descripcion, fechaFin, etapas } = data;
+	const { descripcion, fechaFin, etapas, rfc, cct, idApoyo, idNecesidad } = data;
 
-	// Primero crear el proyecto
 	const result = await db.query(`
 	    INSERT INTO proyecto (descripcion, "fechaFin")
 	    VALUES ($1, $2)
@@ -122,7 +119,12 @@ const crearProyecto = async (data) => {
 
 	const idProyecto = result.rows[0].idProyecto;
 
-	// Ahora insertar cada etapa ligada a ese proyecto
+	await db.query(`UPDATE "participacionProyecto" SET "idProyecto" = $1 WHERE rfc = $2 AND cct = $3 AND "idApoyo" = $4 AND "idNecesidad" = $5`, [idProyecto, rfc, cct, idApoyo, idNecesidad]);
+
+	await db.query(`
+		INSERT INTO mensajeria ("idProyecto") VALUES ($1)
+	`, [idProyecto])
+
 	for (let etapa of etapas) {
 		const { tituloEtapa, descripcionEtapa, orden } = etapa;
 
@@ -134,7 +136,7 @@ const crearProyecto = async (data) => {
 			tituloEtapa,
 			descripcionEtapa,
 			orden,
-			'pendiente' // estadoEntrega inicial
+			false // estadoEntrega inicial
 		]);
 	}
 
@@ -218,6 +220,7 @@ module.exports = {
 	actualizarParticipacion,
 	actualizarParticipacionConProyecto,
 	crearVinculacion,
-	obtenerVinculaciones
+	obtenerVinculaciones,
+	crearProyecto
 };
 

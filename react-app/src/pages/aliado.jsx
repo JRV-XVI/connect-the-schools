@@ -33,9 +33,12 @@ const Aliado = ({ userData, onLogout }) => {
   const pendientesTextoBoton = pendientesAliado?.textoBoton || "Ver todos los pendientes";
 
   // Obtenemos todos los proyectos y los limitamos a 3 para el dashboard
+  const [proyectos, setProyectos] = useState([]);
+  const [mensajes, setMensajes] = useState([]);
+
   const proyectosTodos = proyectosAliado?.proyectos || [];
   const proyectosItems = proyectosTodos.slice(0, 3);
-  const proyectosTitulo = proyectosAliado?.titulo || "Proyectos Recientes";
+  const proyectosTitulo = "Proyectos Recientes";
   const proyectosTextoBoton = proyectosAliado?.textoBoton || "Ver todos";
 
   // Estados para el componente de búsqueda
@@ -183,25 +186,34 @@ const Aliado = ({ userData, onLogout }) => {
   //---------PROYECTO---------//
   //--------------------------//
 
-  const [proyectos, setProyectos] = useState([]);
-
   // Función para obtener proyectos
   const fetchProyectos = async () => {
     try {
-      // Obtener proyectos con el ID real del usuario
+      // Paso 1: Obtener proyectos con el ID real del usuario
       const respuesta = await get(`/proyecto/usuario/${usuario.idUsuario}`);
       
-      // Comprobar si hay proyectos y actualizar el estado
+      // Paso 2: Comprobar si hay proyectos y actualizar el estado
       if (respuesta && Array.isArray(respuesta)) {
-        setProyectos(respuesta);
-        console.log("Proyectos obtenidos:", respuesta);
+        // Formateo de datos
+        const proyectosFormateados = respuesta.map(proyecto => ({
+          id: proyecto.idProyecto,
+          nombre: proyecto.descripcion,
+          fechaInicio: new Date(proyecto.fechaCreacion).toLocaleDateString(),
+          fechaFin: proyecto.fechaFin ? new Date(proyecto.fechaFin).toLocaleDateString() : 'No definida',
+          progreso: proyecto.progreso || 0,
+          estado: proyecto.validacionAdmin ? 'En tiempo' : 'Pendiente',
+          escuela: proyecto.nombreEscuela || 'Escuela asociada',
+        }));
+        console.log("Proyectos normales: ", respuesta);
+        setProyectos(proyectosFormateados);
+        console.log("Proyectos formateados:", proyectosFormateados);
       } else {
         setProyectos([]);
         console.log("No se encontraron proyectos");
       }
     } catch (error) {
       console.error("Error al obtener proyectos:", error);
-      setProyectos([]); // Actualiza proyectos, no mensajes
+      setProyectos([]);
     }
   };
 
@@ -216,8 +228,9 @@ const Aliado = ({ userData, onLogout }) => {
     setMostrarProyectoDetallado(true);
     
     // Obtener mensajes del proyecto
-    console.log("Ver id del proyecto:", proyectoSeleccionado.id);
-    fetchMensajes(proyectoSeleccionado.id);
+    console.log("Ver id del proyecto:", proyecto.id);
+
+    fetchMensajes(proyecto.id);
     
     setTimeout(() => {
       const seccionDetalles = document.getElementById('seccionProyectoDetallado');
@@ -347,9 +360,6 @@ const Aliado = ({ userData, onLogout }) => {
   //----------------------------//
   //---------MENSAJERIA---------//
   //----------------------------//
-
-  //Variable para odos los mensajes
-  const [mensajes, setMensajes] = useState([]);
 
   // Obtener todos los mensajes por proyecto
   const fetchMensajes = async (idProyecto) => {
@@ -586,7 +596,7 @@ const Aliado = ({ userData, onLogout }) => {
                 {/* Componente de Proyectos - Limitado a 3 */}
                 <Proyecto 
                   titulo={proyectosTitulo}
-                  proyectos={proyectosItems}
+                  proyectos={proyectos}
                   tipo="aliado"
                   textoBoton={proyectosTextoBoton}
                   onButtonClick={handleVerProyectos}
@@ -613,7 +623,7 @@ const Aliado = ({ userData, onLogout }) => {
           {mostrarProyectoDetallado && (
             <section id="seccionProyectoDetallado" className="mb-4">
               <ProyectoDetallado
-                proyecto={proyecto}
+                proyecto={proyectoSeleccionado}
                 fases={fases}
                 evidencias={evidencias}
                 mensajes={mensajes}

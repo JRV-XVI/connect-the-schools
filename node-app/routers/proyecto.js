@@ -276,6 +276,17 @@ proyecto.get('/proyecto/:idProyecto/etapas', verificarProyectoExiste, async (req
 	}
 });
 
+// Obtener datos de progreso etapas de un proyecto
+proyecto.get('/proyecto/:idProyecto/progreso', async (req, res, next) => {
+	try {
+	  const idProyecto = parseInt(req.params.idProyecto, 10);
+	  const progreso = await modelo.progresoProyectoEtapas(idProyecto);
+	  res.status(200).json(progreso);
+	} catch (error) {
+	  next(error);
+	}
+  });
+
 // ------------------------------------------- //
 // ------------ RUTAS DE ENTREGAS ------------ //
 // ------------------------------------------- //
