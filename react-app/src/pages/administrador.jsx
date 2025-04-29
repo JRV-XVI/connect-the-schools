@@ -13,9 +13,9 @@ import { navbarAdministrador } from "../data/barraNavegacion/barraNavegacionAdmi
 import { cartasAdministrador } from "../data/cartas/cartasAdministrador.js";
 import { proyectosAdministrador } from '../data/proyectos/proyectosAdministrador.js';
 import Logo from "../assets/MPJ.png";
-
+import { string } from "prop-types";
+import MapaGoogle from "../components/mapaGoogle.jsx";
 import { Modal, Button, Badge } from 'react-bootstrap';
-
 
 const Administrador = () => {
   // Estado para controlar qué tipo de validación se está mostrando (proyecto, usuario, etc.)
@@ -1494,8 +1494,16 @@ const Administrador = () => {
                   </div>
               </div>
             </div>
-          </div>
-        )}
+          </section>
+
+          <section>
+            <h2 className="mb-4">Mapa de escuelas</h2>
+            <div className="map-container">
+              <MapaGoogle tipo="admin" />
+            </div>
+          </section>
+
+        </div>
       </div>
     </div>
   );

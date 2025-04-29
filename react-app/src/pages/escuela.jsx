@@ -4,6 +4,8 @@ import Navbar from "../components/barraNavegacion.jsx";
 import Pendientes from "../components/pendientes.jsx";
 import Proyecto from "../components/proyectos.jsx";
 import NecesidadApoyo from "../components/necesidadApoyo.jsx";
+import DiagnosticoNecesidades from '../components/DiagnosticoNecesidades'; // Ruta corregida
+import MapaEscuelas from "../components/mapasEscuela.jsx";
 import ProyectoDetallado from '../components/proyectoDetallado.jsx'; 
 import { useEffect } from "react";
 import { get, post } from "../api.js";
@@ -20,8 +22,8 @@ import axios from 'axios';
 import { Container } from 'react-bootstrap';
 import '../../styles/escuela.css';
 import Logo from "../assets/MPJ.png";
+import MapaGoogle from "../components/mapaGoogle.jsx";
 import { proyectoDetallado } from '../data/proyectoDetallado/proyectoDetallado.js';
-
 
 const Escuela = ({ userData, onLogout }) => { 
   const usuario = userData || { nombre: "Escuela", foto: "" };
@@ -451,6 +453,14 @@ const mapearCategoriaATipo = (categoria) => {
                   onViewNecesidad={handleViewNecesidad}
                   userData={userData}
                 />
+              </section>
+
+              {/* Mapa de Aliados para EScuelas */}
+              <section className="mb-4">
+                <h2 className="mb-4">Mapa de Escuelas</h2>
+                <Container className="map-container">
+                  <MapaGoogle tipo="aliados"/>
+                </Container>
               </section>
             </>
           )}

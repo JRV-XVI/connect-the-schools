@@ -1,6 +1,8 @@
 const express = require('express');
 const model = require('../models/admin.js');
 const admin = express.Router();
+const { obtenerUbicacionesEscuelas } = require('../models/escuela.js');
+const { obtenerUbicacionesAliados } = require('../models/aliado.js');
 
 // ---------------------------------------------- //
 // ----------------- MIDDLEWARE ----------------- //
@@ -70,6 +72,24 @@ admin.get('/admin', async (req, res, next) => {
 // Obtener un administrador por su ID
 admin.get('/admin/:idPerfilAdmin', obtenerIdAdmin, (req, res) => {
     res.status(200).send(req.admin);
+});
+
+admin.get('/ubicaciones', async (req, res) => {
+    try {
+        const escuelas = await obtenerUbicacionesEscuelas();
+        const aliados = await obtenerUbicacionesAliados();
+
+        // Agregar un campo `tipo` para distinguir entre escuelas y aliados
+        const ubicaciones = [
+            ...escuelas.map((escuela) => ({ ...escuela, tipo: 'escuela' })),
+            ...aliados.map((aliado) => ({ ...aliado, tipo: 'aliado' }))
+        ];
+
+        res.status(200).json(ubicaciones);
+    } catch (error) {
+        console.error('Error al obtener ubicaciones:', error);
+        res.status(500).json({ error: 'Error al obtener ubicaciones' });
+    }
 });
 
 // Actualizar datos de administrador por ID
