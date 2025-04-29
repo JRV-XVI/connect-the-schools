@@ -350,7 +350,24 @@ const ProyectoDetallado = ({
                               {mensaje.esPropio ? (
                                 <small className="text-muted">{new Date(mensaje.hora).toLocaleTimeString()}</small>
                               ) : (
-                                <small><strong>{mensaje.remitente}</strong></small>
+                                <div>
+                                  <small>
+                                    <strong>{mensaje.remitente}</strong>
+                                    {mensaje.tipoRemitente && (
+                                      <span 
+                                        className={`badge ms-2 ${
+                                          mensaje.tipoRemitente === 'Escuela' ? 'bg-success' : 
+                                          mensaje.tipoRemitente === 'Aliado' ? 'bg-primary' : 
+                                          mensaje.tipoRemitente === 'Administrador' ? 'bg-danger' : 
+                                          'bg-secondary'
+                                        }`} 
+                                        style={{fontSize: '0.7em'}}
+                                      >
+                                        {mensaje.tipoRemitente}
+                                      </span>
+                                    )}
+                                  </small>
+                                </div>
                               )}
                             </div>
                             <div className={`message-content p-3 ${mensaje.esPropio ? 'bg-primary text-white ms-auto' : 'bg-light me-auto'} rounded`}>

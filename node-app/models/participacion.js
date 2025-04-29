@@ -156,18 +156,20 @@ const crearProyecto = async (data) => {
 };
 
 
-// Participaciones sin proyecto asignado
-const obtenerParticipacionesSinProyecto = async () => {
-	const resultado = await db.query(`
-		SELECT p.*, 
-			to_jsonb(pe.*) AS escuela,
-			to_jsonb(pa.*) AS aliado
-		FROM "participacionProyecto" p
-		LEFT JOIN "perfilEscuela" pe ON pe.cct = p.cct
-		LEFT JOIN "perfilAliado" pa ON pa.rfc = p.rfc
-		WHERE p."idProyecto" IS NULL
-	`);
-	return resultado.rows.map(row => ({ ...row, estado: "Pendiente de asignación a proyecto" }));
+// Participaciones sin proyecto asignado de un usuario específico
+const obtenerParticipacionesSinProyectoPorUsuario = async (id) => {
+    const resultado = await db.query(`
+        SELECT p.*, 
+            to_jsonb(pe.*) AS escuela,
+            to_jsonb(pa.*) AS aliado
+        FROM "participacionProyecto" p
+        LEFT JOIN "perfilEscuela" pe ON pe.cct = p.cct
+        LEFT JOIN "perfilAliado" pa ON pa.rfc = p.rfc
+        WHERE p."idProyecto" IS NULL
+        AND (p.cct = $1 OR p.rfc = $1)
+    `, [id]);
+    
+    return resultado.rows.map(row => ({ ...row, estado: "Pendiente de asignación a proyecto" }));
 };
 
 // Participación por rfc y cct
@@ -226,7 +228,7 @@ const actualizarParticipacionConProyecto = async (rfc, cct, idProyecto) => {
 
 module.exports = {
 	crearParticipacion,
-	obtenerParticipacionesSinProyecto,
+	obtenerParticipacionesSinProyectoPorUsuario,
 	obtenerParticipacionPorEscuelaYAliado,
 	obtenerParticipacionConsolidada,
 	actualizarParticipacion,

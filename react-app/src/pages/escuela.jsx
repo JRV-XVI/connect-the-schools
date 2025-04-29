@@ -186,6 +186,19 @@ const Escuela = ({ userData, onLogout }) => {
     }, 100);
   };
 
+  const totalAlumnosProyecto = () => {
+    if (proyectos && proyectos.length > 0) {
+      let estudiantes = 0;
+
+      for (let i = 0; i < proyectos.length; i++) {
+        estudiantes += Number(proyectos[i].estudiantes);
+      }
+
+      console.log("Numero de estudiantes totales: ", estudiantes)
+      return estudiantes;
+    }
+  };
+
   //----------------------------------//
   //---------ETAPAS PROYECTO---------//
   //--------------------------------//
@@ -363,7 +376,7 @@ const Escuela = ({ userData, onLogout }) => {
     },
     {
       title: "Cantidad alumnos",
-      value: 0,
+      value: totalAlumnosProyecto() | 0,
       icon: "fa-handshake",
       color: "danger",
       trend: "Calculado dinámicamente",

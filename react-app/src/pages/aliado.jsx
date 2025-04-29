@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { get, post } from "../api.js";
 import Sidebar from "../components/barraLateral.jsx";
 import Navbar from "../components/barraNavegacion.jsx";
@@ -32,10 +32,11 @@ const Aliado = ({ userData, onLogout }) => {
   const pendientesTitulo = pendientesAliado?.titulo || "Validaciones Pendientes";
   const pendientesTextoBoton = pendientesAliado?.textoBoton || "Ver todos los pendientes";
 
-  // PROYECTOS / ETAPAS / MENSAJES -> VARIABLES
+  // PROYECTOS / ETAPAS / MENSAJES / VINCULACIONES -> VARIABLES
   const [proyectos, setProyectos] = useState([]);
   const [mensajes, setMensajes] = useState([]);
   const [etapas, setEtapas] = useState([]);
+  const [vinculaciones, setVInculaciones] = useState([]);
 
   const proyectosTodos = proyectosAliado?.proyectos || [];
   const proyectosItems = proyectosTodos.slice(0, 3);
@@ -70,6 +71,10 @@ const Aliado = ({ userData, onLogout }) => {
   useEffect(() => {
     fetchProyectos();
   }, [usuario.idUsuario]);
+
+  useEffect(() => {
+    fetchVinculaciones();
+  }, [usuario?.idUsuario]);
 
   //-------------------------------//
   //------------------------------//
@@ -194,6 +199,21 @@ const Aliado = ({ userData, onLogout }) => {
     console.log("Ver todos los pendientes");
   };
 
+  //-------------------------------------------//
+  //---------VINCULACIONES PENDIENTES---------//
+  //------------------------------------------//
+
+  const fetchVinculaciones = async () => {
+    try {
+      const respuesta = await get(`/vinculacion/${usuario.rfc}`)
+      setVInculaciones(respuesta);
+      console.log("VInculaciones obtenidas: ", respuesta)
+    } catch (error) {
+      console.log("Error al obtener las vinculaciones", error)
+      setVInculaciones([]);
+    }
+  };
+
   //--------------------------//
   //---------PROYECTO---------//
   //--------------------------//
@@ -229,6 +249,19 @@ const Aliado = ({ userData, onLogout }) => {
       setProyectos([]);
     }
   };
+
+  const totalAlumnosProyecto = useMemo(() => {
+    if (proyectos && proyectos.length > 0) {
+      let estudiantes = 0;
+
+      for (let i = 0; i < proyectos.length; i++) {
+        estudiantes += Number(proyectos[i].estudiantes);
+      }
+
+      console.log("Numero de estudiantes totales: ", estudiantes)
+      return estudiantes;
+    }
+  }, [proyectos]);
 
   const handleVerProyectos = () => {
     console.log("Ver todos los proyectos");
@@ -601,7 +634,7 @@ const Aliado = ({ userData, onLogout }) => {
   const cartasAliado = [
     {
       title: "Proyectos activos",
-      value: proyectosAliado.proyectos?.length || 0,
+      value: proyectos.length || 0,
       icon: "fa-school",
       color: "success",
       trend: "Calculado dinámicamente",
@@ -617,7 +650,7 @@ const Aliado = ({ userData, onLogout }) => {
     },
     {
       title: "Vinculaciones disponibles",
-      value: 0, // puedes reemplazar con otro estado real cuando lo tengas
+      value: vinculaciones.length || 0,
       icon: "fa-diagram-project",
       color: "primary",
       trend: "Calculado dinámicamente",
@@ -625,7 +658,7 @@ const Aliado = ({ userData, onLogout }) => {
     },
     {
       title: "Impacto estudiantes",
-      value: 0,
+      value: totalAlumnosProyecto || 0,
       icon: "fa-clipboard-check",
       color: "warning",
       trend: "Calculado dinámicamente",

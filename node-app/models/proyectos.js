@@ -142,8 +142,8 @@ const actualizarProyecto = async (idProyecto, params) => {
 const obtenerProyectoEtapas = async (idProyecto) => {
 	const resultado = await db.query('SELECT * FROM "proyectoEtapas" WHERE "idProyecto" = $1', [idProyecto]);
 	return resultado.rows;
-
 };
+
 
 // Obtener la informacion de una etapa
 const infoEtapa = async (idEtapa) => {

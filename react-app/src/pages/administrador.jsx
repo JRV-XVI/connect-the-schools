@@ -205,7 +205,7 @@ const Administrador = ({userData, onLogout}) => {
   //---------MENSAJERIA---------//
   //----------------------------//
 
-  // Obtener todos los mensajes por proyecto
+  // fetchMensajes modificado para administrador (solo visualización)
   const fetchMensajes = async (idProyecto) => {
     try {
       // Paso 1: Obtener la mensajería asociada al proyecto
@@ -217,19 +217,38 @@ const Administrador = ({userData, onLogout}) => {
         const idMensajeria = mensajerias[0].idMensajeria;
         const respuestaMensajes = await get(`/mensajeria/${idMensajeria}/mensajes`);
 
-        // Paso 3: Transformar los mensajes para el front
+        // Paso 3: Transformar los mensajes para el front - administrador solo visualiza
         const mensajesFormateados = respuestaMensajes.map(mensaje => {
-          const fecha = new Date(mensaje.fechaEnvio);
+          // Determinar el tipo de remitente según tipoPerfil
+          let tipoRemitente = "Usuario";
+          let nombreRemitente = "Usuario desconocido";
+          
+          // Asignar tipo según el campo tipoPerfil de la tabla usuario (si está disponible)
+          if (mensaje.tipoPerfil === 1) {
+            tipoRemitente = "Escuela";
+            nombreRemitente = mensaje.nombreRemitente || selectedProject.escuela;
+          } 
+          else if (mensaje.tipoPerfil === 2) {
+            tipoRemitente = "Aliado";
+            nombreRemitente = mensaje.nombreRemitente || selectedProject.aliado;
+          }
+          else if (mensaje.tipoPerfil === 3) {
+            tipoRemitente = "Administrador";
+            nombreRemitente = mensaje.nombreRemitente || "Administrador";
+          }
+          
           return {
-            esPropio: mensaje.idUsuario === usuario.idUsuario,
-            remitente: mensaje.idUsuario === usuario.idUsuario,
+            // El administrador nunca tiene mensajes propios
+            esPropio: false,
+            // Usar el nombre del remitente de la respuesta o fallback
+            remitente: nombreRemitente,
+            tipoRemitente: tipoRemitente,
             hora: mensaje.fechaEnvio,
             contenido: mensaje.contenido
           };
         });
 
         setMensajes(mensajesFormateados);
-        console.log(mensajesFormateados);
       } else {
         setMensajes([]);
       }
@@ -271,7 +290,7 @@ const Administrador = ({userData, onLogout}) => {
     },
     {
       title: "Proyectos Creados",
-      value: 0, // puedes reemplazar con otro estado real cuando lo tengas
+      value: proyectos.length || 0,
       icon: "fa-diagram-project",
       color: "primary",
       trend: "Calculado dinámicamente",
