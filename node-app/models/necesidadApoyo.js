@@ -49,7 +49,7 @@ const necesidadApoyoPorId = async (id) => {
 
 const crearNecesidadApoyo = async (params) => {
     const resultado = await db.query(
-        'INSERT INTO "necesidadApoyo" ("idUsuario", "categoria", "subcategoria", "descripcion", "prioridad", "fechaCreacion", "estadoValidacion") VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *', // Comillas en columnas
+        'INSERT INTO "necesidadApoyo" ("idUsuario", "categoria", "subcategoria", "descripcion", "prioridad", "fechaCreacion") VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
         [
             params.idUsuario,
             params.categoria,
@@ -57,7 +57,6 @@ const crearNecesidadApoyo = async (params) => {
             params.descripcion,
             params.prioridad,
             new Date().toISOString(),
-            2
         ]
     );
     return resultado.rows[0];
