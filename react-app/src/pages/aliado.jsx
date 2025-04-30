@@ -26,7 +26,7 @@ const Aliado = ({ userData, onLogout }) => {
   const usuario = userData || { nombre: "Aliado", foto: "" };
   const notificaciones = navbarAliado?.notificaciones || [];
   const menuItems = navbarAliado?.menuItems || [];
-  
+
   // New state for API notifications
   const [notificacionesTodas, setNotificacionesTodas] = useState([]);
   const [cargandoNotificaciones, setCargandoNotificaciones] = useState(false);
@@ -50,7 +50,7 @@ const Aliado = ({ userData, onLogout }) => {
 
   const [proyectosActualizados, setProyectosActualizados] = useState(0);
 
-  
+
   const [notification, setNotification] = useState({
     show: false,
     message: '',
@@ -59,15 +59,15 @@ const Aliado = ({ userData, onLogout }) => {
   });
 
   const showNotification = (message, type = 'success', title = '') => {
-  setNotification({
-    show: true,
-    message,
-    type,
-    title: title || (type === 'success' ? 'Éxito' : 
-                    type === 'warning' ? 'Advertencia' : 
-                    type === 'danger' ? 'Error' : 'Información')
-  });
-};
+    setNotification({
+      show: true,
+      message,
+      type,
+      title: title || (type === 'success' ? 'Éxito' :
+        type === 'warning' ? 'Advertencia' :
+          type === 'danger' ? 'Error' : 'Información')
+    });
+  };
 
   // Update the handleVerNotificaciones function
   const handleVerNotificaciones = () => {
@@ -104,25 +104,25 @@ const Aliado = ({ userData, onLogout }) => {
         console.error("Error: No hay ID de usuario disponible", usuario);
         return;
       }
-      
+
       console.log("Intentando obtener notificaciones para usuario ID:", usuario.idUsuario);
       setCargandoNotificaciones(true);
       setErrorNotificaciones(null);
-      
+
       try {
         // Direct call without retries to simplify debugging
         console.log(`Obteniendo notificaciones para ID: ${usuario.idUsuario}`);
-        
+
         // Use axios directly for better error details
         const response = await axios.get(`http://localhost:4001/api/usuario/${usuario.idUsuario}/notificacion`, {
           withCredentials: true
         });
-        
+
         console.log("Notificaciones recibidas:", response.data);
         setNotificacionesTodas(response.data);
       } catch (error) {
         console.error("Error al obtener notificaciones:", error);
-        
+
         // Get detailed error information
         if (error.response) {
           // The server responded with a status code outside the 2xx range
@@ -135,18 +135,18 @@ const Aliado = ({ userData, onLogout }) => {
           // Something else caused the error
           console.error("Error en la configuración de la solicitud:", error.message);
         }
-        
+
         setErrorNotificaciones("No se pudieron cargar las notificaciones. Error del servidor.");
         setNotificacionesTodas([]);
       } finally {
         setCargandoNotificaciones(false);
       }
     };
-  
-  obtenerNotificaciones();
-}, [usuario.idUsuario]);
-  
-useEffect(() => {
+
+    obtenerNotificaciones();
+  }, [usuario.idUsuario]);
+
+  useEffect(() => {
     fetchVinculaciones();
   }, [usuario?.idUsuario]);
 
@@ -321,13 +321,13 @@ useEffect(() => {
   const handleLogout = () => {
     // Eliminar datos de localStorage
     localStorage.removeItem('userData');
-    
+
     // Llamar a la función onLogout proporcionada por App.jsx
     if (onLogout) {
       onLogout();
     }
   };
-  
+
   const totalAlumnosProyecto = useMemo(() => {
     if (proyectos && proyectos.length > 0) {
       let estudiantes = 0;
@@ -399,16 +399,16 @@ useEffect(() => {
         categoria: nuevaOferta.categoria || "Apoyo Material",
         subcategoria: nuevaOferta.subcategoria || "General",
       };
-      
+
       const response = await axios.post('http://localhost:4001/api/necesidadApoyo', payload, {
         withCredentials: true
       });
 
       console.log("[SUCCESS] Apoyo creado en base:", response.data);
-  
+
       // No agregamos el apoyo al estado para que no aparezca hasta ser validado
       // setApoyos((prev) => [...prev, apoyoNuevo]);
-  
+
       showNotification('¡Oferta de apoyo creada correctamente! Será revisada por un administrador antes de aparecer en la lista.', 'success', 'Apoyo Enviado');
     } catch (error) {
       console.error("[ERROR] Al crear apoyo:", error.response?.data || error.message);
@@ -426,27 +426,27 @@ useEffect(() => {
       try {
         // Determinar el ID correcto para la API
         const idNecesidadApoyo = apoyoActualizado.idNecesidadApoyo || id;
-        
+
         console.log("[DEBUG] Intentando eliminar con ID:", idNecesidadApoyo);
-        
+
         // Hacer la llamada a la API para eliminar el apoyo
         await axios.delete(`http://localhost:4001/api/necesidadApoyo/${idNecesidadApoyo}`, {
           withCredentials: true
         });
-        
+
         console.log("[SUCCESS] Apoyo eliminado del servidor");
-        
+
         // Eliminar del estado local (mejorado para manejar diferentes formatos de ID)
         setApoyos(apoyos.filter(apoyo => {
-          return apoyo.id !== id && 
-                 apoyo.idNecesidadApoyo !== id && 
-                 apoyo.id !== idNecesidadApoyo && 
-                 apoyo.idNecesidadApoyo !== idNecesidadApoyo;
+          return apoyo.id !== id &&
+            apoyo.idNecesidadApoyo !== id &&
+            apoyo.id !== idNecesidadApoyo &&
+            apoyo.idNecesidadApoyo !== idNecesidadApoyo;
         }));
-        
+
         // Refetch all supports to ensure the list is in sync with backend
         await fetchApoyos();
-        
+
         showNotification('Oferta de apoyo eliminada correctamente', 'success', 'Apoyo Eliminado');
       } catch (error) {
         console.error("[ERROR] Error al eliminar apoyo:", error.response?.data || error.message);
@@ -455,15 +455,15 @@ useEffect(() => {
       }
       return;
     }
-    
+
     // Actualizar el apoyo en el estado (manteniendo la lógica existente para actualizar)
-    setApoyos(apoyos.map(apoyo => 
-      apoyo.id === id ? {...apoyo, ...apoyoActualizado} : apoyo
+    setApoyos(apoyos.map(apoyo =>
+      apoyo.id === id ? { ...apoyo, ...apoyoActualizado } : apoyo
     ));
-    
+
     showNotification(
-      `Oferta de apoyo "${apoyoActualizado.titulo}" actualizada correctamente`, 
-      'success', 
+      `Oferta de apoyo "${apoyoActualizado.titulo}" actualizada correctamente`,
+      'success',
       'Apoyo Actualizado'
     );
   };
@@ -507,10 +507,10 @@ useEffect(() => {
   const handleVincular = (escuela, formData) => {
     console.log("Vinculando con escuela:", escuela.nombre);
     console.log("Datos del formulario:", formData);
-    
+
     showNotification(
-      `Solicitud de vinculación con ${escuela.nombre} enviada correctamente`, 
-      'success', 
+      `Solicitud de vinculación con ${escuela.nombre} enviada correctamente`,
+      'success',
       'Vinculación Iniciada'
     );
   };
@@ -607,27 +607,27 @@ useEffect(() => {
         withCredentials: true
       });
       console.log("[INFO] Apoyos cargados:", response.data);
-      
+
       // Process response data as before
       const apoyosNormalizados = response.data.map(apoyo => {
         // Your existing normalization logic
         let estadoValidacion;
-        
+
         // Existing conversion logic...
         if (typeof apoyo.estadoValidacion === 'string') {
           estadoValidacion = parseInt(apoyo.estadoValidacion, 10);
         } else if (typeof apoyo.estadoValidacion === 'number') {
           estadoValidacion = apoyo.estadoValidacion;
-        } 
+        }
         // Rest of existing logic...
-        
+
         return {
           ...apoyo,
           estadoValidacion,
           tipo: mapearCategoriaAliado(apoyo.categoria)
         };
       });
-      
+
       setApoyos(apoyosNormalizados);
       return apoyosNormalizados;
     } catch (error) {
@@ -635,7 +635,7 @@ useEffect(() => {
       return [];
     }
   };
-  
+
   useEffect(() => {
     fetchApoyos();
   }, [usuario.idUsuario]);
@@ -757,7 +757,7 @@ useEffect(() => {
     },
     {
       title: "Vinculaciones disponibles",
-      value: vinculaciones.length || 0,
+      value: vinculaciones.length + 1 || 0,
       icon: "fa-diagram-project",
       color: "primary",
       trend: "Calculado dinámicamente",
@@ -928,27 +928,27 @@ useEffect(() => {
           {/* Búsqueda de Escuelas */}
           <div id="schools">
             <section id="seccionBusqueda" className="mt-5">
-            <Busqueda
-              titulo="Búsqueda de Escuelas"
-              resultados={escuelasPaginaActual}
-              opcionesFiltros={opcionesFiltros}
-              onFilterChange={handleFilterChange}
-              onMapView={handleMapView}
-              onVincular={handleVincular}
-              onVerDetalles={handleVerDetalles}
-              onPageChange={handlePageChange}
-              paginaActual={paginaActual}
-              totalPaginas={totalPaginas}
-              cargando={cargandoBusqueda}
-              apoyosDisponibles={apoyosDisponibles}
-              userData={userData}  // Aquí está pasando correctamente userData
-            />
+              <Busqueda
+                titulo="Búsqueda de Escuelas"
+                resultados={escuelasPaginaActual}
+                opcionesFiltros={opcionesFiltros}
+                onFilterChange={handleFilterChange}
+                onMapView={handleMapView}
+                onVincular={handleVincular}
+                onVerDetalles={handleVerDetalles}
+                onPageChange={handlePageChange}
+                paginaActual={paginaActual}
+                totalPaginas={totalPaginas}
+                cargando={cargandoBusqueda}
+                apoyosDisponibles={apoyosDisponibles}
+                userData={userData}  // Aquí está pasando correctamente userData
+              />
             </section>
           </div>
-          
+
           {/* Modal para ver todas las notificaciones */}
-          <Modal 
-            show={showAllNotificationsModal} 
+          <Modal
+            show={showAllNotificationsModal}
             onHide={() => setShowAllNotificationsModal(false)}
             size="lg"
             aria-labelledby="notificacionesModalLabel"
@@ -956,7 +956,7 @@ useEffect(() => {
             <Modal.Header closeButton>
               <Modal.Title id="notificacionesModalLabel">Todas las Notificaciones</Modal.Title>
             </Modal.Header>
-            
+
             <Modal.Body>
               {cargandoNotificaciones ? (
                 <div className="text-center py-3">
@@ -991,17 +991,17 @@ useEffect(() => {
                 </ul>
               )}
             </Modal.Body>
-            
+
             <Modal.Footer>
               <Button variant="secondary" onClick={() => setShowAllNotificationsModal(false)}>
                 Cerrar
               </Button>
             </Modal.Footer>
-          </Modal>  
+          </Modal>
 
-          <Toast 
+          <Toast
             show={notification.show}
-            onClose={() => setNotification({...notification, show: false})}
+            onClose={() => setNotification({ ...notification, show: false })}
             style={{
               position: 'fixed',
               bottom: '20px',
