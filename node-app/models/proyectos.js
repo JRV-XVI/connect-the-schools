@@ -36,7 +36,8 @@ const obtenerProyectosPorUsuario = async (idUsuario) => {
                 p."validacionAdmin", 
                 p."fechaCreacion", 
                 p."fechaFin",
-                u."nombre" as "nombreEscuela"
+                u."nombre" as "nombreEscuela",
+                pe."numeroEstudiantes"
             FROM "proyecto" p 
             JOIN "participacionProyecto" pp ON p."idProyecto" = pp."idProyecto" 
             JOIN "perfilAliado" pa ON pp."rfc" = pa."rfc" 
@@ -49,21 +50,45 @@ const obtenerProyectosPorUsuario = async (idUsuario) => {
     } 
     else if (tipoPerfil === 1) { // Escuela
         const resultado = await db.query(`
-            SELECT DISTINCT p."idProyecto", p."descripcion", p."validacionAdmin", p."fechaCreacion", p."fechaFin" 
+            SELECT DISTINCT 
+                p."idProyecto", 
+                p."descripcion", 
+                p."validacionAdmin", 
+                p."fechaCreacion", 
+                p."fechaFin",
+                u."nombre" as "nombreAliado",
+                pe."numeroEstudiantes"
             FROM "proyecto" p 
             JOIN "participacionProyecto" pp ON p."idProyecto" = pp."idProyecto" 
             JOIN "perfilEscuela" pe ON pp."cct" = pe."cct" 
+            JOIN "perfilAliado" pa ON pp."rfc" = pa."rfc"
+            JOIN "usuario" u ON pa."idUsuario" = u."idUsuario"
             WHERE pe."idUsuario" = $1 
             ORDER BY p."fechaCreacion" DESC
         `, [idUsuario]);
         proyectos = resultado.rows;
-    } 
+    }
     else if (tipoPerfil === 3) { // Admin
         // Administrador puede ver todos los proyectos
         const resultado = await db.query(`
-            SELECT "idProyecto", "descripcion", "validacionAdmin", "fechaCreacion", "fechaFin" 
-            FROM "proyecto" 
-            ORDER BY "fechaCreacion" DESC
+            SELECT DISTINCT 
+                p."idProyecto", 
+                p."descripcion", 
+                p."validacionAdmin", 
+                p."fechaCreacion", 
+                p."fechaFin",
+                ue."nombre" as "nombreEscuela",
+                ua."nombre" as "nombreAliado",
+                pe."numeroEstudiantes",
+                pp."cct",
+                pp."rfc"
+            FROM "proyecto" p 
+            LEFT JOIN "participacionProyecto" pp ON p."idProyecto" = pp."idProyecto" 
+            LEFT JOIN "perfilEscuela" pe ON pp."cct" = pe."cct"
+            LEFT JOIN "perfilAliado" pa ON pp."rfc" = pa."rfc"
+            LEFT JOIN "usuario" ue ON pe."idUsuario" = ue."idUsuario"
+            LEFT JOIN "usuario" ua ON pa."idUsuario" = ua."idUsuario"
+            ORDER BY p."fechaCreacion" DESC
         `);
         proyectos = resultado.rows;
     }
@@ -117,8 +142,8 @@ const actualizarProyecto = async (idProyecto, params) => {
 const obtenerProyectoEtapas = async (idProyecto) => {
 	const resultado = await db.query('SELECT * FROM "proyectoEtapas" WHERE "idProyecto" = $1', [idProyecto]);
 	return resultado.rows;
-
 };
+
 
 // Obtener la informacion de una etapa
 const infoEtapa = async (idEtapa) => {

@@ -13,7 +13,6 @@ import { get, post } from "../api.js";
 import { StatCardGroup } from "../components/cartas.jsx";
 import { sidebarEscuela } from "../data/barraLateral/barraLateralEscuela.js";
 import { navbarEscuela } from "../data/barraNavegacion/barraNavegacionEscuela.js";
-import { cartasEscuela } from "../data/cartas/cartasEscuela.js";
 import { pendientesEscuela } from '../data/pendientes/pendientesEscuela.js';
 import { proyectosEscuela } from '../data/proyectos/proyectosEscuela.js';
 import { tabsNecesidades, columnasNecesidades, datosNecesidades } from '../data/necesidadApoyo/necesidades.js';
@@ -148,6 +147,7 @@ const Escuela = ({ userData, onLogout }) => {
           progreso: proyecto.progreso || 0,
           estado: proyecto.validacionAdmin ? 'En tiempo' : 'Pendiente',
           escuela: proyecto.nombreEscuela || 'Escuela asociada',
+          estudiantes: proyecto.numeroEstudiantes || 0
         }));
         console.log("Proyectos normales: ", respuesta);
         setProyectos(proyectosFormateados);
@@ -184,6 +184,19 @@ const Escuela = ({ userData, onLogout }) => {
         seccionDetalles.scrollIntoView({ behavior: 'smooth' });
       }
     }, 100);
+  };
+
+  const totalAlumnosProyecto = () => {
+    if (proyectos && proyectos.length > 0) {
+      let estudiantes = 0;
+
+      for (let i = 0; i < proyectos.length; i++) {
+        estudiantes += Number(proyectos[i].estudiantes);
+      }
+
+      console.log("Numero de estudiantes totales: ", estudiantes)
+      return estudiantes;
+    }
   };
 
   //----------------------------------//
@@ -223,7 +236,7 @@ const Escuela = ({ userData, onLogout }) => {
           return {
             esPropio: mensaje.idUsuario === usuario.idUsuario,
             remitente: mensaje.idUsuario === usuario.idUsuario,
-            hora: fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+            hora: mensaje.fechaEnvio,
             contenido: mensaje.contenido
           };
         });
@@ -278,6 +291,11 @@ const Escuela = ({ userData, onLogout }) => {
     setUserRole(null);
     setUserData(null);
   };
+
+  // Refrescar mensajes cada 2 segundos si hay un proyecto seleccionado
+  if (proyectoSeleccionado) {
+    setTimeout(fetchMensajes, 2000, proyectoSeleccionado.id)
+  }
 
   const handleActionProyecto = (proyecto) => {
     console.log("Acción en proyecto:", proyecto.nombre, "Estado:", proyecto.estado);
@@ -351,6 +369,41 @@ const Escuela = ({ userData, onLogout }) => {
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
+
+  const cartasEscuela = [
+    {
+      title: "Necesidades identificadas",
+      value: 0,
+      icon: "fa-school",
+      color: "success",
+      trend: "Calculado dinámicamente",
+      isTrendPositive: true
+    },
+    {
+      title: "Cantidad alumnos",
+      value: totalAlumnosProyecto() | 0,
+      icon: "fa-handshake",
+      color: "danger",
+      trend: "Calculado dinámicamente",
+      isTrendPositive: true
+    },
+    {
+      title: "Proyectos activos",
+      value: proyectosTodos.length || 0, // puedes reemplazar con otro estado real cuando lo tengas
+      icon: "fa-diagram-project",
+      color: "primary",
+      trend: "Calculado dinámicamente",
+      isTrendPositive: true
+    },
+    {
+      title: "Vinculaciones disponibles",
+      value: 0,
+      icon: "fa-clipboard-check",
+      color: "warning",
+      trend: "Calculado dinámicamente",
+      isTrendPositive: true
+    }
+  ];
 
   return (
     <div className="dashboard-container" id="dashboard">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { get, post } from "../api.js";
 import Sidebar from "../components/barraLateral.jsx";
 import Navbar from "../components/barraNavegacion.jsx";
@@ -33,10 +33,11 @@ const Aliado = ({ userData, onLogout }) => {
   const pendientesTitulo = pendientesAliado?.titulo || "Validaciones Pendientes";
   const pendientesTextoBoton = pendientesAliado?.textoBoton || "Ver todos los pendientes";
 
-  // PROYECTOS / ETAPAS / MENSAJES -> VARIABLES
+  // PROYECTOS / ETAPAS / MENSAJES / VINCULACIONES -> VARIABLES
   const [proyectos, setProyectos] = useState([]);
   const [mensajes, setMensajes] = useState([]);
   const [etapas, setEtapas] = useState([]);
+  const [vinculaciones, setVInculaciones] = useState([]);
 
   const proyectosTodos = proyectosAliado?.proyectos || [];
   const proyectosItems = proyectosTodos.slice(0, 3);
@@ -71,6 +72,10 @@ const Aliado = ({ userData, onLogout }) => {
   useEffect(() => {
     fetchProyectos();
   }, [usuario.idUsuario]);
+
+  useEffect(() => {
+    fetchVinculaciones();
+  }, [usuario?.idUsuario]);
 
   //-------------------------------//
   //------------------------------//
@@ -195,6 +200,21 @@ const Aliado = ({ userData, onLogout }) => {
     console.log("Ver todos los pendientes");
   };
 
+  //-------------------------------------------//
+  //---------VINCULACIONES PENDIENTES---------//
+  //------------------------------------------//
+
+  const fetchVinculaciones = async () => {
+    try {
+      const respuesta = await get(`/vinculacion/${usuario.rfc}`)
+      setVInculaciones(respuesta);
+      console.log("VInculaciones obtenidas: ", respuesta)
+    } catch (error) {
+      console.log("Error al obtener las vinculaciones", error)
+      setVInculaciones([]);
+    }
+  };
+
   //--------------------------//
   //---------PROYECTO---------//
   //--------------------------//
@@ -216,6 +236,7 @@ const Aliado = ({ userData, onLogout }) => {
           progreso: proyecto.progreso || 0,
           estado: proyecto.validacionAdmin ? 'En tiempo' : 'Pendiente',
           escuela: proyecto.nombreEscuela || 'Escuela asociada',
+          estudiantes: proyecto.numeroEstudiantes || 0
         }));
         console.log("Proyectos normales: ", respuesta);
         setProyectos(proyectosFormateados);
@@ -230,11 +251,23 @@ const Aliado = ({ userData, onLogout }) => {
     }
   };
 
-
   const handleLogout = () => {
     setUserRole(null);
     setUserData(null);
   };
+  
+  const totalAlumnosProyecto = useMemo(() => {
+    if (proyectos && proyectos.length > 0) {
+      let estudiantes = 0;
+
+      for (let i = 0; i < proyectos.length; i++) {
+        estudiantes += Number(proyectos[i].estudiantes);
+      }
+
+      console.log("Numero de estudiantes totales: ", estudiantes)
+      return estudiantes;
+    }
+  }, [proyectos]);
 
   const handleVerProyectos = () => {
     console.log("Ver todos los proyectos");
@@ -418,7 +451,7 @@ const Aliado = ({ userData, onLogout }) => {
           return {
             esPropio: mensaje.idUsuario === usuario.idUsuario,
             remitente: mensaje.idUsuario === usuario.idUsuario,
-            hora: fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+            hora: mensaje.fechaEnvio,
             contenido: mensaje.contenido
           };
         });
@@ -468,6 +501,11 @@ const Aliado = ({ userData, onLogout }) => {
       throw error;
     }
   };
+
+  // Refrescar mensajes cada 2 segundos si hay un proyecto seleccionado
+  if (proyectoSeleccionado) {
+    setTimeout(fetchMensajes, 2000, proyectoSeleccionado.id)
+  }
 
   useEffect(() => {
     const fetchApoyos = async () => {
@@ -598,6 +636,41 @@ const Aliado = ({ userData, onLogout }) => {
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
+
+  const cartasAliado = [
+    {
+      title: "Proyectos activos",
+      value: proyectos.length || 0,
+      icon: "fa-school",
+      color: "success",
+      trend: "Calculado dinámicamente",
+      isTrendPositive: true
+    },
+    {
+      title: "Apoyos por validar",
+      value: apoyosDisponibles.items?.length || 0,
+      icon: "fa-handshake",
+      color: "danger",
+      trend: "Calculado dinámicamente",
+      isTrendPositive: true
+    },
+    {
+      title: "Vinculaciones disponibles",
+      value: vinculaciones.length || 0,
+      icon: "fa-diagram-project",
+      color: "primary",
+      trend: "Calculado dinámicamente",
+      isTrendPositive: true
+    },
+    {
+      title: "Impacto estudiantes",
+      value: totalAlumnosProyecto || 0,
+      icon: "fa-clipboard-check",
+      color: "warning",
+      trend: "Calculado dinámicamente",
+      isTrendPositive: true
+    }
+  ];
 
   return (
     <div className="dashboard-container" id="dashboard">

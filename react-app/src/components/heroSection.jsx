@@ -6,7 +6,6 @@ const HeroSection = ({ onForgotPassword, onLogin }) => {
   const [loginData, setLoginData] = useState({
     email: '',
     password: '',
-    remember: false
   });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -141,25 +140,6 @@ const HeroSection = ({ onForgotPassword, onLogin }) => {
                     required 
                   />
                 </Form.Group>
-                <div className="d-flex justify-content-between mb-3">
-                  <Form.Check 
-                    type="checkbox"
-                    id="login-remember"
-                    name="remember" 
-                    label="Recordarme"
-                    checked={loginData.remember}
-                    onChange={handleChange}
-                    disabled={isSubmitting}
-                  />
-                  <Button 
-                    variant="link" 
-                    className="p-0" 
-                    onClick={onForgotPassword}
-                    disabled={isSubmitting}
-                  >
-                    ¿Olvidaste tu contraseña?
-                  </Button>
-                </div>
                 <Button 
                   type="submit" 
                   variant="primary" 
