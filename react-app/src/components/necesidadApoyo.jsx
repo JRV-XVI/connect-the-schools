@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Tab, Nav, Alert, Button, Form, Badge, Table, Card, Modal } from 'react-bootstrap';
+import { Tab, Nav, Alert, Button, Form, Badge, Table, Card, Modal, Toast, ToastContainer } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 
@@ -141,6 +141,27 @@ const NecesidadApoyo = ({ necesidades =[], setNecesidades = () => { }, onAddNece
     }
   };
 
+  const [notification, setNotification] = useState({
+    show: false,
+    message: '',
+    type: 'success',
+    title: ''
+  });
+  
+  const showNotification = (message, type = 'success', title = '') => {
+    setNotification({
+      show: true,
+      message,
+      type,
+      title
+    });
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+      setNotification(prev => ({...prev, show: false}));
+    }, 5000);
+  };
+    
 
   const [activeTab, setActiveTab] = useState('todos');
   const [showNewNeedForm, setShowNewNeedForm] = useState(false);
@@ -282,9 +303,13 @@ const getTipoFromCategoria = (categoriaTexto) => {
     
       console.log('[SUCCESS] Necesidad de apoyo creada:', response.data);
     
-      // No agregamos la necesidad al estado porque no debe mostrarse hasta ser aprobada
-      // setNecesidades([...necesidades, response.data]);
-    
+      {notification.show && (
+        <div className={`alert alert-${notification.type} alert-dismissible fade show`} role="alert">
+          {notification.title && <strong>{notification.title}</strong>}
+          <p>{notification.message}</p>
+          <button type="button" className="btn-close" onClick={() => setNotification(prev => ({...prev, show: false}))}></button>
+        </div>
+      )}
       setFormData({
         descripcion: '',
         tipo: activeTab,
@@ -293,11 +318,11 @@ const getTipoFromCategoria = (categoriaTexto) => {
       });
     
       setShowNewNeedForm(false);
-      alert('¡Necesidad de apoyo registrada exitosamente! Será revisada por el administrador antes de aparecer en la lista.');
-    } catch (error) {
-      console.error('[ERROR] Al crear necesidad de apoyo:', error.response?.data || error.message);
-      alert('Error al registrar la necesidad de apoyo. Verifica los campos.');
-    }
+      showNotification('¡Necesidad de apoyo registrada exitosamente! Será revisada por el administrador antes de aparecer en la lista.', 'success', 'Registro Exitoso');
+          } catch (error) {
+            console.error('[ERROR] Al crear necesidad de apoyo:', error.response?.data || error.message);
+            showNotification('Error al registrar la necesidad de apoyo. Verifica los campos.', 'error', 'Error de Registro');
+          }
   };
   
   // Manejador para guardar cambios en edición
@@ -866,6 +891,23 @@ const getTipoFromCategoria = (categoriaTexto) => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      <ToastContainer className="p-3" position="bottom-end">
+        <Toast 
+          show={notification.show} 
+          onClose={() => setNotification(prev => ({...prev, show: false}))}
+          delay={5000}
+          autohide
+          bg={notification.type}
+        >
+          <Toast.Header closeButton={true}>
+            <strong className="me-auto">{notification.title}</strong>
+          </Toast.Header>
+          <Toast.Body className={notification.type === 'success' ? 'text-white' : ''}>
+            {notification.message}
+          </Toast.Body>
+        </Toast>
+      </ToastContainer>
     </div>
   );
 };

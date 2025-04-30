@@ -231,9 +231,6 @@ const ProyectoDetallado = ({
               <div className="tab-pane fade show active">
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <h6 className="mb-0">Etapas del Proyecto</h6>
-                  <button className="btn btn-sm btn-outline-primary" onClick={onUpdateProgress}>
-                    <i className="fas fa-pen me-1"></i> Actualizar avance
-                  </button>
                 </div>
 
                 {fases.map((etapa, index) => (
@@ -418,12 +415,6 @@ const ProyectoDetallado = ({
         <div className="mt-4 text-end">
           <button className="btn btn-outline-secondary me-2" onClick={onGoBack}>
             <i className="fas fa-arrow-left me-1"></i> Volver a proyectos
-          </button>
-          <button className="btn btn-outline-primary me-2" onClick={onGenerateReport}>
-            <i className="fas fa-file-export me-1"></i> Generar reporte
-          </button>
-          <button className="btn btn-primary" onClick={onSaveChanges}>
-            <i className="fas fa-save me-1"></i> Guardar cambios
           </button>
         </div>
       </div>

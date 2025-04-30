@@ -96,7 +96,10 @@ const necesidadesCompatibles = async (idUsuario) => {
 			"perfilEscuela"."nivelEducativo",
 			"perfilEscuela"."numeroEstudiantes",
 			"perfilEscuela".sector,
-			usuario.direccion,
+			usuario.calle,
+			usuario."codigoPostal",
+			usuario.ciudad,
+			usuario.estado,
 			usuario.nombre
 		FROM "necesidadApoyo"
 		INNER JOIN "necesidadApoyo" AS apoyo
