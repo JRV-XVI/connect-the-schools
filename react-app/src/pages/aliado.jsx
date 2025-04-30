@@ -912,7 +912,7 @@ useEffect(() => {
           <section>
             <h2 className="mb-4" id="map">Mapa de escuelas</h2>
             <div className="map-container">
-              <MapaGoogle tipo="escuelas" />
+              <MapaGoogle tipo="aliados" />
             </div>
           </section>
 
