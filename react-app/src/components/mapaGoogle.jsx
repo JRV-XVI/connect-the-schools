@@ -37,11 +37,11 @@ const MapaGoogle = ({ tipo }) => {
 
     useEffect(() => {
         const endpoint =
-        tipo === "admin"
-            ? "http://localhost:4001/api/ubicaciones"
-            : tipo === "aliados"
-            ? "http://localhost:4001/api/escuelas/ubicaciones"
-            : "http://localhost:4001/api/aliados/ubicaciones";
+            tipo === "admin"
+                ? "http://localhost:4001/api/ubicaciones"
+                : tipo === "aliados"
+                    ? "http://localhost:4001/api/escuelas/ubicaciones"
+                    : "http://localhost:4001/api/aliados/ubicaciones";
 
 
         fetch(endpoint)
