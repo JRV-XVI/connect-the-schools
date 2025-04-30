@@ -72,16 +72,21 @@ const Busqueda = ({
     try {
       setLoading(true);
       
-      // Verificar si tenemos datos del usuario
       if (!userData || !userData.idUsuario) {
         console.warn("No hay ID de usuario disponible para buscar necesidades compatibles");
         setError("No se puede identificar el usuario para buscar escuelas compatibles");
         return [];
       }
       
-      // Usar POST en lugar de GET y enviar el idUsuario en el cuerpo
+      // Revisar el tipo y valor del ID antes de enviarlo
+      const userId = parseInt(userData.idUsuario, 10);
+      console.log("Enviando solicitud con ID de usuario:", userId, "tipo:", typeof userId);
+      
+      // Usar POST en lugar de GET y enviar datos más completos
       const necesidades = await post("/lista/necesidad", {
-        idUsuario: userData.idUsuario
+        idUsuario: userId,
+        tipoUsuario: userData.tipoUsuario || "aliado",
+        filtros: {} // Si el endpoint espera parámetros de filtrado
       });
       
       console.log("Escuelas y necesidades obtenidas:", necesidades);

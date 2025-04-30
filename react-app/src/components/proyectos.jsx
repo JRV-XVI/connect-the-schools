@@ -37,7 +37,7 @@ const Proyecto = ({
             <th>Fecha Inicio</th>
             <th>Progreso</th>
             <th>Estado</th>
-            <th>Acciones</th>
+            <th>Acción</th>
           </tr>
         );
       case 'aliado':
@@ -48,7 +48,7 @@ const Proyecto = ({
             <th>Fecha Inicio</th>
             <th>Fecha Fin</th>
             <th>Progreso</th>
-            <th>Acciones</th>
+            <th>Acción</th>
           </tr>
         );
       case 'escuela':
@@ -74,6 +74,12 @@ const Proyecto = ({
       if (porcentaje >= 70) return 'bg-success';
       if (porcentaje >= 40) return 'bg-warning';
       return 'bg-danger';
+    };
+
+    const truncateText = (text, maxLength = 20) => {
+      if (!text) return '';
+      if (text.length <= maxLength) return text;
+      return text.substring(0, maxLength) + '...';
     };
 
     // Determinar el color del badge de estado
@@ -111,12 +117,6 @@ const Proyecto = ({
         >
           <i className="fas fa-eye"></i>
         </button>
-        <button 
-          className="btn btn-sm btn-outline-success"
-          onClick={() => onActionClick(proyecto, index)}
-        >
-          <i className="fas fa-pen"></i>
-        </button>
       </td>
     );
 
@@ -124,7 +124,7 @@ const Proyecto = ({
       case 'admin':
         return (
           <tr key={index}>
-            <td>{proyecto.nombre}</td>
+            <td title={proyecto.nombre}>{truncateText(proyecto.nombre)}</td>
             <td>{proyecto.escuela}</td>
             <td>{proyecto.aliado}</td>
             <td>{proyecto.fechaInicio}</td>
@@ -140,7 +140,7 @@ const Proyecto = ({
       case 'aliado':
         return (
           <tr key={index}>
-            <td>{proyecto.nombre}</td>
+            <td title={proyecto.nombre}>{truncateText(proyecto.nombre)}</td>
             <td>{proyecto.escuela}</td>
             <td>{proyecto.fechaInicio}</td>
             <td>{proyecto.fechaFin}</td>
@@ -151,7 +151,7 @@ const Proyecto = ({
       case 'escuela':
         return (
           <tr key={index}>
-            <td>{proyecto.nombre}</td>
+            <td title={proyecto.nombre}>{truncateText(proyecto.nombre)}</td>
             <td>{proyecto.aliado}</td>
             <td>{proyecto.fechaInicio}</td>
             <td>{renderProgress(proyecto.progreso)}</td>
@@ -182,11 +182,6 @@ const Proyecto = ({
       <div className="card h-100 d-flex flex-column">
         <div className="card-header d-flex justify-content-between align-items-center">
           <h5 className="mb-0">{titulo}</h5>
-          {textoBoton && (
-            <button className={`btn btn-sm btn-${tipo === 'aliado' ? 'outline-' : ''}primary`} onClick={handleButtonClick}>
-              {textoBoton}
-            </button>
-          )}
         </div>
         <div className="card-body p-2 ">
           {noProyectos ? (

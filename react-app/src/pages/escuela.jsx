@@ -446,14 +446,6 @@ const handleEditNecesidad = async (id, necesidadActualizada) => {
     console.log("Ver detalles de necesidad escolar:", item);
   };
 
-  const handleToggleStatus = (item) => {
-    console.log("Cambiar estado de necesidad escolar:", item);
-  };
-
-  const handleVerHistorial = () => {
-    console.log("Ver historial de necesidades escolares");
-  };
-
   // Control del sidebar
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
