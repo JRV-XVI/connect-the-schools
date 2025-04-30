@@ -416,7 +416,7 @@ const Administrador = () => {
 
   const handleRechazarVinculacion = async (vinculacion) => {
     console.log("Rechazando vinculación:", vinculacion);
-
+  
     try {
       // Verificar que la vinculación contenga los datos necesarios
       if (!vinculacion || !vinculacion.aliado?.rfc || !vinculacion.escuela?.cct ||
@@ -425,47 +425,63 @@ const Administrador = () => {
         showNotification("Error: La vinculación no contiene todos los datos necesarios", "danger", "Error de Validación");
         return;
       }
-
-      // Datos para la solicitud de rechazo
-      const datosRechazo = {
+  
+      const queryParams = new URLSearchParams({
         rfc: vinculacion.aliado.rfc,
         cct: vinculacion.escuela.cct,
         idNecesidad: vinculacion.necesidad.idNecesidad,
         idApoyo: vinculacion.apoyo.idApoyo
-      };
-
-      console.log("Enviando solicitud de rechazo:", datosRechazo);
-
-      // FIXED: Changed the endpoint from "/vinculacion" to "/vinculacion/rechazar"
-      const resultado = await del("/vinculacion", datosRechazo);
-
+      }).toString();
+      
+      const resultado = await del(`/vinculacion?${queryParams}`);
+  
       console.log("Respuesta del servidor:", resultado);
-
+  
+      // UPDATE STATE: Remove the vinculacion from the state
+      setDatosGestionVinculaciones(prevState => {
+        const updatedItems = prevState.items.filter(item => {
+          // Check if this item corresponds to the rejected vinculacion
+          if (item.datosOriginales && 
+              item.datosOriginales.aliado?.rfc === vinculacion.aliado.rfc &&
+              item.datosOriginales.escuela?.cct === vinculacion.escuela.cct &&
+              item.datosOriginales.necesidad?.idNecesidad === vinculacion.necesidad.idNecesidad &&
+              item.datosOriginales.apoyo?.idApoyo === vinculacion.apoyo.idApoyo) {
+            return false; // Remove this item
+          }
+          return true; // Keep this item
+        });
+  
+        return {
+          ...prevState,
+          items: updatedItems
+        };
+      });
+  
       // Rest of the notification logic remains the same...
       const notificacionEscuela = {
         cct: vinculacion.escuela.cct,
         titulo: "Vinculación rechazada",
         mensaje: `La vinculación para "${vinculacion.necesidad.categoria}: ${vinculacion.necesidad.subcategoria}" ha sido rechazada por el administrador.`
       };
-
+  
       const notificacionAliado = {
         rfc: vinculacion.aliado.rfc,
         titulo: "Vinculación rechazada",
         mensaje: `La vinculación para apoyar con "${vinculacion.apoyo.categoria}: ${vinculacion.apoyo.subcategoria}" ha sido rechazada por el administrador.`
       };
-
+  
       try {
         await post("/notificacion", notificacionEscuela);
         console.log("Notificación enviada a la escuela");
-
+  
         await post("/notificacion", notificacionAliado);
         console.log("Notificación enviada al aliado");
       } catch (errorNotificacion) {
         console.error("Error al enviar notificaciones:", errorNotificacion);
       }
-
+  
       showNotification('Vinculación rechazada exitosamente y notificaciones enviadas', 'danger', 'Vinculación Rechazada');
-
+  
     } catch (error) {
       console.error("Error al rechazar la vinculación:", error);
       showNotification(`Error al rechazar la vinculación: ${error.message || "Revisa la conexión con el servidor"}`, 'danger', 'Error');
@@ -477,38 +493,59 @@ const Administrador = () => {
     console.log("Aprobando necesidad:", necesidad);
     try {
       // Verifica si el ID existe y es válido
-        if (!necesidad.idNecesidadApoyo) {
-          console.error("Error: necesidad no tiene un ID válido", necesidad);
-          showNotification("Error: La necesidad no tiene un ID válido", "danger", "Error de Validación");
-          return;
-        }
-
-
+      if (!necesidad.idNecesidadApoyo) {
+        console.error("Error: necesidad no tiene un ID válido", necesidad);
+        showNotification("Error: La necesidad no tiene un ID válido", "danger", "Error de Validación");
+        return;
+      }
+  
       const necesidadId = necesidad.idNecesidadApoyo;
-
+  
       // Objeto de datos para enviar al backend
       const datosAprobacion = {
         id: necesidadId,
         estadoValidacion: 3 // Código de estado para "Aprobado"
       };
-
+  
       console.log(`Enviando petición PUT a /necesidadApoyo/${necesidadId}`, datosAprobacion);
-
+  
       // Llamada al endpoint para aprobar necesidad
       const respuesta = await put(`/necesidadApoyo/${necesidadId}`, datosAprobacion);
-
+  
       console.log("Respuesta del servidor:", respuesta);
-
+  
+      // UPDATE STATE: Update the local state to reflect the change
+      setDatosGestionNecesidades(prevState => {
+        const updatedItems = prevState.items.map(item => {
+          if (item.datosOriginales && item.datosOriginales.idNecesidadApoyo === necesidadId) {
+            return {
+              ...item,
+              estado: "Aprobada",
+              datosOriginales: {
+                ...item.datosOriginales,
+                estadoValidacion: 3
+              }
+            };
+          }
+          return item;
+        });
+  
+        return {
+          ...prevState,
+          items: updatedItems
+        };
+      });
+  
       // MODIFICADO: Enviar notificación usando el mismo patrón que funciona en enviarProyecto
       const idUsuario = necesidad.idUsuario || necesidad.usuario?.idUsuario;
-
+  
       if (idUsuario) {
         const notificacionEscuela = {
           idUsuario: idUsuario,
           titulo: "¡Necesidad Aprobada!",
           mensaje: `Su necesidad "${necesidad.categoria}: ${necesidad.subcategoria}" ha sido aprobada y está lista para ser atendida.`
         };
-
+  
         try {
           console.log("Enviando notificación a usuario con ID:", idUsuario);
           await post("/notificacion", notificacionEscuela);
@@ -519,7 +556,7 @@ const Administrador = () => {
       } else {
         console.warn("No se encontró idUsuario para enviar notificación de necesidad aprobada");
       }
-
+  
       showNotification('Necesidad aprobada exitosamente', 'success', 'Necesidad Aprobada');
     } catch (error) {
       console.error("Error al aprobar la necesidad:", error);
@@ -535,32 +572,54 @@ const Administrador = () => {
         showNotification("Error: El apoyo no tiene un ID válido", "danger", "Error de Validación");
         return;
       }
-
+  
       const apoyoId = apoyo.idNecesidadApoyo;
-
+  
       // Objeto de datos para enviar al backend
       const datosAprobacion = {
         id: apoyoId,
         estadoValidacion: 3 // Código de estado para "Aprobado"
       };
-
+  
       console.log(`Enviando petición PUT a /necesidadApoyo/${apoyoId}`, datosAprobacion);
-
+  
       // Llamada al endpoint para aprobar apoyo
       const respuesta = await put(`/necesidadApoyo/${apoyoId}`, datosAprobacion);
-
+  
       console.log("Respuesta del servidor:", respuesta);
-
+  
+      // UPDATE STATE: Update the local state to reflect the change
+      setDatosGestionApoyos(prevState => {
+        const updatedItems = prevState.items.map(item => {
+          if (item.datosOriginales && item.datosOriginales.idNecesidadApoyo === apoyoId) {
+            return {
+              ...item,
+              estado: "Aprobada",
+              datosOriginales: {
+                ...item.datosOriginales,
+                estadoValidacion: 3
+              }
+            };
+          }
+          return item;
+        });
+  
+        return {
+          ...prevState,
+          items: updatedItems
+        };
+      });
+  
       // MODIFICADO: Enviar notificación usando el mismo patrón que funciona en enviarProyecto
       const idUsuario = apoyo.idUsuario || apoyo.usuario?.idUsuario;
-
+  
       if (idUsuario) {
         const notificacionAliado = {
           idUsuario: idUsuario,
           titulo: "¡Apoyo Aprobado!",
           mensaje: `Su ofrecimiento de apoyo "${apoyo.categoria}: ${apoyo.subcategoria}" ha sido aprobado y ahora está disponible para vinculación con escuelas.`
         };
-
+  
         try {
           console.log("Enviando notificación al usuario con ID:", idUsuario);
           await post("/notificacion", notificacionAliado);
@@ -571,14 +630,13 @@ const Administrador = () => {
       } else {
         console.warn("No se encontró idUsuario para enviar notificación de apoyo aprobado");
       }
-
+  
       showNotification('Apoyo aprobado exitosamente', 'success', 'Apoyo Aprobado');
     } catch (error) {
       console.error("Error al aprobar el apoyo:", error);
       showNotification(`Error al aprobar el apoyo: ${error.message || "Revisa la conexión con el servidor"}`, 'danger', 'Error');
-
     }
-  };
+  };  
 
   const handleRechazarNecesidad = async (necesidad) => {
     console.log("Rechazando necesidad:", necesidad);
@@ -589,33 +647,53 @@ const Administrador = () => {
         return;
       }
       
-
       const necesidadId = necesidad.idNecesidadApoyo;
-
+  
       // Objeto de datos para enviar al backend
       const datosRechazo = {
         id: necesidadId,
         estadoValidacion: 1 // Código de estado para "No aprobado"
       };
-
+  
       console.log(`Enviando petición PUT a /necesidadApoyo/${necesidadId}`, datosRechazo);
-
+  
       // Llamada al endpoint para rechazar necesidad
       const respuesta = await put(`/necesidadApoyo/${necesidadId}`, datosRechazo);
-
-
+  
       console.log("Respuesta del servidor:", respuesta);
-
+  
+      // UPDATE STATE: Update the local state to reflect the change
+      setDatosGestionNecesidades(prevState => {
+        const updatedItems = prevState.items.map(item => {
+          if (item.datosOriginales && item.datosOriginales.idNecesidadApoyo === necesidadId) {
+            return {
+              ...item,
+              estado: "No aprobado",
+              datosOriginales: {
+                ...item.datosOriginales,
+                estadoValidacion: 1
+              }
+            };
+          }
+          return item;
+        });
+  
+        return {
+          ...prevState,
+          items: updatedItems
+        };
+      });
+  
       // MODIFICADO: Enviar notificación usando el mismo patrón que funciona en enviarProyecto
       const idUsuario = necesidad.idUsuario || necesidad.usuario?.idUsuario;
-
+  
       if (idUsuario) {
         const notificacionEscuela = {
           idUsuario: idUsuario,
           titulo: "Necesidad No Aprobada",
           mensaje: `Su necesidad "${necesidad.categoria}: ${necesidad.subcategoria}" no ha sido aprobada. Por favor, contacte con administración para más detalles.`
         };
-
+  
         try {
           console.log("Enviando notificación de rechazo al usuario con ID:", idUsuario);
           await post("/notificacion", notificacionEscuela);
@@ -626,12 +704,11 @@ const Administrador = () => {
       } else {
         console.warn("No se encontró idUsuario para enviar notificación de necesidad rechazada");
       }
-
+  
       showNotification('Necesidad rechazada exitosamente', 'danger', 'Necesidad Rechazada');
     } catch (error) {
       console.error("Error al rechazar la necesidad:", error);
       showNotification(`Error al rechazar la necesidad: ${error.message || "Revisa la conexión con el servidor"}`, 'danger', 'Error');
-
     }
   };
 
@@ -644,31 +721,53 @@ const Administrador = () => {
         showNotification("Error: El apoyo no tiene un ID válido", "danger", "Error de Validación");
         return;
       }
-
+  
       const apoyoId = apoyo.idNecesidadApoyo;
-
+  
       // Objeto de datos para enviar al backend
       const datosRechazo = {
         id: apoyoId,
         estadoValidacion: 1 // Código de estado para "No aprobado"
       };
-
+  
       console.log(`Enviando petición PUT a /necesidadApoyo/${apoyoId}`, datosRechazo);
-
+  
       const respuesta = await put(`/necesidadApoyo/${apoyoId}`, datosRechazo);
-
+  
       console.log("Respuesta del servidor:", respuesta);
-
+  
+      // UPDATE STATE: Update the local state to reflect the change
+      setDatosGestionApoyos(prevState => {
+        const updatedItems = prevState.items.map(item => {
+          if (item.datosOriginales && item.datosOriginales.idNecesidadApoyo === apoyoId) {
+            return {
+              ...item,
+              estado: "No aprobado",
+              datosOriginales: {
+                ...item.datosOriginales,
+                estadoValidacion: 1
+              }
+            };
+          }
+          return item;
+        });
+  
+        return {
+          ...prevState,
+          items: updatedItems
+        };
+      });
+  
       // MODIFICADO: Enviar notificación usando el mismo patrón que funciona en enviarProyecto
       const idUsuario = apoyo.idUsuario || apoyo.usuario?.idUsuario;
-
+  
       if (idUsuario) {
         const notificacionAliado = {
           idUsuario: idUsuario,
           titulo: "Apoyo No Aprobado",
-          mensaje: `Su ofrecimiento de apoyo "${apoyo.categoria}: ${apoyo.subcategoria}" ha sido aprobado y ahora está disponible para vinculación con escuelas.`
+          mensaje: `Su ofrecimiento de apoyo "${apoyo.categoria}: ${apoyo.subcategoria}" no ha sido aprobado. Por favor, contacte con administración para más detalles.`
         };
-
+  
         try {
           console.log("Enviando notificación de rechazo al usuario con ID:", idUsuario);
           await post("/notificacion", notificacionAliado);
@@ -679,7 +778,7 @@ const Administrador = () => {
       } else {
         console.warn("No se encontró idUsuario para enviar notificación de apoyo rechazado");
       }
-
+  
       showNotification('Apoyo rechazado exitosamente', 'danger', 'Apoyo Rechazado');
     } catch (error) {
       console.error("Error al rechazar el apoyo:", error);
@@ -738,80 +837,99 @@ const Administrador = () => {
     }));
   };
 
-  // Modificar la función enviarProyecto para incluir el envío de notificaciones
-  const enviarProyecto = async () => {
-    try {
-      // Validar que todas las etapas tengan título
-      const etapasInvalidas = datosProyecto.etapas.some(etapa => !etapa.tituloEtapa.trim());
-      if (etapasInvalidas) {
-        showNotification("Todas las etapas deben tener un título", "warning", "Datos Incompletos");
-        return;
-      }
-
-      // Formar el objeto exactamente con la estructura requerida por el API
-      const datosFormateados = {
-        descripcion: datosProyecto.descripcion,
-        fechaFin: datosProyecto.fechaFin,
-        rfc: datosProyecto.rfc,
-        cct: datosProyecto.cct,
-        idApoyo: datosProyecto.idApoyo,
-        idNecesidad: datosProyecto.idNecesidad,
-        etapas: datosProyecto.etapas.map(etapa => ({
-          tituloEtapa: etapa.tituloEtapa,
-          descripcionEtapa: etapa.descripcionEtapa,
-          orden: etapa.orden
-        }))
-      };
-
-      // Si necesitas el ID de la vinculación, añádelo aquí
-      if (vinculacionSeleccionada && vinculacionSeleccionada.id) {
-        datosFormateados.idVinculacion = vinculacionSeleccionada.id;
-      }
-
-      console.log("Enviando datos:", JSON.stringify(datosFormateados, null, 2));
-
-      // Realizar la llamada POST al endpoint especificado
-      const respuesta = await post("/vinculacion/aceptar", datosFormateados);
-
-      console.log("Respuesta del servidor:", respuesta);
-
-      // NUEVO: Enviar notificaciones a la escuela y al aliado
-      // 1. Notificación a la escuela
-      const notificacionEscuela = {
-        cct: datosProyecto.cct,
-        titulo: "¡Proyecto creado con éxito!",
-        mensaje: `Se ha creado el proyecto "${datosProyecto.descripcion}" para atender su necesidad. Puede revisar los detalles en la sección de proyectos.`
-      };
-
-      // 2. Notificación al aliado
-      const notificacionAliado = {
-        rfc: datosProyecto.rfc,
-        titulo: "¡Proyecto en marcha!",
-        mensaje: `Se ha creado el proyecto "${datosProyecto.descripcion}" para la vinculación que ofreció. Revise los detalles en su panel de proyectos.`
-      };
-
-      // Enviar notificaciones de forma asíncrona
-      try {
-        await post("/notificacion", notificacionEscuela);
-        console.log("Notificación enviada a la escuela");
-
-        await post("/notificacion", notificacionAliado);
-        console.log("Notificación enviada al aliado");
-      } catch (errorNotificacion) {
-        console.error("Error al enviar notificaciones:", errorNotificacion);
-        // No bloqueamos la creación del proyecto si fallan las notificaciones
-      }
-
-      // Cerrar el modal y mostrar mensaje de éxito
-      setMostrarModalEtapas(false);
-      showNotification('Proyecto creado exitosamente y notificaciones enviadas', 'success', 'Proyecto Creado');
-
-    } catch (error) {
-      console.error("Error al crear el proyecto:", error);
-      showNotification(`Error al crear el proyecto: ${error.message || "Revisa la conexión con el servidor"}`, 'danger', 'Error');
+ // For vinculacion approval, update when the project is created
+const enviarProyecto = async () => {
+  try {
+    // Validar que todas las etapas tengan título
+    const etapasInvalidas = datosProyecto.etapas.some(etapa => !etapa.tituloEtapa.trim());
+    if (etapasInvalidas) {
+      showNotification("Todas las etapas deben tener un título", "warning", "Datos Incompletos");
+      return;
     }
-  };
 
+    // Formar el objeto exactamente con la estructura requerida por el API
+    const datosFormateados = {
+      descripcion: datosProyecto.descripcion,
+      fechaFin: datosProyecto.fechaFin,
+      rfc: datosProyecto.rfc,
+      cct: datosProyecto.cct,
+      idApoyo: datosProyecto.idApoyo,
+      idNecesidad: datosProyecto.idNecesidad,
+      etapas: datosProyecto.etapas.map(etapa => ({
+        tituloEtapa: etapa.tituloEtapa,
+        descripcionEtapa: etapa.descripcionEtapa,
+        orden: etapa.orden
+      }))
+    };
+
+    // Si necesitas el ID de la vinculación, añádelo aquí
+    if (vinculacionSeleccionada && vinculacionSeleccionada.id) {
+      datosFormateados.idVinculacion = vinculacionSeleccionada.id;
+    }
+
+    console.log("Enviando datos:", JSON.stringify(datosFormateados, null, 2));
+
+    // Realizar la llamada POST al endpoint especificado
+    const respuesta = await post("/vinculacion/aceptar", datosFormateados);
+
+    console.log("Respuesta del servidor:", respuesta);
+
+    // UPDATE STATE: Remove the vinculacion from the state after it's approved
+    setDatosGestionVinculaciones(prevState => {
+      const updatedItems = prevState.items.filter(item => {
+        // Check if this item corresponds to the approved vinculacion
+        if (item.datosOriginales && 
+            item.datosOriginales.aliado?.rfc === datosProyecto.rfc &&
+            item.datosOriginales.escuela?.cct === datosProyecto.cct &&
+            item.datosOriginales.necesidad?.idNecesidad === datosProyecto.idNecesidad &&
+            item.datosOriginales.apoyo?.idApoyo === datosProyecto.idApoyo) {
+          return false; // Remove this item
+        }
+        return true; // Keep this item
+      });
+
+      return {
+        ...prevState,
+        items: updatedItems
+      };
+    });
+
+    // NUEVO: Enviar notificaciones a la escuela y al aliado
+    // 1. Notificación a la escuela
+    const notificacionEscuela = {
+      cct: datosProyecto.cct,
+      titulo: "¡Proyecto creado con éxito!",
+      mensaje: `Se ha creado el proyecto "${datosProyecto.descripcion}" para atender su necesidad. Puede revisar los detalles en la sección de proyectos.`
+    };
+
+    // 2. Notificación al aliado
+    const notificacionAliado = {
+      rfc: datosProyecto.rfc,
+      titulo: "¡Proyecto en marcha!",
+      mensaje: `Se ha creado el proyecto "${datosProyecto.descripcion}" para la vinculación que ofreció. Revise los detalles en su panel de proyectos.`
+    };
+
+    // Enviar notificaciones de forma asíncrona
+    try {
+      await post("/notificacion", notificacionEscuela);
+      console.log("Notificación enviada a la escuela");
+
+      await post("/notificacion", notificacionAliado);
+      console.log("Notificación enviada al aliado");
+    } catch (errorNotificacion) {
+      console.error("Error al enviar notificaciones:", errorNotificacion);
+      // No bloqueamos la creación del proyecto si fallan las notificaciones
+    }
+
+    // Cerrar el modal y mostrar mensaje de éxito
+    setMostrarModalEtapas(false);
+    showNotification('Proyecto creado exitosamente y notificaciones enviadas', 'success', 'Proyecto Creado');
+
+  } catch (error) {
+    console.error("Error al crear el proyecto:", error);
+    showNotification(`Error al crear el proyecto: ${error.message || "Revisa la conexión con el servidor"}`, 'danger', 'Error');
+  }
+};
   // Cerrar la sección de validación activa
   const cerrarValidacion = () => {
     setValidacionActiva(null);

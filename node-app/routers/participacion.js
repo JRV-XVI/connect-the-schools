@@ -33,16 +33,23 @@ participacion.post('/vinculacion', async (req, res, next) => {
     }
 });
 
-// Realizar una vinculacion de un aliado a una escuala
 participacion.delete('/vinculacion', async (req, res, next) => {
     try {
-        // Match frontend field names
+        // Get parameters from query string instead of body
         const {
             rfc,
             cct,
             idNecesidad,
             idApoyo,
-        } = req.body;
+        } = req.query;
+
+        // Validate required parameters
+        if (!rfc || !cct || !idNecesidad || !idApoyo) {
+            console.error("Faltan parámetros requeridos:", { rfc, cct, idNecesidad, idApoyo });
+            return res.status(400).json({
+                error: "Faltan parámetros requeridos: rfc, cct, idNecesidad, idApoyo"
+            });
+        }
 
         const resultado = await modelo.eliminarVinculacion({
             rfc,
@@ -52,13 +59,10 @@ participacion.delete('/vinculacion', async (req, res, next) => {
         });
         res.status(200).send(resultado);
     } catch (error) {
-        if (error.status === 500 || !error.status) {
-            console.error("Error al eliminar vinculacion:", error);
-            return res.status(400).json({
-                error: "Fallo la eliminacion de vinculacion"
-            });
-        }
-        next(error);
+        console.error("Error al eliminar vinculacion:", error);
+        res.status(400).json({
+            error: "Fallo la eliminacion de vinculacion"
+        });
     }
 });
 

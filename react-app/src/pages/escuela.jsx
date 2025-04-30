@@ -1,9 +1,12 @@
+import React, { useState, useEffect } from "react";
+import { Modal, Button, Toast } from 'react-bootstrap';
+import Sidebar from "../components/barraLateral.jsx";
+import Navbar from "../components/barraNavegacion.jsx";
 import Proyecto from "../components/proyectos.jsx";
 import NecesidadApoyo from "../components/necesidadApoyo.jsx";
 import DiagnosticoNecesidades from '../components/DiagnosticoNecesidades';
 import MapaEscuelas from "../components/mapasEscuela.jsx";
 import ProyectoDetallado from '../components/proyectoDetallado.jsx'; 
-import { useEffect } from "react";
 import { get, post } from "../api.js";
 
 import { StatCardGroup } from "../components/cartas.jsx";
@@ -16,7 +19,7 @@ import { Container } from 'react-bootstrap';
 import '../../styles/escuela.css';
 import Logo from "../assets/MPJ.png";
 import MapaGoogle from "../components/mapaGoogle.jsx";
-import { Modal, Button, Toast } from 'react-bootstrap';
+
 
 const Escuela = ({ userData, onLogout }) => { 
   // Add notification state
@@ -120,10 +123,9 @@ const Escuela = ({ userData, onLogout }) => {
     // Add any specific actions for notification clicks here
   };
 
-useEffect(() => {
   const fetchNecesidades = async () => {
     if (!userData?.idUsuario) return;
-
+  
     try {
       const response = await axios.get(`http://localhost:4001/api/necesidades-escuela/${userData.idUsuario}`, {
         withCredentials: true
@@ -135,13 +137,17 @@ useEffect(() => {
       }));
       
       setNecesidades(necesidadesConTipo);
+      return necesidadesConTipo;
     } catch (error) {
       console.error("[ERROR] Error al cargar necesidades escolares:", error.response?.data || error.message);
+      return [];
     }
   };
-
-  fetchNecesidades();
-}, [userData?.idUsuario]);
+  
+  // Now use this function in your useEffect
+  useEffect(() => {
+    fetchNecesidades();
+  }, [userData?.idUsuario]);
 
 const mapearCategoriaATipo = (categoria) => {
   switch (categoria?.toLowerCase()) {
@@ -364,40 +370,43 @@ const mapearCategoriaATipo = (categoria) => {
     console.log("Agregar nueva necesidad escolar");
   };
 
-  const handleEditNecesidad = async (id, necesidadActualizada) => {
-    console.log("Editando necesidad escolar con ID:", id);
-    
-    // Verificar si se debe eliminar la necesidad
-    if (necesidadActualizada._delete) {
-      try {
-        // Determinar el ID correcto para la API
-        const idNecesidadApoyo = necesidadActualizada.idNecesidadApoyo || id;
-        
-        console.log("[DEBUG] Intentando eliminar necesidad con ID:", idNecesidadApoyo);
-        
-        // Hacer la llamada a la API para eliminar la necesidad
-        await axios.delete(`http://localhost:4001/api/necesidadApoyo/${idNecesidadApoyo}`, {
-          withCredentials: true
-        });
-        
-        console.log("[SUCCESS] Necesidad eliminada del servidor");
-        
-        // Eliminar del estado local (mejorado para manejar diferentes formatos de ID)
-        setNecesidades(necesidades.filter(necesidad => {
-          return necesidad.id !== id && 
-                 necesidad.idNecesidadApoyo !== id && 
-                 necesidad.id !== idNecesidadApoyo && 
-                 necesidad.idNecesidadApoyo !== idNecesidadApoyo;
-        }));
-
+const handleEditNecesidad = async (id, necesidadActualizada) => {
+  console.log("Editando necesidad escolar con ID:", id);
+  
+  // Verificar si se debe eliminar la necesidad
+  if (necesidadActualizada._delete) {
+    try {
+      // Determinar el ID correcto para la API
+      const idNecesidadApoyo = necesidadActualizada.idNecesidadApoyo || id;
+      
+      console.log("[DEBUG] Intentando eliminar necesidad con ID:", idNecesidadApoyo);
+      
+      // Hacer la llamada a la API para eliminar la necesidad
+      await axios.delete(`http://localhost:4001/api/necesidadApoyo/${idNecesidadApoyo}`, {
+        withCredentials: true
+      });
+      
+      console.log("[SUCCESS] Necesidad eliminada del servidor");
+      
+      // Eliminar del estado local (mejorado para manejar diferentes formatos de ID)
+      setNecesidades(necesidades.filter(necesidad => {
+        return necesidad.id !== id && 
+               necesidad.idNecesidadApoyo !== id && 
+               necesidad.id !== idNecesidadApoyo && 
+               necesidad.idNecesidadApoyo !== idNecesidadApoyo;
+      }));
+      
+      // Refetch all needs to ensure the list is in sync with backend
+      await fetchNecesidades();
+      
       showNotification('Necesidad eliminada correctamente', 'success', 'Eliminación Exitosa');
     } catch (error) {
       console.error("[ERROR] Error al eliminar necesidad:", error.response?.data || error.message);
       console.error("[ERROR] Detalles completos:", error);
       showNotification('Error al eliminar la necesidad: ' + (error.response?.data || error.message), 'danger', 'Error');
     }
-      return;
-    }
+    return;
+  }
     
     // Si llegamos aquí, es una actualización, no una eliminación
     // Aquí iría la lógica para actualizar la necesidad

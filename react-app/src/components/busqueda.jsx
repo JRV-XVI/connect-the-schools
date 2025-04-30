@@ -42,6 +42,8 @@ const Busqueda = ({
   
   const [apoyosFiltrados, setApoyosFiltrados] = useState([]);
 
+  const [solicitudesEnviadas, setSolicitudesEnviadas] = useState([]);
+
   // Estados para modal de vinculación
   const [showVinculacionModal, setShowVinculacionModal] = useState(false);
   const [escuelaSeleccionada, setEscuelaSeleccionada] = useState(null);
@@ -186,6 +188,7 @@ const Busqueda = ({
     loadEscuelas();
   }, []);
 
+  // First useEffect for filtering apoyos when necesidadSeleccionada changes
   useEffect(() => {
     if (!formData.necesidadSeleccionada) {
       setApoyosFiltrados([]);
@@ -203,7 +206,6 @@ const Busqueda = ({
     }
     
     // Obtener la categoría y subcategoría de la necesidad
-    // El nombre de la necesidad tiene formato "Categoría - Subcategoría"
     const nombrePartes = necesidadSeleccionada.nombre.split(' - ');
     const categoriaNecesidad = nombrePartes[0];
     const subcategoriaNecesidad = nombrePartes[1];
@@ -244,7 +246,31 @@ const Busqueda = ({
       }));
     }
   }, [formData.necesidadSeleccionada, escuelaSeleccionada, apoyosDisponibles]);
-
+  
+  // Second useEffect - separated out as its own top-level hook
+  useEffect(() => {
+    const cargarSolicitudesExistentes = async () => {
+      if (!userData?.idUsuario) return;
+      
+      try {
+        // Get existing vinculaciones for this user
+        const response = await get(`/vinculacion/usuario/${userData.idUsuario}`);
+        console.log("Solicitudes existentes cargadas:", response);
+        
+        // Extract the key information we need to prevent duplicates
+        const solicitudesPendientes = response.map(sol => ({
+          cct: sol.cct,
+          idNecesidad: sol.idNecesidad
+        }));
+        
+        setSolicitudesEnviadas(solicitudesPendientes);
+      } catch (error) {
+        console.error("Error al cargar solicitudes existentes:", error);
+      }
+    };
+  
+    cargarSolicitudesExistentes();
+  }, [userData?.idUsuario]);
   // Efecto para manejar cambios de página
   useEffect(() => {
     if (escuelasCompatibles.length > 0) {
@@ -313,7 +339,6 @@ const Busqueda = ({
     return errors;
   };
 
-  // Actualizar la función handleSubmitVinculacion añadiendo el envío de notificaciones
   const handleSubmitVinculacion = async (e) => {
     e.preventDefault();
     
@@ -332,14 +357,30 @@ const Busqueda = ({
       return;
     }
     
+    // Encontrar necesidad seleccionada
+    const necesidadSeleccionada = escuelaSeleccionada.necesidades.find(
+      n => (n.id || n.idNecesidadApoyo) == formData.necesidadSeleccionada
+    );
+    
+    const idNecesidad = parseInt(necesidadSeleccionada?.idNecesidadApoyo || formData.necesidadSeleccionada, 10);
+    
+    // Verificar si ya existe una solicitud para esta necesidad
+    const solicitudExistente = solicitudesEnviadas.some(sol => 
+      sol.cct === escuelaSeleccionada.cct && 
+      sol.idNecesidad === idNecesidad
+    );
+    
+    if (solicitudExistente) {
+      setValidationErrors({
+        submit: "Ya has enviado una solicitud para esta necesidad. Por favor espera la respuesta o selecciona otra necesidad."
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
-      // Encontrar necesidad y apoyo seleccionados
-      const necesidadSeleccionada = escuelaSeleccionada.necesidades.find(
-        n => (n.id || n.idNecesidad || n.idNecesidadApoyo) == formData.necesidadSeleccionada
-      );
-      
+      // Find selected support
       const apoyoSeleccionado = apoyosDisponibles.find(
         a => (a.id || a.idApoyo) == formData.apoyoSeleccionado
       );
@@ -348,18 +389,26 @@ const Busqueda = ({
         idUsuario: userData.idUsuario,
         rfc: userData.rfc, 
         cct: escuelaSeleccionada.cct,
-        idNecesidad: parseInt(necesidadSeleccionada?.idNecesidadApoyo || formData.necesidadSeleccionada, 10),
+        idNecesidad: idNecesidad,
         idApoyo: parseInt(apoyoSeleccionado?.idNecesidadApoyo || formData.apoyoSeleccionado, 10),
         observacion: formData.descripcionServicios || "Sin observaciones",
       };
       
       console.log("Enviando datos a la base de datos:", vinculacionData);
-      console.log("Usuario actual:", userData);
       
-      // Usar el servicio API centralizado 
+      // Send data to API
       const response = await post('/vinculacion', vinculacionData);
       console.log("Vinculación registrada en base de datos:", response);
       
+      // Update local state to prevent duplicate requests
+      setSolicitudesEnviadas(prev => [
+        ...prev, 
+        {
+          cct: escuelaSeleccionada.cct,
+          idNecesidad: idNecesidad
+        }
+      ]);
+
       // Obtener los datos del usuario directamente de la base de datos
       const usuarioInfo = await get(`/usuario/${userData.idUsuario}`);
       const nombreUsuario = usuarioInfo?.nombre || "Usuario aliado";
@@ -417,17 +466,21 @@ const Busqueda = ({
         resultado: response
       };
       
-      onVincular(escuelaSeleccionada, fullData);
-      handleCloseVinculacionModal();
-    } catch (error) {
-      console.error("Error al crear vinculación en la base de datos:", error);
-      setValidationErrors({ 
-        submit: "Error al enviar la solicitud a la base de datos. Intente nuevamente." 
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    onVincular(escuelaSeleccionada, fullData);
+    handleCloseVinculacionModal();
+    
+    // Optional: refresh the schools list to reflect the updated state
+    const escuelasActualizadas = await fetchEscuelasCompatibles();
+    setEscuelasCompatibles(escuelasActualizadas);
+    const startIndex = (paginaLocal - 1) * escuelasPorPagina;
+    setEscuelasParaMostrar(escuelasActualizadas.slice(startIndex, startIndex + escuelasPorPagina));
+    
+  } catch (error) {
+    // Your existing error handling
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   // Funciones de filtrado
   const handleFiltroChange = (campo, valor) => {
@@ -717,11 +770,23 @@ const Busqueda = ({
               isInvalid={!!validationErrors.necesidadSeleccionada}
             >
               <option value="">-- Seleccione una necesidad --</option>
-              {escuelaSeleccionada.necesidades.map((necesidad) => (
-                <option key={necesidad.id} value={necesidad.id}>
-                  {necesidad.nombre} (Prioridad: {necesidad.prioridad})
-                </option>
-              ))}
+              {escuelaSeleccionada.necesidades.map((necesidad) => {
+                const idNecesidad = parseInt(necesidad.idNecesidadApoyo || necesidad.id, 10);
+                const solicitudPendiente = solicitudesEnviadas.some(sol => 
+                  sol.cct === escuelaSeleccionada.cct && 
+                  sol.idNecesidad === idNecesidad
+                );
+                
+                return (
+                  <option 
+                    key={necesidad.id} 
+                    value={necesidad.id}
+                    disabled={solicitudPendiente}
+                  >
+                    {necesidad.nombre} {solicitudPendiente ? '(Solicitud ya enviada)' : `(Prioridad: ${necesidad.prioridad})`}
+                  </option>
+                );
+              })}
             </Form.Select>
             <Form.Control.Feedback type="invalid">
               {validationErrors.necesidadSeleccionada}

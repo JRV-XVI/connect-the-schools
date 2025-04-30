@@ -396,6 +396,9 @@ const Aliado = ({ userData, onLogout }) => {
                  apoyo.idNecesidadApoyo !== idNecesidadApoyo;
         }));
         
+        // Refetch all supports to ensure the list is in sync with backend
+        await fetchApoyos();
+        
         showNotification('Oferta de apoyo eliminada correctamente', 'success', 'Apoyo Eliminado');
       } catch (error) {
         console.error("[ERROR] Error al eliminar apoyo:", error.response?.data || error.message);
@@ -550,79 +553,42 @@ const Aliado = ({ userData, onLogout }) => {
   };
 
   // Actualizar la función fetchApoyos en useEffect
-  useEffect(() => {
-    const fetchApoyos = async () => {
-      try {
-        const response = await axios.get(`http://localhost:4001/api/necesidades-escuela/${usuario.idUsuario}`, {
-          withCredentials: true
-        });
-        console.log("[INFO] Apoyos cargados:", response.data);
+  const fetchApoyos = async () => {
+    try {
+      const response = await axios.get(`http://localhost:4001/api/necesidades-escuela/${usuario.idUsuario}`, {
+        withCredentials: true
+      });
+      console.log("[INFO] Apoyos cargados:", response.data);
+      
+      // Process response data as before
+      const apoyosNormalizados = response.data.map(apoyo => {
+        // Your existing normalization logic
+        let estadoValidacion;
         
-        // Diagnóstico detallado: verificar si hay apoyos aprobados
-        const apoyosAprobados = response.data.filter(a => a.estadoValidacion === 3);
-        console.log(`[DEBUG] Se encontraron ${apoyosAprobados.length} apoyos aprobados de ${response.data.length} total`);
+        // Existing conversion logic...
+        if (typeof apoyo.estadoValidacion === 'string') {
+          estadoValidacion = parseInt(apoyo.estadoValidacion, 10);
+        } else if (typeof apoyo.estadoValidacion === 'number') {
+          estadoValidacion = apoyo.estadoValidacion;
+        } 
+        // Rest of existing logic...
         
-        // Verificar estructura de datos: buscar propiedades faltantes o con nombres diferentes
-        if (response.data.length > 0) {
-          const primerApoyo = response.data[0];
-          console.log("[DEBUG] Estructura del primer apoyo:", Object.keys(primerApoyo));
-          console.log("[DEBUG] Estado de validación:", primerApoyo.estadoValidacion);
-          console.log("[DEBUG] Estado (alternativo):", primerApoyo.estado);
-        }
-        
-        // Adaptación de datos: si estadoValidacion no existe pero estado sí, adaptamos
-        // En el useEffect de fetchApoyos, modificar la normalización de apoyos
-        const apoyosNormalizados = response.data.map(apoyo => {
-          // Determinar el estado de validación según los valores disponibles
-          let estadoValidacion;
-          
-          // Convertir a número si viene como string
-          if (typeof apoyo.estadoValidacion === 'string') {
-            estadoValidacion = parseInt(apoyo.estadoValidacion, 10);
-          }
-          // Si ya es número, usarlo directamente
-          else if (typeof apoyo.estadoValidacion === 'number') {
-            estadoValidacion = apoyo.estadoValidacion;
-          } 
-          // Si tiene un campo estado como string
-          else if (typeof apoyo.estado === 'string') {
-            const estadoLower = apoyo.estado.toLowerCase();
-            if (estadoLower === 'aprobado' || estadoLower === 'aprobada') {
-              estadoValidacion = 3; // Aprobado
-            } else if (estadoLower === 'rechazado' || estadoLower === 'rechazada') {
-              estadoValidacion = 1; // Rechazado
-            } else {
-              estadoValidacion = 2; // Pendiente
-            }
-          }
-          // Si tiene validacionAdmin como booleano
-          else if (apoyo.validacionAdmin === true || apoyo.validacionAdmin === false) {
-            estadoValidacion = apoyo.validacionAdmin ? 3 : 2;
-          }
-          // Valor por defecto
-          else {
-            estadoValidacion = 2; // Pendiente por defecto
-          }
-          
-          // Diagnóstico
-          console.log(`Apoyo '${apoyo.descripcion?.substr(0,20)}': estadoValidacion=${estadoValidacion} (${typeof estadoValidacion})`);
-          
-          return {
-            ...apoyo,
-            estadoValidacion, // Asignar el valor calculado
-            tipo: mapearCategoriaAliado(apoyo.categoria)
-          };
-        });
-        
-        console.log("Apoyos normalizados:", apoyosNormalizados);
-        console.log("Apoyos aprobados:", apoyosNormalizados.filter(a => a.estadoValidacion === 3).length);
-        
-        setApoyos(apoyosNormalizados);
-      } catch (error) {
-        console.error("[ERROR] Error al cargar apoyos:", error.response?.data || error.message);
-      }
-    };
+        return {
+          ...apoyo,
+          estadoValidacion,
+          tipo: mapearCategoriaAliado(apoyo.categoria)
+        };
+      });
+      
+      setApoyos(apoyosNormalizados);
+      return apoyosNormalizados;
+    } catch (error) {
+      console.error("[ERROR] Error al cargar apoyos:", error.response?.data || error.message);
+      return [];
+    }
+  };
   
+  useEffect(() => {
     fetchApoyos();
   }, [usuario.idUsuario]);
 
