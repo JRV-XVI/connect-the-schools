@@ -11,6 +11,142 @@ import { Modal, Button, Badge } from 'react-bootstrap';
  * @param {Function} props.onButtonClick - Función a ejecutar cuando se hace clic en el botón
  * @param {string} props.tipo - Tipo de gestión para estilo específico (admin, aliado, escuela)
  */
+
+const categoriasConfig = {
+  todos: {
+    nombre: "Todas",
+    subcategorias: []  // No necesita subcategorías específicas
+  },
+  formacionDocente: {
+    nombre: "Formación docente",
+    subcategorias: [
+      'Alimentación saludable',
+      'Atención de estudiantes con BAP',
+      'Comunidades de aprendizaje',
+      'Comunicación efectiva con comunidad escolar',
+      'Convivencia escolar/Cultura de paz/Valores',
+      'Disciplina positiva',
+      'Educación inclusiva',
+      'Enseñanza de lectura y matemáticas',
+      'Evaluación',
+      'Herramientas digitales para la educación',
+      'Inteligencia emocional',
+      'Lectoescritura',
+      'Liderazgo y habilidades directivas',
+      'Metodologías activas',
+      'Neuroeducación',
+      'Nueva Escuela Mexicana',
+      'Participación infantil',
+      'Proyecto de vida/Expectativas a futuro',
+      'Sexualidad'
+    ]
+  },
+  formacionFamilias: {
+    nombre: "Formación a familias",
+    subcategorias: [
+      'Alimentación saludable',
+      'Atención para hijos con BAP',
+      'Comunicación efectiva con escuela',
+      'Cultura de paz/Valores en el hogar',
+      'Crianza positiva',
+      'Derechos y obligaciones de los padres',
+      'Enseñanza de lectura y matemáticas',
+      'Inteligencia emocional',
+      'Nueva Escuela Mexicana',
+      'Proyecto de vida/Expectativas a futuro',
+      'Sexualidad'
+    ]
+  },
+  formacionNinos: {
+    nombre: "Formación niñas y niños",
+    subcategorias: [
+      'Alimentación saludable',
+      'Arte',
+      'Convivencia escolar/Cultura de paz/Valores',
+      'Computación',
+      'Educación física',
+      'Enseñanza de lectura y matemáticas',
+      'Inteligencia emocional',
+      'Lectoescritura',
+      'Música',
+      'Proyecto de vida/Expectativas a futuro',
+      'Sexualidad',
+      'Visitas fuera de la escuela'
+    ]
+  },
+  personalApoyo: {
+    nombre: "Personal de apoyo",
+    subcategorias: [
+      'Maestro para clases de arte',
+      'Maestro para clases de educación física',
+      'Maestro para clases de idiomas',
+      'Persona para apoyo administrativo',
+      'Persona para apoyo en limpieza',
+      'Psicólogo',
+      'Psicopedagogo o especialista en BAP',
+      'Suplentes de docentes frente a grupo',
+      'Terapeuta de lenguaje o comunicación'
+    ]
+  },
+  infraestructura: {
+    nombre: "Infraestructura",
+    subcategorias: [
+      'Adecuaciones para personas con discapacidad',
+      'Agua',
+      'Árboles',
+      'Baños',
+      'Cocina',
+      'Conectividad',
+      'Domos y patios',
+      'Luz',
+      'Muros, techos o pisos',
+      'Pintura',
+      'Seguridad',
+      'Ventanas y puertas'
+    ]
+  },
+  materiales: {
+    nombre: "Materiales",
+    subcategorias: [
+      'Didácticos',
+      'De educación física',
+      'Tecnológico',
+      'Literarios'
+    ]
+  },
+  mobiliario: {
+    nombre: "Mobiliario",
+    subcategorias: [
+      'Mesas para niños/mesabancos',
+      'Mesas para docentes',
+      'Comedores',
+      'Sillas',
+      'Estantes, libreros o cajoneras',
+      'Pizarrones'
+    ]
+  },
+  alimentacion: {
+    nombre: "Alimentación",
+    subcategorias: [
+      'Desayunos',
+      'Fórmula'
+    ]
+  },
+  transporte: {
+    nombre: "Transporte",
+    subcategorias: [
+      'Transporte',
+      'Arreglo de camino'
+    ]
+  },
+  juridico: {
+    nombre: "Jurídico",
+    subcategorias: [
+      'Apoyo en gestión de escrituras'
+    ]
+  }
+};
+
 const Gestiones = ({
   titulo = "Gestiones",
   items = [],
@@ -22,140 +158,7 @@ const Gestiones = ({
   mostrarFiltros = true  // Nueva prop para controlar si se muestran los filtros
 }) => {
   // Agregar configuración de categorías y subcategorías
-  const categoriasConfig = {
-    todos: {
-      nombre: "Todas",
-      subcategorias: []  // No necesita subcategorías específicas
-    },
-    formacionDocente: {
-      nombre: "Formación docente",
-      subcategorias: [
-        'Alimentación saludable',
-        'Atención de estudiantes con BAP',
-        'Comunidades de aprendizaje',
-        'Comunicación efectiva con comunidad escolar',
-        'Convivencia escolar/Cultura de paz/Valores',
-        'Disciplina positiva',
-        'Educación inclusiva',
-        'Enseñanza de lectura y matemáticas',
-        'Evaluación',
-        'Herramientas digitales para la educación',
-        'Inteligencia emocional',
-        'Lectoescritura',
-        'Liderazgo y habilidades directivas',
-        'Metodologías activas',
-        'Neuroeducación',
-        'Nueva Escuela Mexicana',
-        'Participación infantil',
-        'Proyecto de vida/Expectativas a futuro',
-        'Sexualidad'
-      ]
-    },
-    formacionFamilias: {
-      nombre: "Formación a familias",
-      subcategorias: [
-        'Alimentación saludable',
-        'Atención para hijos con BAP',
-        'Comunicación efectiva con escuela',
-        'Cultura de paz/Valores en el hogar',
-        'Crianza positiva',
-        'Derechos y obligaciones de los padres',
-        'Enseñanza de lectura y matemáticas',
-        'Inteligencia emocional',
-        'Nueva Escuela Mexicana',
-        'Proyecto de vida/Expectativas a futuro',
-        'Sexualidad'
-      ]
-    },
-    formacionNinos: {
-      nombre: "Formación niñas y niños",
-      subcategorias: [
-        'Alimentación saludable',
-        'Arte',
-        'Convivencia escolar/Cultura de paz/Valores',
-        'Computación',
-        'Educación física',
-        'Enseñanza de lectura y matemáticas',
-        'Inteligencia emocional',
-        'Lectoescritura',
-        'Música',
-        'Proyecto de vida/Expectativas a futuro',
-        'Sexualidad',
-        'Visitas fuera de la escuela'
-      ]
-    },
-    personalApoyo: {
-      nombre: "Personal de apoyo",
-      subcategorias: [
-        'Maestro para clases de arte',
-        'Maestro para clases de educación física',
-        'Maestro para clases de idiomas',
-        'Persona para apoyo administrativo',
-        'Persona para apoyo en limpieza',
-        'Psicólogo',
-        'Psicopedagogo o especialista en BAP',
-        'Suplentes de docentes frente a grupo',
-        'Terapeuta de lenguaje o comunicación'
-      ]
-    },
-    infraestructura: {
-      nombre: "Infraestructura",
-      subcategorias: [
-        'Adecuaciones para personas con discapacidad',
-        'Agua',
-        'Árboles',
-        'Baños',
-        'Cocina',
-        'Conectividad',
-        'Domos y patios',
-        'Luz',
-        'Muros, techos o pisos',
-        'Pintura',
-        'Seguridad',
-        'Ventanas y puertas'
-      ]
-    },
-    materiales: {
-      nombre: "Materiales",
-      subcategorias: [
-        'Didácticos',
-        'De educación física',
-        'Tecnológico',
-        'Literarios'
-      ]
-    },
-    mobiliario: {
-      nombre: "Mobiliario",
-      subcategorias: [
-        'Mesas para niños/mesabancos',
-        'Mesas para docentes',
-        'Comedores',
-        'Sillas',
-        'Estantes, libreros o cajoneras',
-        'Pizarrones'
-      ]
-    },
-    alimentacion: {
-      nombre: "Alimentación",
-      subcategorias: [
-        'Desayunos',
-        'Fórmula'
-      ]
-    },
-    transporte: {
-      nombre: "Transporte",
-      subcategorias: [
-        'Transporte',
-        'Arreglo de camino'
-      ]
-    },
-    juridico: {
-      nombre: "Jurídico",
-      subcategorias: [
-        'Apoyo en gestión de escrituras'
-      ]
-    }
-  };
+
 
   // Estado para la paginación
   const [currentPage, setCurrentPage] = useState(1);
@@ -175,7 +178,6 @@ const Gestiones = ({
     estado: "Todos"
   });
 
-  // Efecto para actualizar subcategorías cuando cambia la categoría
   useEffect(() => {
     if (filtro.categoria === "Todas") {
       setSubcategoriasDisponibles([]);
@@ -191,7 +193,7 @@ const Gestiones = ({
         setSubcategoriasDisponibles([]);
       }
     }
-  }, [filtro.categoria, categoriasConfig]); // Añadido categoriasConfig como dependencia
+  }, [filtro.categoria]); 
   
   // Función para ver detalles (abre el modal)
   const handleVerDetalles = (item) => {
@@ -224,19 +226,36 @@ const Gestiones = ({
     }
   };
 
-    // Reemplaza la lógica de extracción de estado
   const getItemEstado = (item) => {
     // Primero intentamos usar el estado explícito del item
     if (item.estado) {
       return item.estado;
     }
-    
-    // Si no existe, revisamos el estado de validación
     if (item.datosOriginales) {
+      // Obtenemos el valor de validación y hacemos una conversión más segura
       const validacion = item.datosOriginales.estadoValidacion;
-      if (validacion === 1) return "No aprobado";
-      if (validacion === 2) return "Pendiente";
-      if (validacion === 3) return "Aprobada";
+      
+      // Convertimos a número para una comparación más segura
+      const validacionNum = Number(validacion);
+      console.log("Estado validación:", validacion, "tipo:", typeof validacion, "convertido:", validacionNum);
+      
+      // Comparación con números después de la conversión
+      if (validacionNum === 0 || validacionNum === 2) return "Pendiente";
+      if (validacionNum === 1) return "No aprobado";
+      if (validacionNum === 3) return "Aprobada";
+      
+      // Si validacionNum es 0 específicamente (doble verificación)
+      if (validacionNum === 0) {
+        console.log("Detectado estado 0, debería ser Pendiente");
+        return "Pendiente";
+      }
+      
+      // Verificación alternativa por si la conversión a número falla
+      if (validacion === "0" || validacion === "2") return "Pendiente";
+      if (validacion === "1") return "No aprobado";
+      if (validacion === "3") return "Aprobada";
+      
+      return "Pendiente"; // Default para cualquier otro valor
     }
     
     // Estado por defecto
@@ -385,8 +404,8 @@ const Gestiones = ({
             </td>
             <td title={item.descripcion}>{truncateText(item.descripcion)}</td>
             <td>
-              <span className={`badge bg-${getEstadoColor(item.estado)}`}>
-                {item.estado || 'Pendiente'}
+              <span className={`badge bg-${getEstadoColor(getItemEstado(item))}`}>
+                {getItemEstado(item)}
               </span>
             </td>
             <td>
@@ -437,10 +456,10 @@ const Gestiones = ({
             </td>
             <td>{item.fecha || '01/01/2025'}</td>
             <td>
-              {item.estado === 'Publicada' && <span className="badge bg-success">●&nbsp;Publicada</span>}
-              {item.estado === 'En Vinculación' && <span className="badge bg-primary">●&nbsp;En Vinculación</span>}
-              {item.estado === 'En Implementación' && <span className="badge bg-info">En Implementación</span>}
-              {!item.estado && <span className="badge bg-warning">Pendiente</span>}
+              {getItemEstado(item) === 'Publicada' && <span className="badge bg-success">●&nbsp;Publicada</span>}
+              {getItemEstado(item) === 'En Vinculación' && <span className="badge bg-primary">●&nbsp;En Vinculación</span>}
+              {getItemEstado(item) === 'En Implementación' && <span className="badge bg-info">En Implementación</span>}
+              {getItemEstado(item) === 'Pendiente' && <span className="badge bg-warning">Pendiente</span>}
             </td>
             <td>
               <div className="btn-group btn-group-sm">
@@ -476,8 +495,8 @@ const Gestiones = ({
               </span>
             </td>
             <td>
-              <span className={`badge bg-${getEstadoColor(item.estado)}`}>
-                {item.estado || 'Disponible'}
+              <span className={`badge bg-${getEstadoColor(getItemEstado(item))}`}>
+                {getItemEstado(item)}
               </span>
             </td>
             <td>
@@ -564,8 +583,8 @@ const Gestiones = ({
             </td>
             <td title={item.descripcion}>{truncateText(item.descripcion)}</td>
             <td>
-              <span className={`badge bg-${getEstadoColor(item.estado)}`}>
-                {item.estado || 'Pendiente'}
+              <span className={`badge bg-${getEstadoColor(getItemEstado(item))}`}>
+                {getItemEstado(item)}
               </span>
             </td>
             <td>

@@ -212,16 +212,18 @@ const NecesidadApoyo = ({ necesidades =[], setNecesidades = () => { }, onAddNece
     });
   };
   
-// Aplicar filtros a la lista de necesidades
 const filtrarNecesidades = (listaNecesidades) => {
-  // Si estamos en la pestaña "todos", mostrar todas las necesidades
+  // Primero filtramos por estado de validación (solo mostrar aprobadas)
+  const necesidadesValidadas = listaNecesidades.filter(necesidad => 
+    necesidad.estadoValidacion === 3 // Solo mostrar necesidades aprobadas
+  );
+  
+  // Luego aplicamos el filtro por tipo (categoría)
   if (activeTab === 'todos') {
-    return listaNecesidades;
+    return necesidadesValidadas;
   }
   
-  // Para cualquier otra pestaña, filtrar por tipo (categoría)
-  return listaNecesidades.filter(necesidad => {
-    // Comprueba tanto el campo tipo como hacer la conversión inversa de categoria a tipo
+  return necesidadesValidadas.filter(necesidad => {
     return necesidad.tipo === activeTab || 
            getTipoFromCategoria(necesidad.categoria) === activeTab;
   });
@@ -270,29 +272,28 @@ const getTipoFromCategoria = (categoriaTexto) => {
       subcategoria: formData.subcategoria,
       descripcion: formData.descripcion,
       prioridad: formData.prioridad,
-      fechaCreacion: new Date().toISOString(),
-      estadoValidacion: 2
     };
     try {
       const response = await axios.post(
         'http://localhost:4001/api/necesidadApoyo',
         nuevaNecesidad,
         { withCredentials: true }
-    );
-  
+      );
+    
       console.log('[SUCCESS] Necesidad de apoyo creada:', response.data);
-  
-      setNecesidades([...necesidades, response.data]);
-  
+    
+      // No agregamos la necesidad al estado porque no debe mostrarse hasta ser aprobada
+      // setNecesidades([...necesidades, response.data]);
+    
       setFormData({
         descripcion: '',
         tipo: activeTab,
         subcategoria: categoriasConfig[activeTab]?.subcategorias[0] || '',
         prioridad: '5',
       });
-  
+    
       setShowNewNeedForm(false);
-      alert('¡Necesidad de apoyo registrada exitosamente!');
+      alert('¡Necesidad de apoyo registrada exitosamente! Será revisada por el administrador antes de aparecer en la lista.');
     } catch (error) {
       console.error('[ERROR] Al crear necesidad de apoyo:', error.response?.data || error.message);
       alert('Error al registrar la necesidad de apoyo. Verifica los campos.');

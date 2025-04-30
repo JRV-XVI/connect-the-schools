@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { get, post } from "../api.js";
-import { Modal, Button } from 'react-bootstrap';
+import { Modal, Button, Toast } from 'react-bootstrap';
 import Sidebar from "../components/barraLateral.jsx";
 import Navbar from "../components/barraNavegacion.jsx";
 import Notificaciones from "../components/notificaciones.jsx"; // Changed from 
@@ -46,6 +46,24 @@ const Aliado = ({ userData, onLogout }) => {
   const [paginaActual, setPaginaActual] = useState(1);
   const [cargandoBusqueda, setCargandoBusqueda] = useState(false);
   
+  const [notification, setNotification] = useState({
+    show: false,
+    message: '',
+    type: 'success', // 'success', 'warning', 'danger', 'info'
+    title: ''
+  });
+
+  const showNotification = (message, type = 'success', title = '') => {
+  setNotification({
+    show: true,
+    message,
+    type,
+    title: title || (type === 'success' ? 'Éxito' : 
+                    type === 'warning' ? 'Advertencia' : 
+                    type === 'danger' ? 'Error' : 'Información')
+  });
+};
+
   // Update the handleVerNotificaciones function
   const handleVerNotificaciones = () => {
     console.log("Ver todas las notificaciones");
@@ -223,13 +241,12 @@ const Aliado = ({ userData, onLogout }) => {
   ]);
 
   useEffect(() => {
-    // Transformar apoyos al formato esperado por el componente Búsqueda con campos correctos
+    // Transformar apoyos al formato esperado - SOLO APOYOS APROBADOS
     const apoyosFormateados = apoyos
-      // Asegúrate que sólo filtras si realmente quieres excluir algunos
-      //.filter(a => a.estado === "Disponible" || a.estadoValidacion === 1)
+      .filter(a => a.estadoValidacion === 3) // Solo apoyos aprobados
       .map(a => ({
         id: a.id || a.idNecesidadApoyo,
-        titulo: a.titulo || a.descripcion || "Apoyo sin título", // Usar descripción como respaldo
+        titulo: a.titulo || a.descripcion || "Apoyo sin título",
         tipo: a.tipo || mapearCategoriaAliado(a.categoria),
         descripcion: a.descripcion || "",
         categoria: a.categoria || "",
@@ -240,10 +257,6 @@ const Aliado = ({ userData, onLogout }) => {
     setApoyosDisponibles(apoyosFormateados);
   }, [apoyos]);
 
-  // Resto del código permanece igual...
-  const handleVerPendientes = () => {
-    console.log("Ver todos los pendientes");
-  };
 
   //--------------------------//
   //---------PROYECTO---------//
@@ -329,6 +342,7 @@ const Aliado = ({ userData, onLogout }) => {
   //-------------------------------//
   
   // Manejadores para ofertas de apoyo
+  // En la función handleAddApoyo
   const handleAddApoyo = async (nuevaOferta) => {
     try {
       const payload = {
@@ -336,54 +350,71 @@ const Aliado = ({ userData, onLogout }) => {
         descripcion: nuevaOferta.descripcion || nuevaOferta.titulo,
         categoria: nuevaOferta.categoria || "Apoyo Material",
         subcategoria: nuevaOferta.subcategoria || "General",
-        estadoValidacion: nuevaOferta.estado || 0
       };
       
-  
-      const response = await axios.post('http://localhost:4001/api/apoyos-aliado', payload, {
+      const response = await axios.post('http://localhost:4001/api/necesidadApoyo', payload, {
         withCredentials: true
       });
   
       console.log("[SUCCESS] Apoyo creado en base:", response.data);
   
-    
-      const apoyoNuevo = {
-        id: response.data.idNecesidadApoyo,                
-        descripcion: response.data.descripcion,            
-        categoria: response.data.categoria,             
-        subcategoria: response.data.subcategoria || "General",
-        fechaCreacion: response.data.fechaCreacion,
-        tipo: mapearCategoriaAliado(response.data.categoria), 
-        estado: "Disponible"                             
-      };
+      // No agregamos el apoyo al estado para que no aparezca hasta ser validado
+      // setApoyos((prev) => [...prev, apoyoNuevo]);
   
-      setApoyos((prev) => [...prev, apoyoNuevo]);
-  
-      alert('¡Oferta de apoyo creada correctamente!');
+      showNotification('¡Oferta de apoyo creada correctamente! Será revisada por un administrador antes de aparecer en la lista.', 'success', 'Apoyo Enviado');
     } catch (error) {
       console.error("[ERROR] Al crear apoyo:", error.response?.data || error.message);
-      alert('Error al guardar apoyo. Inténtalo de nuevo.');
+      showNotification('Error al guardar apoyo. Inténtalo de nuevo.', 'danger', 'Error');
     }
   };
   
   
 
-  const handleEditApoyo = (id, apoyoActualizado) => {
+  const handleEditApoyo = async (id, apoyoActualizado) => {
     console.log("Editando oferta de apoyo con ID:", id);
     
     // Verificar si se debe eliminar el apoyo
     if (apoyoActualizado._delete) {
-      setApoyos(apoyos.filter(apoyo => apoyo.id !== id));
-      alert("Oferta de apoyo eliminada correctamente");
+      try {
+        // Determinar el ID correcto para la API
+        const idNecesidadApoyo = apoyoActualizado.idNecesidadApoyo || id;
+        
+        console.log("[DEBUG] Intentando eliminar con ID:", idNecesidadApoyo);
+        
+        // Hacer la llamada a la API para eliminar el apoyo
+        await axios.delete(`http://localhost:4001/api/necesidadApoyo/${idNecesidadApoyo}`, {
+          withCredentials: true
+        });
+        
+        console.log("[SUCCESS] Apoyo eliminado del servidor");
+        
+        // Eliminar del estado local (mejorado para manejar diferentes formatos de ID)
+        setApoyos(apoyos.filter(apoyo => {
+          return apoyo.id !== id && 
+                 apoyo.idNecesidadApoyo !== id && 
+                 apoyo.id !== idNecesidadApoyo && 
+                 apoyo.idNecesidadApoyo !== idNecesidadApoyo;
+        }));
+        
+        showNotification('Oferta de apoyo eliminada correctamente', 'success', 'Apoyo Eliminado');
+      } catch (error) {
+        console.error("[ERROR] Error al eliminar apoyo:", error.response?.data || error.message);
+        console.error("[ERROR] Detalles completos:", error);
+        showNotification('Error al eliminar el apoyo. Inténtalo de nuevo.', 'danger', 'Error');
+      }
       return;
     }
     
-    // Actualizar el apoyo en el estado
+    // Actualizar el apoyo en el estado (manteniendo la lógica existente para actualizar)
     setApoyos(apoyos.map(apoyo => 
       apoyo.id === id ? {...apoyo, ...apoyoActualizado} : apoyo
     ));
     
-    alert(`Oferta de apoyo "${apoyoActualizado.titulo}" actualizada correctamente`);
+    showNotification(
+      `Oferta de apoyo "${apoyoActualizado.titulo}" actualizada correctamente`, 
+      'success', 
+      'Apoyo Actualizado'
+    );
   };
 
   const handleViewApoyo = (id) => {
@@ -426,7 +457,11 @@ const Aliado = ({ userData, onLogout }) => {
     console.log("Vinculando con escuela:", escuela.nombre);
     console.log("Datos del formulario:", formData);
     
-    alert(`Solicitud de vinculación con ${escuela.nombre} enviada correctamente`);
+    showNotification(
+      `Solicitud de vinculación con ${escuela.nombre} enviada correctamente`, 
+      'success', 
+      'Vinculación Iniciada'
+    );
   };
 
   const handleVerDetalles = (escuela) => {
@@ -514,30 +549,75 @@ const Aliado = ({ userData, onLogout }) => {
     }
   };
 
+  // Actualizar la función fetchApoyos en useEffect
   useEffect(() => {
     const fetchApoyos = async () => {
       try {
-        const response = await axios.get(`http://localhost:4001/api/apoyos-aliado/${usuario.idUsuario}`, {
+        const response = await axios.get(`http://localhost:4001/api/necesidades-escuela/${usuario.idUsuario}`, {
           withCredentials: true
         });
         console.log("[INFO] Apoyos cargados:", response.data);
         
-        // Inspección detallada de la primera entrada para diagnóstico
+        // Diagnóstico detallado: verificar si hay apoyos aprobados
+        const apoyosAprobados = response.data.filter(a => a.estadoValidacion === 3);
+        console.log(`[DEBUG] Se encontraron ${apoyosAprobados.length} apoyos aprobados de ${response.data.length} total`);
+        
+        // Verificar estructura de datos: buscar propiedades faltantes o con nombres diferentes
         if (response.data.length > 0) {
-          console.log("[DEBUG] Primer apoyo - campos disponibles:", 
-            Object.keys(response.data[0]));
-          console.log("[DEBUG] Primer apoyo - estado:", 
-            response.data[0].estado || response.data[0].estadoValidacion);
-        } else {
-          console.log("[WARN] No se encontraron apoyos para mostrar");
+          const primerApoyo = response.data[0];
+          console.log("[DEBUG] Estructura del primer apoyo:", Object.keys(primerApoyo));
+          console.log("[DEBUG] Estado de validación:", primerApoyo.estadoValidacion);
+          console.log("[DEBUG] Estado (alternativo):", primerApoyo.estado);
         }
-  
-        const apoyosConTipo = response.data.map(apoyo => ({
-          ...apoyo,
-          tipo: mapearCategoriaAliado(apoyo.categoria)
-        }));
-  
-        setApoyos(apoyosConTipo);
+        
+        // Adaptación de datos: si estadoValidacion no existe pero estado sí, adaptamos
+        // En el useEffect de fetchApoyos, modificar la normalización de apoyos
+        const apoyosNormalizados = response.data.map(apoyo => {
+          // Determinar el estado de validación según los valores disponibles
+          let estadoValidacion;
+          
+          // Convertir a número si viene como string
+          if (typeof apoyo.estadoValidacion === 'string') {
+            estadoValidacion = parseInt(apoyo.estadoValidacion, 10);
+          }
+          // Si ya es número, usarlo directamente
+          else if (typeof apoyo.estadoValidacion === 'number') {
+            estadoValidacion = apoyo.estadoValidacion;
+          } 
+          // Si tiene un campo estado como string
+          else if (typeof apoyo.estado === 'string') {
+            const estadoLower = apoyo.estado.toLowerCase();
+            if (estadoLower === 'aprobado' || estadoLower === 'aprobada') {
+              estadoValidacion = 3; // Aprobado
+            } else if (estadoLower === 'rechazado' || estadoLower === 'rechazada') {
+              estadoValidacion = 1; // Rechazado
+            } else {
+              estadoValidacion = 2; // Pendiente
+            }
+          }
+          // Si tiene validacionAdmin como booleano
+          else if (apoyo.validacionAdmin === true || apoyo.validacionAdmin === false) {
+            estadoValidacion = apoyo.validacionAdmin ? 3 : 2;
+          }
+          // Valor por defecto
+          else {
+            estadoValidacion = 2; // Pendiente por defecto
+          }
+          
+          // Diagnóstico
+          console.log(`Apoyo '${apoyo.descripcion?.substr(0,20)}': estadoValidacion=${estadoValidacion} (${typeof estadoValidacion})`);
+          
+          return {
+            ...apoyo,
+            estadoValidacion, // Asignar el valor calculado
+            tipo: mapearCategoriaAliado(apoyo.categoria)
+          };
+        });
+        
+        console.log("Apoyos normalizados:", apoyosNormalizados);
+        console.log("Apoyos aprobados:", apoyosNormalizados.filter(a => a.estadoValidacion === 3).length);
+        
+        setApoyos(apoyosNormalizados);
       } catch (error) {
         console.error("[ERROR] Error al cargar apoyos:", error.response?.data || error.message);
       }
@@ -865,6 +945,29 @@ const Aliado = ({ userData, onLogout }) => {
               </Button>
             </Modal.Footer>
           </Modal>  
+
+          <Toast 
+            show={notification.show}
+            onClose={() => setNotification({...notification, show: false})}
+            style={{
+              position: 'fixed',
+              bottom: '20px',
+              right: '20px',
+              minWidth: '250px',
+              zIndex: 9999
+            }}
+            delay={10000}
+            autohide
+            bg={notification.type}
+            className="text-white"
+          >
+            <Toast.Header closeButton={true}>
+              <strong className="me-auto">{notification.title}</strong>
+            </Toast.Header>
+            <Toast.Body>
+              {notification.message}
+            </Toast.Body>
+          </Toast>
         </div>
       </div>
     </div>

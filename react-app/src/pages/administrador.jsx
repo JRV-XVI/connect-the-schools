@@ -14,7 +14,7 @@ import { cartasAdministrador } from "../data/cartas/cartasAdministrador.js";
 import { proyectosAdministrador } from '../data/proyectos/proyectosAdministrador.js';
 import Logo from "../assets/MPJ.png";
 import MapaGoogle from "../components/mapaGoogle.jsx";
-import { Modal, Button, Badge } from 'react-bootstrap';
+import { Modal, Button, Badge, Toast } from 'react-bootstrap';
 
 const Administrador = () => {
   // Estado para controlar qué tipo de validación se está mostrando (proyecto, usuario, etc.)
@@ -58,7 +58,24 @@ const Administrador = () => {
     ]
   });
 
-  // Reemplazar la sección del useEffect para obtener notificaciones con este código corregido
+  const [notification, setNotification] = useState({
+    show: false,
+    message: '',
+    type: 'success', // 'success', 'warning', 'danger', 'info'
+    title: ''
+  });
+  
+  // Función para mostrar notificaciones
+  const showNotification = (message, type = 'success', title = '') => {
+    setNotification({
+      show: true,
+      message,
+      type,
+      title: title || (type === 'success' ? 'Éxito' : 
+                      type === 'warning' ? 'Advertencia' : 
+                      type === 'danger' ? 'Error' : 'Información')
+    });
+  };
   
   useEffect(() => {
     const obtenerNotificaciones = async () => {
@@ -405,7 +422,7 @@ const Administrador = () => {
       if (!vinculacion || !vinculacion.aliado?.rfc || !vinculacion.escuela?.cct ||
         !vinculacion.necesidad?.idNecesidad || !vinculacion.apoyo?.idApoyo) {
         console.error("Error: vinculación no tiene los datos requeridos", vinculacion);
-        alert("Error: La vinculación no contiene todos los datos necesarios");
+        showNotification("Error: La vinculación no contiene todos los datos necesarios", "danger", "Error de Validación");
         return;
       }
 
@@ -447,11 +464,11 @@ const Administrador = () => {
         console.error("Error al enviar notificaciones:", errorNotificacion);
       }
 
-      alert('Vinculación rechazada exitosamente y notificaciones enviadas');
+      showNotification('Vinculación rechazada exitosamente y notificaciones enviadas', 'danger', 'Vinculación Rechazada');
 
     } catch (error) {
       console.error("Error al rechazar la vinculación:", error);
-      alert(`Error al rechazar la vinculación: ${error.message || "Revisa la conexión con el servidor"}`);
+      showNotification(`Error al rechazar la vinculación: ${error.message || "Revisa la conexión con el servidor"}`, 'danger', 'Error');
     }
   };
 
@@ -460,11 +477,12 @@ const Administrador = () => {
     console.log("Aprobando necesidad:", necesidad);
     try {
       // Verifica si el ID existe y es válido
-      if (!necesidad.idNecesidadApoyo) {
-        console.error("Error: necesidad no tiene un ID válido", necesidad);
-        alert('Error: La necesidad no tiene un ID válido');
-        return;
-      }
+        if (!necesidad.idNecesidadApoyo) {
+          console.error("Error: necesidad no tiene un ID válido", necesidad);
+          showNotification("Error: La necesidad no tiene un ID válido", "danger", "Error de Validación");
+          return;
+        }
+
 
       const necesidadId = necesidad.idNecesidadApoyo;
 
@@ -502,20 +520,19 @@ const Administrador = () => {
         console.warn("No se encontró idUsuario para enviar notificación de necesidad aprobada");
       }
 
-      alert('Necesidad aprobada exitosamente');
+      showNotification('Necesidad aprobada exitosamente', 'success', 'Necesidad Aprobada');
     } catch (error) {
       console.error("Error al aprobar la necesidad:", error);
-      alert(`Error al aprobar la necesidad: ${error.message || "Revisa la conexión con el servidor"}`);
+      showNotification(`Error al aprobar la necesidad: ${error.message || "Revisa la conexión con el servidor"}`, 'danger', 'Error');
     }
   };
 
   const handleAprobarApoyo = async (apoyo) => {
     console.log("Aprobando apoyo:", apoyo);
     try {
-      // Verifica si el ID existe y es válido
       if (!apoyo.idNecesidadApoyo) {
         console.error("Error: apoyo no tiene un ID válido", apoyo);
-        alert('Error: El apoyo no tiene un ID válido');
+        showNotification("Error: El apoyo no tiene un ID válido", "danger", "Error de Validación");
         return;
       }
 
@@ -555,10 +572,11 @@ const Administrador = () => {
         console.warn("No se encontró idUsuario para enviar notificación de apoyo aprobado");
       }
 
-      alert('Apoyo aprobado exitosamente');
+      showNotification('Apoyo aprobado exitosamente', 'success', 'Apoyo Aprobado');
     } catch (error) {
       console.error("Error al aprobar el apoyo:", error);
-      alert(`Error al aprobar el apoyo: ${error.message || "Revisa la conexión con el servidor"}`);
+      showNotification(`Error al aprobar el apoyo: ${error.message || "Revisa la conexión con el servidor"}`, 'danger', 'Error');
+
     }
   };
 
@@ -567,9 +585,10 @@ const Administrador = () => {
     try {
       if (!necesidad.idNecesidadApoyo) {
         console.error("Error: necesidad no tiene un ID válido", necesidad);
-        alert('Error: La necesidad no tiene un ID válido');
+        showNotification("Error: La necesidad no tiene un ID válido", "danger", "Error de Validación");
         return;
       }
+      
 
       const necesidadId = necesidad.idNecesidadApoyo;
 
@@ -608,10 +627,11 @@ const Administrador = () => {
         console.warn("No se encontró idUsuario para enviar notificación de necesidad rechazada");
       }
 
-      alert('Necesidad rechazada exitosamente');
+      showNotification('Necesidad rechazada exitosamente', 'danger', 'Necesidad Rechazada');
     } catch (error) {
       console.error("Error al rechazar la necesidad:", error);
-      alert(`Error al rechazar la necesidad: ${error.message || "Revisa la conexión con el servidor"}`);
+      showNotification(`Error al rechazar la necesidad: ${error.message || "Revisa la conexión con el servidor"}`, 'danger', 'Error');
+
     }
   };
 
@@ -621,7 +641,7 @@ const Administrador = () => {
       // Verifica si el ID existe y es válido
       if (!apoyo.idNecesidadApoyo) {
         console.error("Error: apoyo no tiene un ID válido", apoyo);
-        alert('Error: El apoyo no tiene un ID válido');
+        showNotification("Error: El apoyo no tiene un ID válido", "danger", "Error de Validación");
         return;
       }
 
@@ -660,10 +680,10 @@ const Administrador = () => {
         console.warn("No se encontró idUsuario para enviar notificación de apoyo rechazado");
       }
 
-      alert('Apoyo rechazado exitosamente');
+      showNotification('Apoyo rechazado exitosamente', 'danger', 'Apoyo Rechazado');
     } catch (error) {
       console.error("Error al rechazar el apoyo:", error);
-      alert(`Error al rechazar el apoyo: ${error.message || "Revisa la conexión con el servidor"}`);
+      showNotification(`Error al rechazar el apoyo: ${error.message || "Revisa la conexión con el servidor"}`, 'danger', 'Error');
     }
   };
 
@@ -724,7 +744,7 @@ const Administrador = () => {
       // Validar que todas las etapas tengan título
       const etapasInvalidas = datosProyecto.etapas.some(etapa => !etapa.tituloEtapa.trim());
       if (etapasInvalidas) {
-        alert('Todas las etapas deben tener un título');
+        showNotification("Todas las etapas deben tener un título", "warning", "Datos Incompletos");
         return;
       }
 
@@ -784,11 +804,11 @@ const Administrador = () => {
 
       // Cerrar el modal y mostrar mensaje de éxito
       setMostrarModalEtapas(false);
-      alert('Proyecto creado exitosamente y notificaciones enviadas');
+      showNotification('Proyecto creado exitosamente y notificaciones enviadas', 'success', 'Proyecto Creado');
 
     } catch (error) {
       console.error("Error al crear el proyecto:", error);
-      alert(`Error al crear el proyecto: ${error.message || "Revisa la conexión con el servidor"}`);
+      showNotification(`Error al crear el proyecto: ${error.message || "Revisa la conexión con el servidor"}`, 'danger', 'Error');
     }
   };
 
@@ -1589,7 +1609,28 @@ const Administrador = () => {
             <MapaGoogle tipo="admin" />
           </div>
         </section>
-
+        <Toast 
+          show={notification.show}
+          onClose={() => setNotification({...notification, show: false})}
+          style={{
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            minWidth: '250px',
+            zIndex: 9999
+          }}
+          delay={10000}
+          autohide
+          bg={notification.type}
+          className="text-white"
+        >
+          <Toast.Header closeButton={true}>
+            <strong className="me-auto">{notification.title}</strong>
+          </Toast.Header>
+          <Toast.Body>
+            {notification.message}
+          </Toast.Body>
+        </Toast>
       </div>
     </div>
   );

@@ -1,7 +1,3 @@
-import React, { useState } from "react";
-import Sidebar from "../components/barraLateral.jsx";
-import Navbar from "../components/barraNavegacion.jsx";
-import Notificaciones from "../components/notificaciones.jsx"; // Nombre correcto del componente
 import Proyecto from "../components/proyectos.jsx";
 import NecesidadApoyo from "../components/necesidadApoyo.jsx";
 import DiagnosticoNecesidades from '../components/DiagnosticoNecesidades';
@@ -20,9 +16,29 @@ import { Container } from 'react-bootstrap';
 import '../../styles/escuela.css';
 import Logo from "../assets/MPJ.png";
 import MapaGoogle from "../components/mapaGoogle.jsx";
-import { Modal, Button } from 'react-bootstrap';
+import { Modal, Button, Toast } from 'react-bootstrap';
 
 const Escuela = ({ userData, onLogout }) => { 
+  // Add notification state
+  const [notification, setNotification] = useState({
+    show: false,
+    message: '',
+    type: 'success', // 'success', 'warning', 'danger', 'info'
+    title: ''
+  });
+
+  // Add showNotification function
+  const showNotification = (message, type = 'success', title = '') => {
+    setNotification({
+      show: true,
+      message,
+      type,
+      title: title || (type === 'success' ? 'Éxito' : 
+                      type === 'warning' ? 'Advertencia' : 
+                      type === 'danger' ? 'Error' : 'Información')
+    });
+  };
+
   const usuario = userData || { nombre: "Escuela", foto: "" };
   const notificaciones = navbarEscuela?.notificaciones || [];
   const menuItems = navbarEscuela?.menuItems || [];
@@ -151,11 +167,6 @@ const mapearCategoriaATipo = (categoria) => {
     setActiveSection(section);
   };
 
-  // Manejadores para pendientes y proyectos
-  const handleVerPendientes = () => {
-    console.log("Ver todos los pendientes");
-  };
-
   //--------------------------//
   //---------PROYECTO---------//
   //--------------------------//
@@ -269,7 +280,7 @@ const mapearCategoriaATipo = (categoria) => {
   };
 
   // Crear mensajes
-  const handleSendMessage = async ( mensaje, idUsuario) => {
+  const handleSendMessage = async ( mensaje) => {
     try {
 
       const idProyecto = proyectoSeleccionado.id;
@@ -353,22 +364,55 @@ const mapearCategoriaATipo = (categoria) => {
     console.log("Agregar nueva necesidad escolar");
   };
 
-  const handleEditNecesidad = (item) => {
-    console.log("Editar necesidad escolar:", item);
+  const handleEditNecesidad = async (id, necesidadActualizada) => {
+    console.log("Editando necesidad escolar con ID:", id);
+    
+    // Verificar si se debe eliminar la necesidad
+    if (necesidadActualizada._delete) {
+      try {
+        // Determinar el ID correcto para la API
+        const idNecesidadApoyo = necesidadActualizada.idNecesidadApoyo || id;
+        
+        console.log("[DEBUG] Intentando eliminar necesidad con ID:", idNecesidadApoyo);
+        
+        // Hacer la llamada a la API para eliminar la necesidad
+        await axios.delete(`http://localhost:4001/api/necesidadApoyo/${idNecesidadApoyo}`, {
+          withCredentials: true
+        });
+        
+        console.log("[SUCCESS] Necesidad eliminada del servidor");
+        
+        // Eliminar del estado local (mejorado para manejar diferentes formatos de ID)
+        setNecesidades(necesidades.filter(necesidad => {
+          return necesidad.id !== id && 
+                 necesidad.idNecesidadApoyo !== id && 
+                 necesidad.id !== idNecesidadApoyo && 
+                 necesidad.idNecesidadApoyo !== idNecesidadApoyo;
+        }));
+
+      showNotification('Necesidad eliminada correctamente', 'success', 'Eliminación Exitosa');
+    } catch (error) {
+      console.error("[ERROR] Error al eliminar necesidad:", error.response?.data || error.message);
+      console.error("[ERROR] Detalles completos:", error);
+      showNotification('Error al eliminar la necesidad: ' + (error.response?.data || error.message), 'danger', 'Error');
+    }
+      return;
+    }
+    
+    // Si llegamos aquí, es una actualización, no una eliminación
+    // Aquí iría la lógica para actualizar la necesidad
+    console.log("Actualizando necesidad:", necesidadActualizada);
+    
+    // Actualizar el estado local
+    setNecesidades(necesidades.map(necesidad => 
+      necesidad.id === id ? {...necesidad, ...necesidadActualizada} : necesidad
+    ));
   };
 
   const handleViewNecesidad = (item) => {
     console.log("Ver detalles de necesidad escolar:", item);
   };
 
-  const handleToggleStatus = (item) => {
-    console.log("Cambiar estado de necesidad escolar:", item);
-  };
-
-  const handleVerHistorial = () => {
-    console.log("Ver historial de necesidades escolares");
-  };
-  
   // Control del sidebar
   const [sidebarOpen, setSidebarOpen] = useState(true);
   
@@ -608,6 +652,28 @@ const mapearCategoriaATipo = (categoria) => {
               </div>
             </>
           )}
+            <Toast 
+              show={notification.show}
+              onClose={() => setNotification({...notification, show: false})}
+              style={{
+                position: 'fixed',
+                bottom: '20px',
+                right: '20px',
+                minWidth: '250px',
+                zIndex: 9999
+              }}
+              delay={10000}
+              autohide
+              bg={notification.type}
+              className="text-white"
+            >
+              <Toast.Header closeButton={true}>
+                <strong className="me-auto">{notification.title}</strong>
+              </Toast.Header>
+              <Toast.Body>
+                {notification.message}
+              </Toast.Body>
+            </Toast>
         </div>
       </div>
     </div>
