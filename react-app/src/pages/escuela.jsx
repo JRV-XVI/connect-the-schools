@@ -6,7 +6,7 @@ import Proyecto from "../components/proyectos.jsx";
 import NecesidadApoyo from "../components/necesidadApoyo.jsx";
 import DiagnosticoNecesidades from '../components/DiagnosticoNecesidades';
 import MapaEscuelas from "../components/mapasEscuela.jsx";
-import ProyectoDetallado from '../components/proyectoDetallado.jsx'; 
+import ProyectoDetallado from '../components/proyectoDetallado.jsx';
 import { get, post } from "../api.js";
 import { StatCardGroup } from "../components/cartas.jsx";
 import { sidebarEscuela } from "../data/barraLateral/barraLateralEscuela.js";
@@ -19,7 +19,7 @@ import '../../styles/escuela.css';
 import Logo from "../assets/MPJ.png";
 import MapaGoogle from "../components/mapaGoogle.jsx";
 
-const Escuela = ({ userData, onLogout }) => { 
+const Escuela = ({ userData, onLogout }) => {
   // Add notification state
   const [notification, setNotification] = useState({
     show: false,
@@ -34,16 +34,16 @@ const Escuela = ({ userData, onLogout }) => {
       show: true,
       message,
       type,
-      title: title || (type === 'success' ? 'Éxito' : 
-                      type === 'warning' ? 'Advertencia' : 
-                      type === 'danger' ? 'Error' : 'Información')
+      title: title || (type === 'success' ? 'Éxito' :
+        type === 'warning' ? 'Advertencia' :
+          type === 'danger' ? 'Error' : 'Información')
     });
   };
 
   const usuario = userData || { nombre: "Escuela", foto: "" };
   const notificaciones = navbarEscuela?.notificaciones || [];
   const menuItems = navbarEscuela?.menuItems || [];
-  
+
   // New state for API notifications
   const [notificacionesTodas, setNotificacionesTodas] = useState([]);
   const [cargandoNotificaciones, setCargandoNotificaciones] = useState(false);
@@ -84,15 +84,15 @@ const Escuela = ({ userData, onLogout }) => {
   useEffect(() => {
     fetchProyectos();
   }, [usuario.idUsuario, proyectosActualizados]);
-  
-    // Add this useEffect to fetch notifications
+
+  // Add this useEffect to fetch notifications
   useEffect(() => {
     const obtenerNotificaciones = async () => {
       if (!userData?.idUsuario) return;
-      
+
       setCargandoNotificaciones(true);
       setErrorNotificaciones(null);
-      
+
       try {
         const datosNotificaciones = await get(`/usuario/${userData.idUsuario}/notificacion`);
         setNotificacionesTodas(datosNotificaciones);
@@ -103,7 +103,7 @@ const Escuela = ({ userData, onLogout }) => {
         setCargandoNotificaciones(false);
       }
     };
-    
+
     obtenerNotificaciones();
   }, [userData?.idUsuario]); // Re-fetch when user ID changes
 
@@ -124,7 +124,7 @@ const Escuela = ({ userData, onLogout }) => {
 
   const fetchNecesidades = async () => {
     if (!userData?.idUsuario) return;
-  
+
     try {
       const response = await axios.get(`http://localhost:4001/api/necesidades-escuela/${userData.idUsuario}`, {
         withCredentials: true
@@ -134,7 +134,7 @@ const Escuela = ({ userData, onLogout }) => {
         ...nec,
         tipo: mapearCategoriaATipo(nec.categoria)
       }));
-      
+
       setNecesidades(necesidadesConTipo);
       return necesidadesConTipo;
     } catch (error) {
@@ -142,30 +142,30 @@ const Escuela = ({ userData, onLogout }) => {
       return [];
     }
   };
-  
+
   // Now use this function in your useEffect
   useEffect(() => {
     fetchNecesidades();
   }, [userData?.idUsuario]);
 
-const mapearCategoriaATipo = (categoria) => {
-  switch (categoria?.toLowerCase()) {
-    case 'infraestructura':
-      return 'infraestructura';
-    case 'equipamiento tecnológico':
-      return 'equipamiento';
-    case 'material didáctico':
-      return 'material';
-    case 'capacitación':
-    case 'formación docente':
-    case 'formación niñas y niños':
-    case 'formación a familias':
-      return 'capacitacion';
-    default:
-      return 'infraestructura'; // O cualquier default
-  }
-};
-  
+  const mapearCategoriaATipo = (categoria) => {
+    switch (categoria?.toLowerCase()) {
+      case 'infraestructura':
+        return 'infraestructura';
+      case 'equipamiento tecnológico':
+        return 'equipamiento';
+      case 'material didáctico':
+        return 'material';
+      case 'capacitación':
+      case 'formación docente':
+      case 'formación niñas y niños':
+      case 'formación a familias':
+        return 'capacitacion';
+      default:
+        return 'infraestructura'; // O cualquier default
+    }
+  };
+
   // Función para cambiar entre secciones del dashboard
   const handleSectionChange = (section) => {
     console.log("Cambiando a sección:", section);
@@ -337,7 +337,7 @@ const mapearCategoriaATipo = (categoria) => {
   const handleLogout = () => {
     // Eliminar datos de localStorage
     localStorage.removeItem('userData');
-    
+
     // Llamar a la función onLogout proporcionada por App.jsx
     if (onLogout) {
       onLogout();
@@ -399,51 +399,51 @@ const mapearCategoriaATipo = (categoria) => {
     console.log("Agregar nueva necesidad escolar");
   };
 
-const handleEditNecesidad = async (id, necesidadActualizada) => {
-  console.log("Editando necesidad escolar con ID:", id);
-  
-  // Verificar si se debe eliminar la necesidad
-  if (necesidadActualizada._delete) {
-    try {
-      // Determinar el ID correcto para la API
-      const idNecesidadApoyo = necesidadActualizada.idNecesidadApoyo || id;
-      
-      console.log("[DEBUG] Intentando eliminar necesidad con ID:", idNecesidadApoyo);
-      
-      // Hacer la llamada a la API para eliminar la necesidad
-      await axios.delete(`http://localhost:4001/api/necesidadApoyo/${idNecesidadApoyo}`, {
-        withCredentials: true
-      });
-      
-      console.log("[SUCCESS] Necesidad eliminada del servidor");
-      
-      // Eliminar del estado local (mejorado para manejar diferentes formatos de ID)
-      setNecesidades(necesidades.filter(necesidad => {
-        return necesidad.id !== id && 
-               necesidad.idNecesidadApoyo !== id && 
-               necesidad.id !== idNecesidadApoyo && 
-               necesidad.idNecesidadApoyo !== idNecesidadApoyo;
-      }));
-      
-      // Refetch all needs to ensure the list is in sync with backend
-      await fetchNecesidades();
-      
-      showNotification('Necesidad eliminada correctamente', 'success', 'Eliminación Exitosa');
-    } catch (error) {
-      console.error("[ERROR] Error al eliminar necesidad:", error.response?.data || error.message);
-      console.error("[ERROR] Detalles completos:", error);
-      showNotification('Error al eliminar la necesidad: ' + (error.response?.data || error.message), 'danger', 'Error');
+  const handleEditNecesidad = async (id, necesidadActualizada) => {
+    console.log("Editando necesidad escolar con ID:", id);
+
+    // Verificar si se debe eliminar la necesidad
+    if (necesidadActualizada._delete) {
+      try {
+        // Determinar el ID correcto para la API
+        const idNecesidadApoyo = necesidadActualizada.idNecesidadApoyo || id;
+
+        console.log("[DEBUG] Intentando eliminar necesidad con ID:", idNecesidadApoyo);
+
+        // Hacer la llamada a la API para eliminar la necesidad
+        await axios.delete(`http://localhost:4001/api/necesidadApoyo/${idNecesidadApoyo}`, {
+          withCredentials: true
+        });
+
+        console.log("[SUCCESS] Necesidad eliminada del servidor");
+
+        // Eliminar del estado local (mejorado para manejar diferentes formatos de ID)
+        setNecesidades(necesidades.filter(necesidad => {
+          return necesidad.id !== id &&
+            necesidad.idNecesidadApoyo !== id &&
+            necesidad.id !== idNecesidadApoyo &&
+            necesidad.idNecesidadApoyo !== idNecesidadApoyo;
+        }));
+
+        // Refetch all needs to ensure the list is in sync with backend
+        await fetchNecesidades();
+
+        showNotification('Necesidad eliminada correctamente', 'success', 'Eliminación Exitosa');
+      } catch (error) {
+        console.error("[ERROR] Error al eliminar necesidad:", error.response?.data || error.message);
+        console.error("[ERROR] Detalles completos:", error);
+        showNotification('Error al eliminar la necesidad: ' + (error.response?.data || error.message), 'danger', 'Error');
+      }
+      return;
     }
-    return;
-  }
-    
+
     // Si llegamos aquí, es una actualización, no una eliminación
     // Aquí iría la lógica para actualizar la necesidad
     console.log("Actualizando necesidad:", necesidadActualizada);
-    
+
     // Actualizar el estado local
-    setNecesidades(necesidades.map(necesidad => 
-      necesidad.id === id ? {...necesidad, ...necesidadActualizada} : necesidad
+    setNecesidades(necesidades.map(necesidad =>
+      necesidad.id === id ? { ...necesidad, ...necesidadActualizada } : necesidad
     ));
   };
 
@@ -461,7 +461,7 @@ const handleEditNecesidad = async (id, necesidadActualizada) => {
   const cartasEscuela = [
     {
       title: "Necesidades identificadas",
-      value: 0,
+      value: necesidades.length || 0,
       icon: "fa-school",
       color: "success",
       trend: "Calculado dinámicamente",
@@ -477,17 +477,9 @@ const handleEditNecesidad = async (id, necesidadActualizada) => {
     },
     {
       title: "Proyectos activos",
-      value: proyectosTodos.length || 0, // puedes reemplazar con otro estado real cuando lo tengas
+      value: proyectos.length || 0, // puedes reemplazar con otro estado real cuando lo tengas
       icon: "fa-diagram-project",
       color: "primary",
-      trend: "Calculado dinámicamente",
-      isTrendPositive: true
-    },
-    {
-      title: "Vinculaciones disponibles",
-      value: 0,
-      icon: "fa-clipboard-check",
-      color: "warning",
       trend: "Calculado dinámicamente",
       isTrendPositive: true
     }
@@ -606,9 +598,9 @@ const handleEditNecesidad = async (id, necesidadActualizada) => {
                   </div>
                 </div>
               </section>
-              
-              <Modal 
-                show={showAllNotificationsModal} 
+
+              <Modal
+                show={showAllNotificationsModal}
                 onHide={() => setShowAllNotificationsModal(false)}
                 size="lg"
                 aria-labelledby="notificacionesModalLabel"
@@ -616,7 +608,7 @@ const handleEditNecesidad = async (id, necesidadActualizada) => {
                 <Modal.Header closeButton>
                   <Modal.Title id="notificacionesModalLabel">Todas las Notificaciones</Modal.Title>
                 </Modal.Header>
-                
+
                 <Modal.Body>
                   {cargandoNotificaciones ? (
                     <div className="text-center py-3">
@@ -653,7 +645,7 @@ const handleEditNecesidad = async (id, necesidadActualizada) => {
                     </ul>
                   )}
                 </Modal.Body>
-                
+
                 <Modal.Footer>
                   <Button variant="secondary" onClick={() => setShowAllNotificationsModal(false)}>
                     Cerrar
@@ -681,7 +673,7 @@ const handleEditNecesidad = async (id, necesidadActualizada) => {
                     onSaveChanges={handleSaveChanges}
                     onDownloadDocument={handleDownloadDocument}
                     onViewDocument={handleViewDocument}
-                    onFIleUploadSucces={() => setProyectosActualizados(prev => prev +1)}
+                    onFIleUploadSucces={() => setProyectosActualizados(prev => prev + 1)}
                   />
                 </section>
               )}
@@ -702,7 +694,7 @@ const handleEditNecesidad = async (id, necesidadActualizada) => {
               <section className="mb-4" id="map">
                 <h2 className="mb-4">Mapa de aliados</h2>
                 <Container className="map-container">
-                  <MapaGoogle tipo="escuelas"/>
+                  <MapaGoogle tipo="escuelas" />
                 </Container>
               </section>
             </>
@@ -728,28 +720,28 @@ const handleEditNecesidad = async (id, necesidadActualizada) => {
               </div>
             </>
           )}
-            <Toast 
-              show={notification.show}
-              onClose={() => setNotification({...notification, show: false})}
-              style={{
-                position: 'fixed',
-                bottom: '20px',
-                right: '20px',
-                minWidth: '250px',
-                zIndex: 9999
-              }}
-              delay={10000}
-              autohide
-              bg={notification.type}
-              className="text-white"
-            >
-              <Toast.Header closeButton={true}>
-                <strong className="me-auto">{notification.title}</strong>
-              </Toast.Header>
-              <Toast.Body>
-                {notification.message}
-              </Toast.Body>
-            </Toast>
+          <Toast
+            show={notification.show}
+            onClose={() => setNotification({ ...notification, show: false })}
+            style={{
+              position: 'fixed',
+              bottom: '20px',
+              right: '20px',
+              minWidth: '250px',
+              zIndex: 9999
+            }}
+            delay={10000}
+            autohide
+            bg={notification.type}
+            className="text-white"
+          >
+            <Toast.Header closeButton={true}>
+              <strong className="me-auto">{notification.title}</strong>
+            </Toast.Header>
+            <Toast.Body>
+              {notification.message}
+            </Toast.Body>
+          </Toast>
         </div>
       </div>
     </div>
