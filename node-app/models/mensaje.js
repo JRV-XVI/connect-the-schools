@@ -20,7 +20,13 @@ const mensajePorUsuario = async (id) => {
 }
 
 const mensajePorMensajeria = async (id) => {
-    const resultado = await db.query('SELECT * FROM "mensaje" WHERE "idMensajeria" = $1', [id]);
+    const resultado = await db.query(`
+        SELECT m.*, u."tipoPerfil", u."nombre" as "nombreRemitente"
+        FROM "mensaje" m
+        JOIN "usuario" u ON m."idUsuario" = u."idUsuario"
+        WHERE m."idMensajeria" = $1
+        ORDER BY m."fechaEnvio" ASC
+    `, [id]);
     return resultado.rows;
 }
 

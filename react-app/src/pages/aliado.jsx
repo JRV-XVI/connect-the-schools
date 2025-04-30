@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { get, post } from "../api.js";
 import { Modal, Button, Toast } from 'react-bootstrap';
 import Sidebar from "../components/barraLateral.jsx";
@@ -10,10 +10,11 @@ import axios from "axios";
 import OfertaApoyo from "../components/OfertaApoyo.jsx";
 import Busqueda from "../components/busqueda.jsx";
 import ProyectoDetallado from "../components/proyectoDetallado.jsx";
-import { StatCardGroup } from "../components/cartas.jsx"; 
+import { StatCardGroup } from "../components/cartas.jsx";
 import { sidebarAliado } from "../data/barraLateral/barraLateralAliado.js";
 import { navbarAliado } from "../data/barraNavegacion/barraNavegacionAliado.js";
-import { cartasAliado } from "../data/cartas/cartasAliado.js"; 
+import { cartasAliado } from "../data/cartas/cartasAliado.js";
+import { pendientesAliado } from '../data/pendientes/pendientesAliado.js';
 import { proyectosAliado } from '../data/proyectos/proyectosAliado.js';
 import { datosApoyos } from '../data/necesidadApoyo/apoyos.js';
 import { escuelasData, opcionesFiltros } from '../data/busqueda/busquedaEscuelas.js';
@@ -21,8 +22,8 @@ import { proyectoDetallado } from '../data/proyectoDetallado/proyectoDetallado.j
 import Logo from "../assets/MPJ.png";
 import MapaGoogle from "../components/mapaGoogle.jsx";
 
-const Aliado = ({ userData, onLogout }) => {  
-  const usuario = userData || {  nombre: "Aliado", foto: "" };
+const Aliado = ({ userData, onLogout }) => {
+  const usuario = userData || { nombre: "Aliado", foto: "" };
   const notificaciones = navbarAliado?.notificaciones || [];
   const menuItems = navbarAliado?.menuItems || [];
   
@@ -31,10 +32,11 @@ const Aliado = ({ userData, onLogout }) => {
   const [cargandoNotificaciones, setCargandoNotificaciones] = useState(false);
   const [errorNotificaciones, setErrorNotificaciones] = useState(null);
 
-  // PROYECTOS / ETAPAS / MENSAJES -> VARIABLES
+  // PROYECTOS / ETAPAS / MENSAJES / VINCULACIONES -> VARIABLES
   const [proyectos, setProyectos] = useState([]);
   const [mensajes, setMensajes] = useState([]);
   const [etapas, setEtapas] = useState([]);
+  const [vinculaciones, setVInculaciones] = useState([]);
 
   const proyectosTodos = proyectosAliado?.proyectos || [];
   const proyectosItems = proyectosTodos.slice(0, 3);
@@ -72,10 +74,10 @@ const Aliado = ({ userData, onLogout }) => {
   // Configuración de paginación
   const escuelasPorPagina = 3;
   const totalPaginas = Math.ceil(resultadosBusqueda.length / escuelasPorPagina);
-  
+
   // Obtener escuelas para la página actual
   const escuelasPaginaActual = resultadosBusqueda.slice(
-    (paginaActual - 1) * escuelasPorPagina, 
+    (paginaActual - 1) * escuelasPorPagina,
     paginaActual * escuelasPorPagina
   );
 
@@ -140,6 +142,10 @@ const Aliado = ({ userData, onLogout }) => {
   
   obtenerNotificaciones();
 }, [usuario.idUsuario]);
+  
+useEffect(() => {
+    fetchVinculaciones();
+  }, [usuario?.idUsuario]);
 
   //-------------------------------//
   //------------------------------//
@@ -147,7 +153,7 @@ const Aliado = ({ userData, onLogout }) => {
 
   // MODIFICADO: Función auxiliar para mapear categorías antiguas a nuevos tipos
   const mapearCategoriaATipo = (categoria) => {
-    switch(categoria) {
+    switch (categoria) {
       case "Infraestructura": return "material";
       case "Formación": return "servicios";
       case "Materiales": return "material";
@@ -176,11 +182,11 @@ const Aliado = ({ userData, onLogout }) => {
         }
         return [];
       });
-    } 
+    }
     // Si datosApoyos es un objeto con propiedades
     else if (datosApoyos && typeof datosApoyos === 'object') {
       const resultado = [];
-      
+
       // Intentar iterar sobre las propiedades del objeto
       Object.keys(datosApoyos).forEach(key => {
         const categoria = datosApoyos[key];
@@ -198,10 +204,10 @@ const Aliado = ({ userData, onLogout }) => {
           });
         }
       });
-      
+
       return resultado;
     }
-    
+
     // Si nada funciona, devolver datos de muestra simplificados
     return [
       {
@@ -252,11 +258,26 @@ const Aliado = ({ userData, onLogout }) => {
         categoria: a.categoria || "",
         subcategoria: a.subcategoria || ""
       }));
-    
+
     console.log("Apoyos formateados disponibles para vinculación:", apoyosFormateados);
     setApoyosDisponibles(apoyosFormateados);
   }, [apoyos]);
 
+
+  //-------------------------------------------//
+  //---------VINCULACIONES PENDIENTES---------//
+  //------------------------------------------//
+
+  const fetchVinculaciones = async () => {
+    try {
+      const respuesta = await get(`/vinculacion/${usuario.rfc}`)
+      setVInculaciones(respuesta);
+      console.log("VInculaciones obtenidas: ", respuesta)
+    } catch (error) {
+      console.log("Error al obtener las vinculaciones", error)
+      setVInculaciones([]);
+    }
+  };
 
   //--------------------------//
   //---------PROYECTO---------//
@@ -267,7 +288,7 @@ const Aliado = ({ userData, onLogout }) => {
     try {
       // Paso 1: Obtener proyectos con el ID real del usuario
       const respuesta = await get(`/proyecto/usuario/${usuario.idUsuario}`);
-      
+
       // Paso 2: Comprobar si hay proyectos y actualizar el estado
       if (respuesta && Array.isArray(respuesta)) {
         // Formateo de datos
@@ -279,6 +300,7 @@ const Aliado = ({ userData, onLogout }) => {
           progreso: proyecto.progreso || 0,
           estado: proyecto.validacionAdmin ? 'En tiempo' : 'Pendiente',
           escuela: proyecto.nombreEscuela || 'Escuela asociada',
+          estudiantes: proyecto.numeroEstudiantes || 0
         }));
         console.log("Proyectos normales: ", respuesta);
         setProyectos(proyectosFormateados);
@@ -293,6 +315,24 @@ const Aliado = ({ userData, onLogout }) => {
     }
   };
 
+  const handleLogout = () => {
+    setUserRole(null);
+    setUserData(null);
+  };
+  
+  const totalAlumnosProyecto = useMemo(() => {
+    if (proyectos && proyectos.length > 0) {
+      let estudiantes = 0;
+
+      for (let i = 0; i < proyectos.length; i++) {
+        estudiantes += Number(proyectos[i].estudiantes);
+      }
+
+      console.log("Numero de estudiantes totales: ", estudiantes)
+      return estudiantes;
+    }
+  }, [proyectos]);
+
   const handleVerProyectos = () => {
     console.log("Ver todos los proyectos");
     setMostrarProyectoDetallado(false);
@@ -302,13 +342,13 @@ const Aliado = ({ userData, onLogout }) => {
     console.log("Ver detalles del proyecto:", proyecto.nombre);
     setProyectoSeleccionado(proyecto);
     setMostrarProyectoDetallado(true);
-    
+
     // Obtener mensajes del proyecto
     console.log("Ver id del proyecto:", proyecto.id);
 
     fetchMensajes(proyecto.id);
     fetchEtapas(proyecto.id);
-    
+
     setTimeout(() => {
       const seccionDetalles = document.getElementById('seccionProyectoDetallado');
       if (seccionDetalles) {
@@ -326,7 +366,7 @@ const Aliado = ({ userData, onLogout }) => {
   //---------ETAPAS PROYECTO---------//
   //--------------------------------//
 
-  const fetchEtapas = async (idProyecto) =>{
+  const fetchEtapas = async (idProyecto) => {
     try {
       const respuesta = await get(`/proyecto/${idProyecto}/etapas`);
       setEtapas(respuesta);
@@ -340,7 +380,7 @@ const Aliado = ({ userData, onLogout }) => {
   //---------------------------------//
   //---------OFERTAS APOYOS---------//
   //-------------------------------//
-  
+
   // Manejadores para ofertas de apoyo
   // En la función handleAddApoyo
   const handleAddApoyo = async (nuevaOferta) => {
@@ -355,7 +395,7 @@ const Aliado = ({ userData, onLogout }) => {
       const response = await axios.post('http://localhost:4001/api/necesidadApoyo', payload, {
         withCredentials: true
       });
-  
+
       console.log("[SUCCESS] Apoyo creado en base:", response.data);
   
       // No agregamos el apoyo al estado para que no aparezca hasta ser validado
@@ -367,12 +407,12 @@ const Aliado = ({ userData, onLogout }) => {
       showNotification('Error al guardar apoyo. Inténtalo de nuevo.', 'danger', 'Error');
     }
   };
-  
-  
+
+
 
   const handleEditApoyo = async (id, apoyoActualizado) => {
     console.log("Editando oferta de apoyo con ID:", id);
-    
+
     // Verificar si se debe eliminar el apoyo
     if (apoyoActualizado._delete) {
       try {
@@ -428,24 +468,24 @@ const Aliado = ({ userData, onLogout }) => {
   // Manejadores para el componente de búsqueda
   const handleFilterChange = (filtros) => {
     console.log("Filtros aplicados:", filtros);
-    
+
     setCargandoBusqueda(true);
-    
+
     setTimeout(() => {
       let resultadosFiltrados = [...escuelasData];
-      
+
       if (filtros.soloCompatibles) {
         resultadosFiltrados = resultadosFiltrados.filter(
           escuela => escuela.compatibilidad === 'total'
         );
       }
-      
+
       if (filtros.nivelEducativo) {
         resultadosFiltrados = resultadosFiltrados.filter(
           escuela => escuela.nivelEducativo.toLowerCase() === filtros.nivelEducativo
         );
       }
-      
+
       setResultadosBusqueda(resultadosFiltrados);
       setPaginaActual(1);
       setCargandoBusqueda(false);
@@ -488,7 +528,7 @@ const Aliado = ({ userData, onLogout }) => {
     try {
       // Paso 1: Obtener la mensajería asociada al proyecto
       const mensajerias = await get(`/proyecto/${idProyecto}/mensajeria`);
-      
+
       // Verificar si se encontraron mensajerías
       if (mensajerias && mensajerias.length > 0) {
         // Paso 2: Obtener los mensajes usando el idMensajeria
@@ -501,7 +541,7 @@ const Aliado = ({ userData, onLogout }) => {
           return {
             esPropio: mensaje.idUsuario === usuario.idUsuario,
             remitente: mensaje.idUsuario === usuario.idUsuario,
-            hora: fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+            hora: mensaje.fechaEnvio,
             contenido: mensaje.contenido
           };
         });
@@ -518,30 +558,30 @@ const Aliado = ({ userData, onLogout }) => {
   };
 
   // Crear mensajes
-  const handleSendMessage = async ( mensaje, idUsuario) => {
+  const handleSendMessage = async (mensaje, idUsuario) => {
     try {
 
       const idProyecto = proyectoSeleccionado.id;
-  
+
       // Obtener la mensajería asociada al proyecto
       const mensajerias = await get(`/proyecto/${idProyecto}/mensajeria`);
-      
+
       if (mensajerias && mensajerias.length > 0) {
         const idMensajeria = mensajerias[0].idMensajeria;
-        
+
         // Enviar el mensaje con los datos requeridos
         const datosEnvio = {
           idUsuario: usuario.idUsuario, // ID del usuario actual
           contenido: mensaje
         };
-        
+
         console.log("Mensaje:", datosEnvio)
         const respuestaEnvio = await post(`/mensajeria/${idMensajeria}/mensajes`, datosEnvio);
         console.log("Mensaje enviado:", respuestaEnvio);
-        
+
         // Actualizar la lista de mensajes
         fetchMensajes(idProyecto);
-        
+
         return respuestaEnvio;
       } else {
         throw new Error("No se encontró una mensajería asociada a este proyecto");
@@ -594,7 +634,7 @@ const Aliado = ({ userData, onLogout }) => {
 
   const mapearCategoriaAliado = (categoria) => {
     if (!categoria) return 'material'; // default
-    
+
     switch (categoria.toLowerCase()) {
       // Material
       case 'infraestructura':
@@ -604,7 +644,7 @@ const Aliado = ({ userData, onLogout }) => {
       case 'material bibliográfico':
       case 'material deportivo':
         return 'material';
-      
+
       // Servicios
       case 'capacitación':
       case 'formación docente':
@@ -615,7 +655,7 @@ const Aliado = ({ userData, onLogout }) => {
       case 'mantenimiento':
       case 'rehabilitación de espacios':
         return 'servicios';
-      
+
       // Económico
       case 'financiero':
       case 'apoyo económico':
@@ -625,7 +665,7 @@ const Aliado = ({ userData, onLogout }) => {
       case 'patrocinios':
       case 'donaciones monetarias':
         return 'economico';
-      
+
       // Voluntariado
       case 'voluntariado':
       case 'clases y talleres':
@@ -634,14 +674,14 @@ const Aliado = ({ userData, onLogout }) => {
       case 'mantenimiento y limpieza':
       case 'mentorías':
         return 'voluntariado';
-      
+
       default:
         return 'material';
     }
   };
-  
-  
-  
+
+
+
 
   const handleExportReport = () => {
     console.log("Exportando reporte del proyecto");
@@ -685,13 +725,48 @@ const Aliado = ({ userData, onLogout }) => {
 
   // Control del sidebar
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  
+
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
-  
+
+  const cartasAliado = [
+    {
+      title: "Proyectos activos",
+      value: proyectos.length || 0,
+      icon: "fa-school",
+      color: "success",
+      trend: "Calculado dinámicamente",
+      isTrendPositive: true
+    },
+    {
+      title: "Apoyos por validar",
+      value: apoyosDisponibles.items?.length || 0,
+      icon: "fa-handshake",
+      color: "danger",
+      trend: "Calculado dinámicamente",
+      isTrendPositive: true
+    },
+    {
+      title: "Vinculaciones disponibles",
+      value: vinculaciones.length || 0,
+      icon: "fa-diagram-project",
+      color: "primary",
+      trend: "Calculado dinámicamente",
+      isTrendPositive: true
+    },
+    {
+      title: "Impacto estudiantes",
+      value: totalAlumnosProyecto || 0,
+      icon: "fa-clipboard-check",
+      color: "warning",
+      trend: "Calculado dinámicamente",
+      isTrendPositive: true
+    }
+  ];
+
   return (
-    <div className="dashboard-container">
+    <div className="dashboard-container" id="dashboard">
       {/* Sidebar fijo */}
       <Sidebar
         logo={Logo}
@@ -699,42 +774,43 @@ const Aliado = ({ userData, onLogout }) => {
         menuItems={sidebarAliado}
         isOpen={sidebarOpen}
         toggleSidebar={toggleSidebar}
+        onLogout={handleLogout}
       />
-      
+
       {/* Contenido principal */}
       <div className="main-content">
         {/* Barra de navegación superior */}
-        <Navbar 
+        <Navbar
           tipoUsuario="Aliado"
           usuario={usuario}
           notificaciones={notificaciones}
           menuItems={menuItems}
         />
-        
+
         {/* Botón para mostrar sidebar en dispositivos móviles */}
-        <button 
+        <button
           className="d-md-none menu-toggle btn btn-sm btn-primary position-fixed"
           style={{ top: '10px', left: '10px', zIndex: 1040 }}
           onClick={toggleSidebar}
         >
           <i className="fas fa-bars"></i>
         </button>
-        
+
         {/* Contenido del dashboard */}
         <div className="content px-3 py-3">
           <h2 className="mb-4">Dashboard Aliado</h2>
-          
+
           {/* Cartas estadísticas */}
           <section className="mb-4">
             <StatCardGroup cards={cartasAliado} />
           </section>
-          
+
           {/* Sección de Proyectos y Pendientes */}
           <section className="mb-4">
             <div className="row">
-              <div className="col-xl-8 col-lg-7">
+              <div className="col-xl-8 col-lg-7" id="projects">
                 {/* Componente de Proyectos - Limitado a 3 */}
-                <Proyecto 
+                <Proyecto
                   titulo={proyectosTitulo}
                   proyectos={proyectos}
                   tipo="aliado"
@@ -797,7 +873,7 @@ const Aliado = ({ userData, onLogout }) => {
               </div>
             </div>
           </section>
-          
+
           {/* Detalle de Proyecto (condicional) */}
           {mostrarProyectoDetallado && (
             <section id="seccionProyectoDetallado" className="mb-4">
@@ -822,9 +898,9 @@ const Aliado = ({ userData, onLogout }) => {
               />
             </section>
           )}
-          
+
           {/* COMPONENTE REEMPLAZADO: Gestión de ofertas de apoyo */}
-          <section className="mb-4">
+          <section className="mb-4" id="supports">
             <OfertaApoyo
               apoyos={apoyos}
               onAddApoyo={handleAddApoyo}
@@ -834,31 +910,33 @@ const Aliado = ({ userData, onLogout }) => {
           </section>
 
           <section>
-            <h2 className="mb-4">Mapa de escuelas</h2>
+            <h2 className="mb-4" id="map">Mapa de escuelas</h2>
             <div className="map-container">
               <MapaGoogle tipo="escuelas" />
             </div>
           </section>
 
           {/* Búsqueda de Escuelas */}
-          <section id="seccionBusqueda" className="mt-5">
-          <Busqueda
-            titulo="Búsqueda de Escuelas"
-            resultados={escuelasPaginaActual}
-            opcionesFiltros={opcionesFiltros}
-            onFilterChange={handleFilterChange}
-            onMapView={handleMapView}
-            onVincular={handleVincular}
-            onVerDetalles={handleVerDetalles}
-            onPageChange={handlePageChange}
-            paginaActual={paginaActual}
-            totalPaginas={totalPaginas}
-            cargando={cargandoBusqueda}
-            apoyosDisponibles={apoyosDisponibles}
-            userData={userData}  // Aquí está pasando correctamente userData
-          />
-          </section>
-
+          <div id="schools">
+            <section id="seccionBusqueda" className="mt-5">
+            <Busqueda
+              titulo="Búsqueda de Escuelas"
+              resultados={escuelasPaginaActual}
+              opcionesFiltros={opcionesFiltros}
+              onFilterChange={handleFilterChange}
+              onMapView={handleMapView}
+              onVincular={handleVincular}
+              onVerDetalles={handleVerDetalles}
+              onPageChange={handlePageChange}
+              paginaActual={paginaActual}
+              totalPaginas={totalPaginas}
+              cargando={cargandoBusqueda}
+              apoyosDisponibles={apoyosDisponibles}
+              userData={userData}  // Aquí está pasando correctamente userData
+            />
+            </section>
+          </div>
+          
           {/* Modal para ver todas las notificaciones */}
           <Modal 
             show={showAllNotificationsModal} 

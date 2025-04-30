@@ -1,6 +1,19 @@
 const express = require('express');
 const modelo = require('../models/participacion.js');
+const { param } = require('./proyecto.js');
 const participacion = express.Router();
+
+participacion.get('/vinculacion/:id', async (req, res, next) => {
+    try {
+        const resultado = await modelo.obtenerParticipacionesSinProyectoPorUsuario(req.params.id);
+        res.status(200).send(resultado);
+    } catch (error) {
+        console.log("Error al realizar get en router: ", error)
+        res.status(400).json({
+            error: "Fallo al obtener las vinculaciones"
+        })
+    }
+});
 
 // Realizar una vinculacion de un aliado a una escuala
 participacion.post('/vinculacion', async (req, res, next) => {
