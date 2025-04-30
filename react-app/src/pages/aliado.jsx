@@ -12,6 +12,7 @@ import ProyectoDetallado from "../components/proyectoDetallado.jsx";
 import { StatCardGroup } from "../components/cartas.jsx";
 import { sidebarAliado } from "../data/barraLateral/barraLateralAliado.js";
 import { navbarAliado } from "../data/barraNavegacion/barraNavegacionAliado.js";
+import { cartasAliado } from "../data/cartas/cartasAliado.js";
 import { pendientesAliado } from '../data/pendientes/pendientesAliado.js';
 import { proyectosAliado } from '../data/proyectos/proyectosAliado.js';
 // Mantenemos la importación para migrar los datos iniciales
@@ -250,6 +251,11 @@ const Aliado = ({ userData, onLogout }) => {
     }
   };
 
+  const handleLogout = () => {
+    setUserRole(null);
+    setUserData(null);
+  };
+  
   const totalAlumnosProyecto = useMemo(() => {
     if (proyectos && proyectos.length > 0) {
       let estudiantes = 0;
@@ -667,7 +673,7 @@ const Aliado = ({ userData, onLogout }) => {
   ];
 
   return (
-    <div className="dashboard-container">
+    <div className="dashboard-container" id="dashboard">
       {/* Sidebar fijo */}
       <Sidebar
         logo={Logo}
@@ -675,6 +681,7 @@ const Aliado = ({ userData, onLogout }) => {
         menuItems={sidebarAliado}
         isOpen={sidebarOpen}
         toggleSidebar={toggleSidebar}
+        onLogout={handleLogout}
       />
 
       {/* Contenido principal */}
@@ -708,7 +715,7 @@ const Aliado = ({ userData, onLogout }) => {
           {/* Sección de Proyectos y Pendientes */}
           <section className="mb-4">
             <div className="row">
-              <div className="col-xl-8 col-lg-7">
+              <div className="col-xl-8 col-lg-7" id="projects">
                 {/* Componente de Proyectos - Limitado a 3 */}
                 <Proyecto
                   titulo={proyectosTitulo}
@@ -761,7 +768,7 @@ const Aliado = ({ userData, onLogout }) => {
           )}
 
           {/* COMPONENTE REEMPLAZADO: Gestión de ofertas de apoyo */}
-          <section className="mb-4">
+          <section className="mb-4" id="supports">
             <OfertaApoyo
               apoyos={apoyos}
               onAddApoyo={handleAddApoyo}
@@ -771,30 +778,32 @@ const Aliado = ({ userData, onLogout }) => {
           </section>
 
           <section>
-            <h2 className="mb-4">Mapa de escuelas</h2>
+            <h2 className="mb-4" id="map">Mapa de escuelas</h2>
             <div className="map-container">
               <MapaGoogle tipo="escuelas" />
             </div>
           </section>
 
           {/* Búsqueda de Escuelas */}
-          <section id="seccionBusqueda" className="mt-5">
-            <Busqueda
-              titulo="Búsqueda de Escuelas"
-              resultados={escuelasPaginaActual}
-              opcionesFiltros={opcionesFiltros}
-              onFilterChange={handleFilterChange}
-              onMapView={handleMapView}
-              onVincular={handleVincular}
-              onVerDetalles={handleVerDetalles}
-              onPageChange={handlePageChange}
-              paginaActual={paginaActual}
-              totalPaginas={totalPaginas}
-              cargando={cargandoBusqueda}
-              apoyosDisponibles={apoyosDisponibles}
-              userData={userData}  // Aquí está pasando correctamente userData
-            />
-          </section>
+          <div id="schools">
+            <section id="seccionBusqueda" className="mt-5">
+              <Busqueda
+                titulo="Búsqueda de Escuelas"
+                resultados={escuelasPaginaActual}
+                opcionesFiltros={opcionesFiltros}
+                onFilterChange={handleFilterChange}
+                onMapView={handleMapView}
+                onVincular={handleVincular}
+                onVerDetalles={handleVerDetalles}
+                onPageChange={handlePageChange}
+                paginaActual={paginaActual}
+                totalPaginas={totalPaginas}
+                cargando={cargandoBusqueda}
+                apoyosDisponibles={apoyosDisponibles}
+                userData={userData}  // Aquí está pasando correctamente userData
+              />
+            </section>
+          </div>
         </div>
       </div>
     </div>

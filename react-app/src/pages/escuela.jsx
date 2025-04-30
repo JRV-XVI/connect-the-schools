@@ -287,6 +287,11 @@ const Escuela = ({ userData, onLogout }) => {
     }
   };
 
+  const handleLogout = () => {
+    setUserRole(null);
+    setUserData(null);
+  };
+
   // Refrescar mensajes cada 2 segundos si hay un proyecto seleccionado
   if (proyectoSeleccionado) {
     setTimeout(fetchMensajes, 2000, proyectoSeleccionado.id)
@@ -401,7 +406,7 @@ const Escuela = ({ userData, onLogout }) => {
   ];
 
   return (
-    <div className="dashboard-container">
+    <div className="dashboard-container" id="dashboard">
       {/* Sidebar fijo */}
       <Sidebar
         logo={Logo}
@@ -411,6 +416,7 @@ const Escuela = ({ userData, onLogout }) => {
         toggleSidebar={toggleSidebar}
         activeSection={activeSection}
         onSectionChange={handleSectionChange}
+        onLogout={handleLogout}
       />
 
       {/* Contenido principal */}
@@ -447,7 +453,7 @@ const Escuela = ({ userData, onLogout }) => {
               {/* Sección de Proyectos y Pendientes */}
               <section className="mb-4">
                 <div className="row">
-                  <div className="col-xl-8 col-lg-7">
+                  <div className="col-xl-8 col-lg-7" id="projects">
                     <Proyecto
                       titulo={proyectosTitulo}
                       proyectos={proyectos}
@@ -497,7 +503,7 @@ const Escuela = ({ userData, onLogout }) => {
               )}
 
               {/* NUEVA SECCIÓN: Gestión de necesidades escolares */}
-              <section>
+              <section id="needs">
                 <NecesidadApoyo
                   necesidades={necesidades}
                   setNecesidades={setNecesidades}
@@ -509,7 +515,7 @@ const Escuela = ({ userData, onLogout }) => {
               </section>
 
               {/* Mapa de Aliados para EScuelas */}
-              <section className="mb-4">
+              <section className="mb-4" id="map">
                 <h2 className="mb-4">Mapa de Escuelas</h2>
                 <Container className="map-container">
                   <MapaGoogle tipo="aliados" />
