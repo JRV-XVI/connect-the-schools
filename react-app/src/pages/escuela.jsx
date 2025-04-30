@@ -335,8 +335,13 @@ const mapearCategoriaATipo = (categoria) => {
   };
 
   const handleLogout = () => {
-    setUserRole(null);
-    setUserData(null);
+    // Eliminar datos de localStorage
+    localStorage.removeItem('userData');
+    
+    // Llamar a la función onLogout proporcionada por App.jsx
+    if (onLogout) {
+      onLogout();
+    }
   };
 
   // Refrescar mensajes cada 2 segundos si hay un proyecto seleccionado

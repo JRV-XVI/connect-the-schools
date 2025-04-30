@@ -319,8 +319,13 @@ useEffect(() => {
   };
 
   const handleLogout = () => {
-    setUserRole(null);
-    setUserData(null);
+    // Eliminar datos de localStorage
+    localStorage.removeItem('userData');
+    
+    // Llamar a la función onLogout proporcionada por App.jsx
+    if (onLogout) {
+      onLogout();
+    }
   };
   
   const totalAlumnosProyecto = useMemo(() => {

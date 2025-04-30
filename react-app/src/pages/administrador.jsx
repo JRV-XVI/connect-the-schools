@@ -48,8 +48,13 @@ const Administrador = ({userData, onLogout}) => {
   const [etapas, setEtapas] = useState([]);
 
   const handleLogout = () => {
-    setUserRole(null);
-    setUserData(null);
+    // Eliminar datos de localStorage
+    localStorage.removeItem('userData');
+    
+    // Llamar a la función onLogout proporcionada por App.jsx
+    if (onLogout) {
+      onLogout();
+    }
   };
 
   const [mostrarModalEtapas, setMostrarModalEtapas] = useState(false);
