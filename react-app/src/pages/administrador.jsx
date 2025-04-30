@@ -1,30 +1,37 @@
 import React, { useState, useEffect } from "react";
 import { get, post, put, del } from '../api.js';
+import axios from "axios"; // Add axios import
 import Sidebar from "../components/barraLateral.jsx";
 import Navbar from "../components/barraNavegacion.jsx";
-import Pendientes from "../components/pendientes.jsx";
-import { pendientesAdministrador, proyectosPendientes } from '../data/pendientes/pendientesAdministrador.js';
+import Notificaciones from "../components/notificaciones.jsx";
 import Proyecto from "../components/proyectos.jsx";
 import Gestiones from "../components/gestiones.jsx";
-import ProyectoDetallado from '../components/proyectoDetallado.jsx'; // Importamos el componente
+import ProyectoDetallado from '../components/proyectoDetallado.jsx';
 import { StatCardGroup } from "../components/cartas.jsx";
 import { sidebarAdministrador } from "../data/barraLateral/barraLateralAdministrador.js";
 import { navbarAdministrador } from "../data/barraNavegacion/barraNavegacionAdministrador.js";
-import { cartasAdministrador } from "../data/cartas/cartasAdministrador.js";
 import { proyectosAdministrador } from '../data/proyectos/proyectosAdministrador.js';
 import Logo from "../assets/MPJ.png";
 import MapaGoogle from "../components/mapaGoogle.jsx";
-import { Modal, Button, Badge } from 'react-bootstrap';
+import { Modal, Button, Badge, Toast } from 'react-bootstrap';
 
-const Administrador = () => {
+const Administrador = ({userData, onLogout}) => {
   // Estado para controlar qué tipo de validación se está mostrando (proyecto, usuario, etc.)
   const [validacionActiva, setValidacionActiva] = useState(null);
-  const usuario = navbarAdministrador?.usuario || { nombre: "Administrador", foto: "" };
+  const usuario = userData || { nombre: "Administrador", foto: "" };
   const notificaciones = navbarAdministrador?.notificaciones || [];
   const menuItems = navbarAdministrador?.menuItems || [];
+  
+  // New state for API notifications
+  const [notificacionesTodas, setNotificacionesTodas] = useState([]);
+  const [cargandoNotificaciones, setCargandoNotificaciones] = useState(false);
+  const [errorNotificaciones, setErrorNotificaciones] = useState(null);
+
   const [datosGestionNecesidades, setDatosGestionNecesidades] = useState({});
   const [datosGestionApoyos, setDatosGestionApoyos] = useState({});
   const [datosGestionVinculaciones, setDatosGestionVinculaciones] = useState({});
+
+  const [showAllNotificationsModal, setShowAllNotificationsModal] = useState(false);
 
   // Estados para ProyectoDetallado
   const [selectedProject, setSelectedProject] = useState(null);
@@ -35,7 +42,15 @@ const Administrador = () => {
     mensajes: [],
     documentos: []
   });
+  // Añadir estos estados después de la declaración de projectData
+  const [proyectos, setProyectos] = useState([]);
+  const [mensajes, setMensajes] = useState([]);
+  const [etapas, setEtapas] = useState([]);
 
+  const handleLogout = () => {
+    setUserRole(null);
+    setUserData(null);
+  };
 
   const [mostrarModalEtapas, setMostrarModalEtapas] = useState(false);
   const [vinculacionSeleccionada, setVinculacionSeleccionada] = useState(null);
@@ -50,6 +65,57 @@ const Administrador = () => {
       { tituloEtapa: "", descripcionEtapa: "", orden: 1 }
     ]
   });
+
+  const [notification, setNotification] = useState({
+    show: false,
+    message: '',
+    type: 'success', // 'success', 'warning', 'danger', 'info'
+    title: ''
+  });
+  
+  // Función para mostrar notificaciones
+  const showNotification = (message, type = 'success', title = '') => {
+    setNotification({
+      show: true,
+      message,
+      type,
+      title: title || (type === 'success' ? 'Éxito' : 
+                      type === 'warning' ? 'Advertencia' : 
+                      type === 'danger' ? 'Error' : 'Información')
+    });
+  };
+  
+  useEffect(() => {
+    const obtenerNotificaciones = async () => {
+      // ID fijo para el administrador
+      const adminId = 3; // Usar el ID fijo que sabemos que funciona
+      
+      console.log("Obteniendo notificaciones para administrador con ID:", adminId);
+      setCargandoNotificaciones(true);
+      setErrorNotificaciones(null);
+      
+      try {
+        // Llamada directa y más simple a la API usando nuestro servicio centralizado
+        const notificaciones = await get(`/usuario/${adminId}/notificacion`);
+        console.log("Notificaciones recibidas:", notificaciones);
+        
+        if (Array.isArray(notificaciones)) {
+          setNotificacionesTodas(notificaciones);
+        } else {
+          console.error("Las notificaciones no tienen el formato esperado:", notificaciones);
+          setNotificacionesTodas([]);
+        }
+      } catch (error) {
+        console.error("Error al obtener notificaciones:", error);
+        setErrorNotificaciones("No se pudieron cargar las notificaciones");
+        setNotificacionesTodas([]);
+      } finally {
+        setCargandoNotificaciones(false);
+      }
+    };
+    
+    obtenerNotificaciones();
+  }, []); // Quitamos la dependencia usuario.id para evitar recargas innecesarias
 
   // Modificar la función fetchDatosNecesidades
   // Modificar la función fetchDatosNecesidades
@@ -141,102 +207,167 @@ const Administrador = () => {
     fetchDatosVinculaciones();
   }, []); // Este useEffect también solo se ejecuta una vez al cargar el componente
 
+  // Obtener todos los proyectos del sistema
   useEffect(() => {
-    const fetchProjectDetails = async () => {
-      if (!selectedProject) return;
+    fetchProyectos();
+  }, []);
 
-      try {
-        // Aquí normalmente cargarías datos del backend
-        // Por ahora simulamos datos de ejemplo
-        setProjectData({
-          fases: [
-            {
-              nombre: "Fase de Planificación",
-              fechaInicio: "2025-03-01",
-              fechaFin: "2025-03-15",
-              estado: "Completado",
-              entregables: [
-                { nombre: "Plan de proyecto", estado: "completado" },
-                { nombre: "Presupuesto inicial", estado: "completado" }
-              ]
-            },
-            {
-              nombre: "Fase de Implementación",
-              fechaInicio: "2025-03-16",
-              fechaFin: "2025-04-30",
-              estado: "En Progreso",
-              progreso: 40,
-              entregables: [
-                { nombre: "Instalación de equipo", estado: "en progreso" },
-                { nombre: "Capacitación inicial", estado: "pendiente" }
-              ]
-            },
-            {
-              nombre: "Fase de Cierre",
-              fechaInicio: "2025-05-01",
-              fechaFin: "2025-05-15",
-              estado: "Pendiente",
-              entregables: [
-                { nombre: "Informe final", estado: "pendiente" },
-                { nombre: "Evaluación de resultados", estado: "pendiente" }
-              ]
-            }
-          ],
-          evidencias: [
-            {
-              titulo: "Reunión inicial",
-              descripcion: "Primera reunión con el equipo directivo",
-              fecha: "2025-03-03",
-              imagen: "https://via.placeholder.com/300x200?text=Reunión+Inicial",
-              fase: "Planificación"
-            }
-          ],
-          mensajes: [
-            {
-              remitente: "Director Escuela",
-              contenido: "Buen día, ¿cómo va el avance del proyecto?",
-              fecha: "2025-03-20",
-              hora: "09:30",
-              esPropio: false
-            },
-            {
-              contenido: "Estamos en proceso de instalación del equipo, todo va según lo planeado",
-              fecha: "2025-03-20",
-              hora: "10:15",
-              esPropio: true
-            }
-          ],
-          documentos: [
-            {
-              nombre: "Plan de Proyecto.pdf",
-              tipo: "pdf",
-              categoria: "Documentación",
-              fase: "Planificación",
-              autor: "MPJ",
-              fecha: "2025-03-05",
-              tamaño: "2.3 MB"
-            },
-            {
-              nombre: "Presupuesto Inicial.xlsx",
-              tipo: "excel",
-              categoria: "Financiero",
-              fase: "Planificación",
-              autor: "Administrador MPJ",
-              fecha: "2025-03-10",
-              tamaño: "1.1 MB"
-            }
-          ]
-        });
-      } catch (error) {
-        console.error("[ERROR] Error al cargar detalles del proyecto:", error.response?.data || error.message);
+  //--------------------------//
+  //---------PROYECTO---------//
+  //--------------------------//
+
+  // Función para obtener proyectos
+  const fetchProyectos = async () => {
+    try {
+      // Paso 1: Obtener proyectos con el ID real del usuario
+      const respuesta = await get(`/proyecto/usuario/${usuario.idUsuario}`);
+      
+      // Paso 2: Comprobar si hay proyectos y actualizar el estado
+      if (respuesta && Array.isArray(respuesta)) {
+        // Formateo de datos
+        const proyectosFormateados = respuesta.map(proyecto => ({
+          id: proyecto.idProyecto,
+          nombre: proyecto.descripcion,
+          fechaInicio: new Date(proyecto.fechaCreacion).toLocaleDateString(),
+          fechaFin: proyecto.fechaFin ? new Date(proyecto.fechaFin).toLocaleDateString() : 'No definida',
+          progreso: proyecto.progreso || 0,
+          estado: proyecto.progreso === 100 ? 'Completado' : 'Pendiente',
+          escuela: proyecto.nombreEscuela || 'Escuela asociada',
+          aliado: proyecto.nombreAliado || 'Aliado asociado',
+          estudiantes: proyecto.numeroEstudiantes || 0
+        }));
+        console.log("Proyectos normales: ", respuesta);
+        setProyectos(proyectosFormateados);
+        console.log("Proyectos formateados:", proyectosFormateados);
+      } else {
+        setProyectos([]);
+        console.log("No se encontraron proyectos");
       }
-    };
+    } catch (error) {
+      console.error("Error al obtener proyectos:", error);
+      setProyectos([]);
+    }
+  };
 
-    fetchProjectDetails();
-  }, [selectedProject]);
+  //----------------------------------//
+  //---------ETAPAS PROYECTO---------//
+  //--------------------------------//
 
-  // Obtenemos todos los pendientes para el dashboard
-  const pendientesTodos = pendientesAdministrador?.items || [];
+  const fetchEtapas = async (idProyecto) =>{
+    try {
+      const respuesta = await get(`/proyecto/${idProyecto}/etapas`);
+      setEtapas(respuesta);
+      console.log(`Etapas del proyecto ${idProyecto}`, respuesta)
+    } catch (error) {
+      console.log("Error al obtener las etapas:", error);
+      setEtapas([]);
+    }
+  };
+
+  //----------------------------//
+  //---------MENSAJERIA---------//
+  //----------------------------//
+
+  // fetchMensajes modificado para administrador (solo visualización)
+  const fetchMensajes = async (idProyecto) => {
+    try {
+      // Paso 1: Obtener la mensajería asociada al proyecto
+      const mensajerias = await get(`/proyecto/${idProyecto}/mensajeria`);
+      
+      // Verificar si se encontraron mensajerías
+      if (mensajerias && mensajerias.length > 0) {
+        // Paso 2: Obtener los mensajes usando el idMensajeria
+        const idMensajeria = mensajerias[0].idMensajeria;
+        const respuestaMensajes = await get(`/mensajeria/${idMensajeria}/mensajes`);
+
+        // Paso 3: Transformar los mensajes para el front - administrador solo visualiza
+        const mensajesFormateados = respuestaMensajes.map(mensaje => {
+          // Determinar el tipo de remitente según tipoPerfil
+          let tipoRemitente = "Usuario";
+          let nombreRemitente = "Usuario desconocido";
+          
+          // Asignar tipo según el campo tipoPerfil de la tabla usuario (si está disponible)
+          if (mensaje.tipoPerfil === 1) {
+            tipoRemitente = "Escuela";
+            nombreRemitente = mensaje.nombreRemitente || selectedProject.escuela;
+          } 
+          else if (mensaje.tipoPerfil === 2) {
+            tipoRemitente = "Aliado";
+            nombreRemitente = mensaje.nombreRemitente || selectedProject.aliado;
+          }
+          else if (mensaje.tipoPerfil === 3) {
+            tipoRemitente = "Administrador";
+            nombreRemitente = mensaje.nombreRemitente || "Administrador";
+          }
+          
+          return {
+            // El administrador nunca tiene mensajes propios
+            esPropio: false,
+            // Usar el nombre del remitente de la respuesta o fallback
+            remitente: nombreRemitente,
+            tipoRemitente: tipoRemitente,
+            hora: mensaje.fechaEnvio,
+            contenido: mensaje.contenido
+          };
+        });
+
+        setMensajes(mensajesFormateados);
+      } else {
+        setMensajes([]);
+      }
+    } catch (error) {
+      console.error("Error al obtener mensajes:", error);
+      setMensajes([]);
+    }
+  };
+
+  // Añadir después de los useEffect existentes
+
+  // Actualización periódica de mensajes
+  useEffect(() => {
+    if (selectedProject && showProjectDetail) {
+      const interval = setInterval(() => {
+        fetchMensajes(selectedProject.id);
+      }, 10000); // Actualizar cada 10 segundos
+      
+      return () => clearInterval(interval);
+    }
+  }, [selectedProject, showProjectDetail]);
+
+  const cartasAdministrador = [
+    {
+      title: "Necesidades pendientes",
+      value: datosGestionNecesidades.items?.length || 0,
+      icon: "fa-school",
+      color: "success",
+      trend: "Calculado dinámicamente",
+      isTrendPositive: true
+    },
+    {
+      title: "Apoyos pendientes",
+      value: datosGestionApoyos.items?.length || 0,
+      icon: "fa-handshake",
+      color: "danger",
+      trend: "Calculado dinámicamente",
+      isTrendPositive: true
+    },
+    {
+      title: "Proyectos Creados",
+      value: proyectos.length || 0,
+      icon: "fa-diagram-project",
+      color: "primary",
+      trend: "Calculado dinámicamente",
+      isTrendPositive: true
+    },
+    {
+      title: "Vinculaciones Pendientes",
+      value: datosGestionVinculaciones.items?.length || 0,
+      icon: "fa-clipboard-check",
+      color: "warning",
+      trend: "Calculado dinámicamente",
+      isTrendPositive: true
+    }
+  ];
 
   // Obtenemos todos los proyectos y los limitamos a 3 para el dashboard
   const proyectosTodos = proyectosAdministrador?.proyectos || [];
@@ -264,12 +395,26 @@ const Administrador = () => {
 
   const handleVerProyectos = () => {
     console.log("Ver todos los proyectos");
+    setMostrarProyectoDetallado(false);
   };
 
   const handleVerDetallesProyecto = (proyecto) => {
     console.log("Ver detalles del proyecto:", proyecto.nombre);
     setSelectedProject(proyecto);
     setShowProjectDetail(true);
+    
+    // Obtener mensajes del proyecto
+    console.log("Ver id del proyecto:", proyecto.id);
+
+    fetchMensajes(proyecto.id);
+    fetchEtapas(proyecto.id);
+    
+    setTimeout(() => {
+      const seccionDetalles = document.getElementById('seccionProyectoDetallado');
+      if (seccionDetalles) {
+        seccionDetalles.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
   };
 
   const handleActionProyecto = (proyecto) => {
@@ -298,25 +443,13 @@ const Administrador = () => {
     console.log("Subiendo evidencia para el proyecto:", selectedProject?.nombre);
   };
 
-  const handleSendMessage = (mensaje) => {
-    console.log("Enviando mensaje para el proyecto:", selectedProject?.nombre, mensaje);
-
-    // Actualizar los mensajes localmente
-    const newMessage = {
-      contenido: mensaje,
-      fecha: new Date().toISOString(),
-      hora: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false }),
-      esPropio: true
-    };
-
-    setProjectData(prev => ({
-      ...prev,
-      mensajes: [...prev.mensajes, newMessage]
-    }));
+  const handleSendMessage = () => {
+    // Función vacía o con alerta
+    alert("Los administradores solo pueden visualizar mensajes, no enviarlos.");
+    return null;
   };
 
   const handleUploadDocument = () => {
-    console.log("Subiendo documento para el proyecto:", selectedProject?.nombre);
   };
 
   const handleGenerateReport = () => {
@@ -333,8 +466,8 @@ const Administrador = () => {
 
   const handleViewDocument = (documento) => {
     console.log("Visualizando documento:", documento.nombre);
-  };
-
+  }
+  
   // Funciones para manejar las etapas (agregar después de tus otros manejadores)
   const handleAprobarVinculacion = (vinculacion) => {
     console.log("Aprobando vinculación:", vinculacion);
@@ -361,59 +494,75 @@ const Administrador = () => {
 
   const handleRechazarVinculacion = async (vinculacion) => {
     console.log("Rechazando vinculación:", vinculacion);
-
+  
     try {
       // Verificar que la vinculación contenga los datos necesarios
       if (!vinculacion || !vinculacion.aliado?.rfc || !vinculacion.escuela?.cct ||
         !vinculacion.necesidad?.idNecesidad || !vinculacion.apoyo?.idApoyo) {
         console.error("Error: vinculación no tiene los datos requeridos", vinculacion);
-        alert("Error: La vinculación no contiene todos los datos necesarios");
+        showNotification("Error: La vinculación no contiene todos los datos necesarios", "danger", "Error de Validación");
         return;
       }
-
-      // Datos para la solicitud de rechazo
-      const datosRechazo = {
+  
+      const queryParams = new URLSearchParams({
         rfc: vinculacion.aliado.rfc,
         cct: vinculacion.escuela.cct,
         idNecesidad: vinculacion.necesidad.idNecesidad,
         idApoyo: vinculacion.apoyo.idApoyo
-      };
-
-      console.log("Enviando solicitud de rechazo:", datosRechazo);
-
-      // FIXED: Changed the endpoint from "/vinculacion" to "/vinculacion/rechazar"
-      const resultado = await del("/vinculacion", datosRechazo);
-
+      }).toString();
+      
+      const resultado = await del(`/vinculacion?${queryParams}`);
+  
       console.log("Respuesta del servidor:", resultado);
-
+  
+      // UPDATE STATE: Remove the vinculacion from the state
+      setDatosGestionVinculaciones(prevState => {
+        const updatedItems = prevState.items.filter(item => {
+          // Check if this item corresponds to the rejected vinculacion
+          if (item.datosOriginales && 
+              item.datosOriginales.aliado?.rfc === vinculacion.aliado.rfc &&
+              item.datosOriginales.escuela?.cct === vinculacion.escuela.cct &&
+              item.datosOriginales.necesidad?.idNecesidad === vinculacion.necesidad.idNecesidad &&
+              item.datosOriginales.apoyo?.idApoyo === vinculacion.apoyo.idApoyo) {
+            return false; // Remove this item
+          }
+          return true; // Keep this item
+        });
+  
+        return {
+          ...prevState,
+          items: updatedItems
+        };
+      });
+  
       // Rest of the notification logic remains the same...
       const notificacionEscuela = {
         cct: vinculacion.escuela.cct,
         titulo: "Vinculación rechazada",
         mensaje: `La vinculación para "${vinculacion.necesidad.categoria}: ${vinculacion.necesidad.subcategoria}" ha sido rechazada por el administrador.`
       };
-
+  
       const notificacionAliado = {
         rfc: vinculacion.aliado.rfc,
         titulo: "Vinculación rechazada",
         mensaje: `La vinculación para apoyar con "${vinculacion.apoyo.categoria}: ${vinculacion.apoyo.subcategoria}" ha sido rechazada por el administrador.`
       };
-
+  
       try {
         await post("/notificacion", notificacionEscuela);
         console.log("Notificación enviada a la escuela");
-
+  
         await post("/notificacion", notificacionAliado);
         console.log("Notificación enviada al aliado");
       } catch (errorNotificacion) {
         console.error("Error al enviar notificaciones:", errorNotificacion);
       }
-
-      alert('Vinculación rechazada exitosamente y notificaciones enviadas');
-
+  
+      showNotification('Vinculación rechazada exitosamente y notificaciones enviadas', 'danger', 'Vinculación Rechazada');
+  
     } catch (error) {
       console.error("Error al rechazar la vinculación:", error);
-      alert(`Error al rechazar la vinculación: ${error.message || "Revisa la conexión con el servidor"}`);
+      showNotification(`Error al rechazar la vinculación: ${error.message || "Revisa la conexión con el servidor"}`, 'danger', 'Error');
     }
   };
 
@@ -424,35 +573,57 @@ const Administrador = () => {
       // Verifica si el ID existe y es válido
       if (!necesidad.idNecesidadApoyo) {
         console.error("Error: necesidad no tiene un ID válido", necesidad);
-        alert('Error: La necesidad no tiene un ID válido');
+        showNotification("Error: La necesidad no tiene un ID válido", "danger", "Error de Validación");
         return;
       }
-
+  
       const necesidadId = necesidad.idNecesidadApoyo;
-
+  
       // Objeto de datos para enviar al backend
       const datosAprobacion = {
         id: necesidadId,
         estadoValidacion: 3 // Código de estado para "Aprobado"
       };
-
+  
       console.log(`Enviando petición PUT a /necesidadApoyo/${necesidadId}`, datosAprobacion);
-
+  
       // Llamada al endpoint para aprobar necesidad
       const respuesta = await put(`/necesidadApoyo/${necesidadId}`, datosAprobacion);
-
+  
       console.log("Respuesta del servidor:", respuesta);
-
+  
+      // UPDATE STATE: Update the local state to reflect the change
+      setDatosGestionNecesidades(prevState => {
+        const updatedItems = prevState.items.map(item => {
+          if (item.datosOriginales && item.datosOriginales.idNecesidadApoyo === necesidadId) {
+            return {
+              ...item,
+              estado: "Aprobada",
+              datosOriginales: {
+                ...item.datosOriginales,
+                estadoValidacion: 3
+              }
+            };
+          }
+          return item;
+        });
+  
+        return {
+          ...prevState,
+          items: updatedItems
+        };
+      });
+  
       // MODIFICADO: Enviar notificación usando el mismo patrón que funciona en enviarProyecto
       const idUsuario = necesidad.idUsuario || necesidad.usuario?.idUsuario;
-
+  
       if (idUsuario) {
         const notificacionEscuela = {
           idUsuario: idUsuario,
           titulo: "¡Necesidad Aprobada!",
           mensaje: `Su necesidad "${necesidad.categoria}: ${necesidad.subcategoria}" ha sido aprobada y está lista para ser atendida.`
         };
-
+  
         try {
           console.log("Enviando notificación a usuario con ID:", idUsuario);
           await post("/notificacion", notificacionEscuela);
@@ -463,49 +634,70 @@ const Administrador = () => {
       } else {
         console.warn("No se encontró idUsuario para enviar notificación de necesidad aprobada");
       }
-
-      alert('Necesidad aprobada exitosamente');
+  
+      showNotification('Necesidad aprobada exitosamente', 'success', 'Necesidad Aprobada');
     } catch (error) {
       console.error("Error al aprobar la necesidad:", error);
-      alert(`Error al aprobar la necesidad: ${error.message || "Revisa la conexión con el servidor"}`);
+      showNotification(`Error al aprobar la necesidad: ${error.message || "Revisa la conexión con el servidor"}`, 'danger', 'Error');
     }
   };
 
   const handleAprobarApoyo = async (apoyo) => {
     console.log("Aprobando apoyo:", apoyo);
     try {
-      // Verifica si el ID existe y es válido
       if (!apoyo.idNecesidadApoyo) {
         console.error("Error: apoyo no tiene un ID válido", apoyo);
-        alert('Error: El apoyo no tiene un ID válido');
+        showNotification("Error: El apoyo no tiene un ID válido", "danger", "Error de Validación");
         return;
       }
-
+  
       const apoyoId = apoyo.idNecesidadApoyo;
-
+  
       // Objeto de datos para enviar al backend
       const datosAprobacion = {
         id: apoyoId,
         estadoValidacion: 3 // Código de estado para "Aprobado"
       };
-
+  
       console.log(`Enviando petición PUT a /necesidadApoyo/${apoyoId}`, datosAprobacion);
-
+  
       // Llamada al endpoint para aprobar apoyo
       const respuesta = await put(`/necesidadApoyo/${apoyoId}`, datosAprobacion);
-
+  
       console.log("Respuesta del servidor:", respuesta);
-
+  
+      // UPDATE STATE: Update the local state to reflect the change
+      setDatosGestionApoyos(prevState => {
+        const updatedItems = prevState.items.map(item => {
+          if (item.datosOriginales && item.datosOriginales.idNecesidadApoyo === apoyoId) {
+            return {
+              ...item,
+              estado: "Aprobada",
+              datosOriginales: {
+                ...item.datosOriginales,
+                estadoValidacion: 3
+              }
+            };
+          }
+          return item;
+        });
+  
+        return {
+          ...prevState,
+          items: updatedItems
+        };
+      });
+  
       // MODIFICADO: Enviar notificación usando el mismo patrón que funciona en enviarProyecto
       const idUsuario = apoyo.idUsuario || apoyo.usuario?.idUsuario;
-
+  
       if (idUsuario) {
         const notificacionAliado = {
           idUsuario: idUsuario,
           titulo: "¡Apoyo Aprobado!",
           mensaje: `Su ofrecimiento de apoyo "${apoyo.categoria}: ${apoyo.subcategoria}" ha sido aprobado y ahora está disponible para vinculación con escuelas.`
         };
-
+  
         try {
           console.log("Enviando notificación al usuario con ID:", idUsuario);
           await post("/notificacion", notificacionAliado);
@@ -516,49 +708,70 @@ const Administrador = () => {
       } else {
         console.warn("No se encontró idUsuario para enviar notificación de apoyo aprobado");
       }
-
-      alert('Apoyo aprobado exitosamente');
+  
+      showNotification('Apoyo aprobado exitosamente', 'success', 'Apoyo Aprobado');
     } catch (error) {
       console.error("Error al aprobar el apoyo:", error);
-      alert(`Error al aprobar el apoyo: ${error.message || "Revisa la conexión con el servidor"}`);
+      showNotification(`Error al aprobar el apoyo: ${error.message || "Revisa la conexión con el servidor"}`, 'danger', 'Error');
     }
-  };
+  };  
 
   const handleRechazarNecesidad = async (necesidad) => {
     console.log("Rechazando necesidad:", necesidad);
     try {
       if (!necesidad.idNecesidadApoyo) {
         console.error("Error: necesidad no tiene un ID válido", necesidad);
-        alert('Error: La necesidad no tiene un ID válido');
+        showNotification("Error: La necesidad no tiene un ID válido", "danger", "Error de Validación");
         return;
       }
-
+      
       const necesidadId = necesidad.idNecesidadApoyo;
-
+  
       // Objeto de datos para enviar al backend
       const datosRechazo = {
         id: necesidadId,
         estadoValidacion: 1 // Código de estado para "No aprobado"
       };
-
+  
       console.log(`Enviando petición PUT a /necesidadApoyo/${necesidadId}`, datosRechazo);
-
+  
       // Llamada al endpoint para rechazar necesidad
       const respuesta = await put(`/necesidadApoyo/${necesidadId}`, datosRechazo);
-
-
+  
       console.log("Respuesta del servidor:", respuesta);
-
+  
+      // UPDATE STATE: Update the local state to reflect the change
+      setDatosGestionNecesidades(prevState => {
+        const updatedItems = prevState.items.map(item => {
+          if (item.datosOriginales && item.datosOriginales.idNecesidadApoyo === necesidadId) {
+            return {
+              ...item,
+              estado: "No aprobado",
+              datosOriginales: {
+                ...item.datosOriginales,
+                estadoValidacion: 1
+              }
+            };
+          }
+          return item;
+        });
+  
+        return {
+          ...prevState,
+          items: updatedItems
+        };
+      });
+  
       // MODIFICADO: Enviar notificación usando el mismo patrón que funciona en enviarProyecto
       const idUsuario = necesidad.idUsuario || necesidad.usuario?.idUsuario;
-
+  
       if (idUsuario) {
         const notificacionEscuela = {
           idUsuario: idUsuario,
           titulo: "Necesidad No Aprobada",
           mensaje: `Su necesidad "${necesidad.categoria}: ${necesidad.subcategoria}" no ha sido aprobada. Por favor, contacte con administración para más detalles.`
         };
-
+  
         try {
           console.log("Enviando notificación de rechazo al usuario con ID:", idUsuario);
           await post("/notificacion", notificacionEscuela);
@@ -569,11 +782,11 @@ const Administrador = () => {
       } else {
         console.warn("No se encontró idUsuario para enviar notificación de necesidad rechazada");
       }
-
-      alert('Necesidad rechazada exitosamente');
+  
+      showNotification('Necesidad rechazada exitosamente', 'danger', 'Necesidad Rechazada');
     } catch (error) {
       console.error("Error al rechazar la necesidad:", error);
-      alert(`Error al rechazar la necesidad: ${error.message || "Revisa la conexión con el servidor"}`);
+      showNotification(`Error al rechazar la necesidad: ${error.message || "Revisa la conexión con el servidor"}`, 'danger', 'Error');
     }
   };
 
@@ -583,34 +796,56 @@ const Administrador = () => {
       // Verifica si el ID existe y es válido
       if (!apoyo.idNecesidadApoyo) {
         console.error("Error: apoyo no tiene un ID válido", apoyo);
-        alert('Error: El apoyo no tiene un ID válido');
+        showNotification("Error: El apoyo no tiene un ID válido", "danger", "Error de Validación");
         return;
       }
-
+  
       const apoyoId = apoyo.idNecesidadApoyo;
-
+  
       // Objeto de datos para enviar al backend
       const datosRechazo = {
         id: apoyoId,
         estadoValidacion: 1 // Código de estado para "No aprobado"
       };
-
+  
       console.log(`Enviando petición PUT a /necesidadApoyo/${apoyoId}`, datosRechazo);
-
+  
       const respuesta = await put(`/necesidadApoyo/${apoyoId}`, datosRechazo);
-
+  
       console.log("Respuesta del servidor:", respuesta);
-
+  
+      // UPDATE STATE: Update the local state to reflect the change
+      setDatosGestionApoyos(prevState => {
+        const updatedItems = prevState.items.map(item => {
+          if (item.datosOriginales && item.datosOriginales.idNecesidadApoyo === apoyoId) {
+            return {
+              ...item,
+              estado: "No aprobado",
+              datosOriginales: {
+                ...item.datosOriginales,
+                estadoValidacion: 1
+              }
+            };
+          }
+          return item;
+        });
+  
+        return {
+          ...prevState,
+          items: updatedItems
+        };
+      });
+  
       // MODIFICADO: Enviar notificación usando el mismo patrón que funciona en enviarProyecto
       const idUsuario = apoyo.idUsuario || apoyo.usuario?.idUsuario;
-
+  
       if (idUsuario) {
         const notificacionAliado = {
           idUsuario: idUsuario,
           titulo: "Apoyo No Aprobado",
-          mensaje: `Su ofrecimiento de apoyo "${apoyo.categoria}: ${apoyo.subcategoria}" ha sido aprobado y ahora está disponible para vinculación con escuelas.`
+          mensaje: `Su ofrecimiento de apoyo "${apoyo.categoria}: ${apoyo.subcategoria}" no ha sido aprobado. Por favor, contacte con administración para más detalles.`
         };
-
+  
         try {
           console.log("Enviando notificación de rechazo al usuario con ID:", idUsuario);
           await post("/notificacion", notificacionAliado);
@@ -621,11 +856,11 @@ const Administrador = () => {
       } else {
         console.warn("No se encontró idUsuario para enviar notificación de apoyo rechazado");
       }
-
-      alert('Apoyo rechazado exitosamente');
+  
+      showNotification('Apoyo rechazado exitosamente', 'danger', 'Apoyo Rechazado');
     } catch (error) {
       console.error("Error al rechazar el apoyo:", error);
-      alert(`Error al rechazar el apoyo: ${error.message || "Revisa la conexión con el servidor"}`);
+      showNotification(`Error al rechazar el apoyo: ${error.message || "Revisa la conexión con el servidor"}`, 'danger', 'Error');
     }
   };
 
@@ -680,107 +915,112 @@ const Administrador = () => {
     }));
   };
 
-  // Modificar la función enviarProyecto para incluir el envío de notificaciones
-  const enviarProyecto = async () => {
+ // For vinculacion approval, update when the project is created
+const enviarProyecto = async () => {
+  try {
+    // Validar que todas las etapas tengan título
+    const etapasInvalidas = datosProyecto.etapas.some(etapa => !etapa.tituloEtapa.trim());
+    if (etapasInvalidas) {
+      showNotification("Todas las etapas deben tener un título", "warning", "Datos Incompletos");
+      return;
+    }
+
+    // Formar el objeto exactamente con la estructura requerida por el API
+    const datosFormateados = {
+      descripcion: datosProyecto.descripcion,
+      fechaFin: datosProyecto.fechaFin,
+      rfc: datosProyecto.rfc,
+      cct: datosProyecto.cct,
+      idApoyo: datosProyecto.idApoyo,
+      idNecesidad: datosProyecto.idNecesidad,
+      etapas: datosProyecto.etapas.map(etapa => ({
+        tituloEtapa: etapa.tituloEtapa,
+        descripcionEtapa: etapa.descripcionEtapa,
+        orden: etapa.orden
+      }))
+    };
+
+    // Si necesitas el ID de la vinculación, añádelo aquí
+    if (vinculacionSeleccionada && vinculacionSeleccionada.id) {
+      datosFormateados.idVinculacion = vinculacionSeleccionada.id;
+    }
+
+    console.log("Enviando datos:", JSON.stringify(datosFormateados, null, 2));
+
+    // Realizar la llamada POST al endpoint especificado
+    const respuesta = await post("/vinculacion/aceptar", datosFormateados);
+
+    console.log("Respuesta del servidor:", respuesta);
+
+    // UPDATE STATE: Remove the vinculacion from the state after it's approved
+    setDatosGestionVinculaciones(prevState => {
+      const updatedItems = prevState.items.filter(item => {
+        // Check if this item corresponds to the approved vinculacion
+        if (item.datosOriginales && 
+            item.datosOriginales.aliado?.rfc === datosProyecto.rfc &&
+            item.datosOriginales.escuela?.cct === datosProyecto.cct &&
+            item.datosOriginales.necesidad?.idNecesidad === datosProyecto.idNecesidad &&
+            item.datosOriginales.apoyo?.idApoyo === datosProyecto.idApoyo) {
+          return false; // Remove this item
+        }
+        return true; // Keep this item
+      });
+
+      return {
+        ...prevState,
+        items: updatedItems
+      };
+    });
+
+    // NUEVO: Enviar notificaciones a la escuela y al aliado
+    // 1. Notificación a la escuela
+    const notificacionEscuela = {
+      cct: datosProyecto.cct,
+      titulo: "¡Proyecto creado con éxito!",
+      mensaje: `Se ha creado el proyecto "${datosProyecto.descripcion}" para atender su necesidad. Puede revisar los detalles en la sección de proyectos.`
+    };
+
+    // 2. Notificación al aliado
+    const notificacionAliado = {
+      rfc: datosProyecto.rfc,
+      titulo: "¡Proyecto en marcha!",
+      mensaje: `Se ha creado el proyecto "${datosProyecto.descripcion}" para la vinculación que ofreció. Revise los detalles en su panel de proyectos.`
+    };
+
+    // Enviar notificaciones de forma asíncrona
     try {
-      // Validar que todas las etapas tengan título
-      const etapasInvalidas = datosProyecto.etapas.some(etapa => !etapa.tituloEtapa.trim());
-      if (etapasInvalidas) {
-        alert('Todas las etapas deben tener un título');
-        return;
-      }
+      await post("/notificacion", notificacionEscuela);
+      console.log("Notificación enviada a la escuela");
 
-      // Formar el objeto exactamente con la estructura requerida por el API
-      const datosFormateados = {
-        descripcion: datosProyecto.descripcion,
-        fechaFin: datosProyecto.fechaFin,
-        rfc: datosProyecto.rfc,
-        cct: datosProyecto.cct,
-        idApoyo: datosProyecto.idApoyo,
-        idNecesidad: datosProyecto.idNecesidad,
-        etapas: datosProyecto.etapas.map(etapa => ({
-          tituloEtapa: etapa.tituloEtapa,
-          descripcionEtapa: etapa.descripcionEtapa,
-          orden: etapa.orden
-        }))
-      };
-
-      // Si necesitas el ID de la vinculación, añádelo aquí
-      if (vinculacionSeleccionada && vinculacionSeleccionada.id) {
-        datosFormateados.idVinculacion = vinculacionSeleccionada.id;
-      }
-
-      console.log("Enviando datos:", JSON.stringify(datosFormateados, null, 2));
-
-      // Realizar la llamada POST al endpoint especificado
-      const respuesta = await post("/vinculacion/aceptar", datosFormateados);
-
-      console.log("Respuesta del servidor:", respuesta);
-
-      // NUEVO: Enviar notificaciones a la escuela y al aliado
-      // 1. Notificación a la escuela
-      const notificacionEscuela = {
-        cct: datosProyecto.cct,
-        titulo: "¡Proyecto creado con éxito!",
-        mensaje: `Se ha creado el proyecto "${datosProyecto.descripcion}" para atender su necesidad. Puede revisar los detalles en la sección de proyectos.`
-      };
-
-      // 2. Notificación al aliado
-      const notificacionAliado = {
-        rfc: datosProyecto.rfc,
-        titulo: "¡Proyecto en marcha!",
-        mensaje: `Se ha creado el proyecto "${datosProyecto.descripcion}" para la vinculación que ofreció. Revise los detalles en su panel de proyectos.`
-      };
-
-      // Enviar notificaciones de forma asíncrona
-      try {
-        await post("/notificacion", notificacionEscuela);
-        console.log("Notificación enviada a la escuela");
-
-        await post("/notificacion", notificacionAliado);
-        console.log("Notificación enviada al aliado");
-      } catch (errorNotificacion) {
-        console.error("Error al enviar notificaciones:", errorNotificacion);
-        // No bloqueamos la creación del proyecto si fallan las notificaciones
-      }
-
-      // Cerrar el modal y mostrar mensaje de éxito
-      setMostrarModalEtapas(false);
-      alert('Proyecto creado exitosamente y notificaciones enviadas');
-
-    } catch (error) {
-      console.error("Error al crear el proyecto:", error);
-      alert(`Error al crear el proyecto: ${error.message || "Revisa la conexión con el servidor"}`);
+      await post("/notificacion", notificacionAliado);
+      console.log("Notificación enviada al aliado");
+    } catch (errorNotificacion) {
+      console.error("Error al enviar notificaciones:", errorNotificacion);
+      // No bloqueamos la creación del proyecto si fallan las notificaciones
     }
-  };
 
-  // Manejadores para validaciones de pendientes
-  const handlePendienteClick = (item) => {
-    if (item.tipo === 'proyecto') {
-      // Si ya está activo, lo desactivamos (toggle)
-      setValidacionActiva(validacionActiva === 'proyecto' ? null : 'proyecto');
-    } else if (item.tipo === 'usuario') {
-      setValidacionActiva(validacionActiva === 'usuario' ? null : 'usuario');
-    } else if (item.tipo === 'documento') {
-      setValidacionActiva(validacionActiva === 'documento' ? null : 'documento');
-    }
-    // Puedes agregar más tipos según sea necesario
-  };
+    // Cerrar el modal y mostrar mensaje de éxito
+    setMostrarModalEtapas(false);
+    showNotification('Proyecto creado exitosamente y notificaciones enviadas', 'success', 'Proyecto Creado');
 
+  } catch (error) {
+    console.error("Error al crear el proyecto:", error);
+    showNotification(`Error al crear el proyecto: ${error.message || "Revisa la conexión con el servidor"}`, 'danger', 'Error');
+  }
+};
   // Cerrar la sección de validación activa
   const cerrarValidacion = () => {
     setValidacionActiva(null);
   };
 
-  // Manejador para validación de proyectos
-  const handleProyectoValidado = (data, isApproved) => {
-    console.log(`Proyecto ${isApproved ? 'aprobado' : 'rechazado'}:`, data);
-    // Aquí podrías actualizar la lista de proyectos pendientes después de validar
-  };
-
   const handleVerNecesidades = () => {
     console.log("Ver todas las necesidades escolares");
   };
+
+  const handleVerNotificaciones = () => {
+    console.log("Ver todas las notificaciones");
+    setShowAllNotificationsModal(true);
+  };  
 
   const handleVerOfertas = () => {
     console.log("Ver todas las ofertas de apoyo");
@@ -798,7 +1038,7 @@ const Administrador = () => {
   };
 
   return (
-    <div className="dashboard-container">
+    <div className="dashboard-container" id="dashboard">
       {/* Sidebar fijo */}
       <Sidebar
         logo={Logo}
@@ -806,6 +1046,7 @@ const Administrador = () => {
         menuItems={sidebarAdministrador}
         isOpen={sidebarOpen}
         toggleSidebar={toggleSidebar}
+        onLogout={handleLogout}
       />
 
       {/* Contenido del dashboard */}
@@ -835,53 +1076,67 @@ const Administrador = () => {
           </section>
 
           {/* Sección de Proyectos y Validaciones Pendientes */}
-          <section className="mb-4">
-            <div className="row">
+          <section className="mb-4" id="projects">
+            <div className="row" >
               <div className="col-xl-8 col-lg-7">
                 <Proyecto
                   titulo={proyectosTitulo}
-                  proyectos={proyectosItems}
+                  proyectos={proyectos}
                   tipo="admin"
                   textoBoton={proyectosTextoBoton}
-                  onButtonClick={handleVerProyectos}
+                  onButtonClick={null}
                   onViewClick={handleVerDetallesProyecto}
                   onActionClick={handleActionProyecto}
-                  allProjects={proyectosTodos}
+                  allProjects={proyectos}
                 />
               </div>
               <div className="col-xl-4 col-lg-5">
-                {/* Componente de validaciones pendientes actualizado */}
                 <div className="card h-100">
                   <div className="card-header d-flex justify-content-between align-items-center">
-                    <h5 className="mb-0">Validaciones Pendientes</h5>
-                    {pendientesAdministrador?.textoBoton && (
-                      <button
-                        className="btn btn-sm btn-primary"
-                        onClick={() => console.log("Ver todas las validaciones")}
-                      >
-                        {pendientesAdministrador.textoBoton}
-                      </button>
-                    )}
+                    <h5 className="mb-0">Notificaciones</h5>
+                    <button
+                      className="btn btn-sm btn-primary"
+                      onClick={handleVerNotificaciones}
+                    >
+                      Ver todas
+                    </button>
                   </div>
                   <div className="card-body">
-                    <ul className="list-group list-group-flush">
-                      {pendientesTodos.map((item, index) => (
-                        <li
-                          className="list-group-item px-0 cursor-pointer"
-                          key={index}
-                          onClick={() => handlePendienteClick(item, index)}
-                          style={{ cursor: 'pointer' }}
-                        >
-                          <div className="d-flex justify-content-between align-items-center">
-                            <div>
-                              <h6 className="mb-0">{item.titulo}</h6>
-                              <small className="text-muted">{item.descripcion}</small>
+                    {cargandoNotificaciones ? (
+                      <div className="text-center py-3">
+                        <div className="spinner-border text-primary" role="status">
+                          <span className="visually-hidden">Cargando...</span>
+                        </div>
+                      </div>
+                    ) : errorNotificaciones ? (
+                      <div className="alert alert-warning" role="alert">
+                        {errorNotificaciones}
+                      </div>
+                    ) : notificacionesTodas.length === 0 ? (
+                      <p className="text-muted text-center my-3">No hay notificaciones</p>
+                    ) : (
+                      <ul className="list-group list-group-flush">
+                        {notificacionesTodas.slice(0, 2).map((item, index) => (
+                          <li
+                            className="list-group-item px-0 cursor-pointer"
+                            key={index}
+                          >
+                            <div className="d-flex justify-content-between align-items-center">
+                              <div>
+                                <h6 className="mb-0">{item.titulo}</h6>
+                                <small className="text-muted">{item.mensaje || item.descripcion}</small>
+                              </div>
+                              {item.fechaCreacion && (
+                                <small className="text-muted">{new Date(item.fechaCreacion).toLocaleDateString()}</small>
+                              )}
+                              {item.cantidad && (
+                                <span className={`badge bg-${item.color || 'primary'} rounded-pill`}>{item.cantidad}</span>
+                              )}
                             </div>
-                            <span className={`badge bg-${item.color || 'primary'} rounded-pill`}>{item.cantidad}</span>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 </div>
               </div>
@@ -903,15 +1158,15 @@ const Administrador = () => {
                 <div className="card-body">
                   <ProyectoDetallado
                     proyecto={selectedProject}
-                    fases={projectData.fases}
+                    fases={etapas}
                     evidencias={projectData.evidencias}
-                    mensajes={projectData.mensajes}
+                    mensajes={mensajes}
                     documentos={projectData.documentos}
                     onExportReport={handleExportReport}
                     onAddRecord={handleAddRecord}
                     onUpdateProgress={handleUpdateProgress}
                     onUploadEvidence={handleUploadEvidence}
-                    onSendMessage={handleSendMessage}
+                    onSendMessage={null}
                     onUploadDocument={handleUploadDocument}
                     onGoBack={handleGoBack}
                     onGenerateReport={handleGenerateReport}
@@ -928,7 +1183,7 @@ const Administrador = () => {
             <section className="mb-4">
               <div className="card">
                 <div className="card-header d-flex justify-content-between align-items-center">
-                  <h5 className="mb-0">Validación de Proyectos</h5>
+                  <h5 className="mb-0">Notificaciones</h5>
                   <button
                     className="btn btn-sm btn-outline-secondary"
                     onClick={cerrarValidacion}
@@ -937,18 +1192,15 @@ const Administrador = () => {
                   </button>
                 </div>
                 <div className="card-body">
-                  <Pendientes
-                    titulo={proyectosPendientes.titulo}
-                    items={proyectosPendientes.items}
-                    tipo="proyecto"
-                    badgeText={proyectosPendientes.badgeText}
-                    badgeColor={proyectosPendientes.badgeColor}
-                    textoBoton={proyectosPendientes.textoBoton}
-                    onButtonClick={() => console.log("Ver todos los proyectos pendientes")}
-                    apiUrl={proyectosPendientes.apiUrl || "/api/v1"}
-                    onValidate={handleProyectoValidado}
-                    fullHeight={false}
-                    hideTitulo={true} // Ocultar título ya que está en el card-header
+                  <Notificaciones
+                    titulo="Notificaciones"
+                    items={notificacionesTodas} // Use the API data
+                    tipo="admin"
+                    textoBoton="Ver todas"
+                    onButtonClick={() => console.log("Ver todas las notificaciones")}
+                    apiUrl="/api"
+                    idUsuario={usuario?.id}
+                    hideTitulo={true} // Hide title in component since we have one in the card header
                   />
                 </div>
               </div>
@@ -981,7 +1233,7 @@ const Administrador = () => {
           {/* Gestión de Necesidades */}
           <section className="mb-4">
             <div className="row">
-              <div className="col-12">
+              <div className="col-12" id="needs">
                 <Gestiones
                   titulo={datosGestionNecesidades.titulo}
                   items={datosGestionNecesidades.items}
@@ -1018,7 +1270,7 @@ const Administrador = () => {
           {/* Gestión de Apoyos */}
           <section className="mb-4">
             <div className="row">
-              <div className="col-12">
+              <div className="col-12" id="supports">
                 <Gestiones
                   titulo={datosGestionApoyos.titulo}
                   items={datosGestionApoyos.items}
@@ -1055,7 +1307,7 @@ const Administrador = () => {
           {/* Gestión de Vinculaciones */}
           <section className="mb-4">
             <div className="row">
-              <div className="col-12">
+              <div className="col-12" id="matches">
                 <Gestiones
                   titulo={datosGestionVinculaciones.titulo}
                   items={datosGestionVinculaciones.items}
@@ -1384,7 +1636,59 @@ const Administrador = () => {
             </Modal.Footer>
           </Modal>
         )}
-
+        
+        {/* Modal para mostrar todas las notificaciones */}
+        <Modal 
+          show={showAllNotificationsModal} 
+          onHide={() => setShowAllNotificationsModal(false)}
+          size="lg"
+          aria-labelledby="notificacionesModalLabel"
+        >
+          <Modal.Header closeButton>
+            <Modal.Title id="notificacionesModalLabel">Todas las Notificaciones</Modal.Title>
+          </Modal.Header>
+          
+          <Modal.Body>
+            {cargandoNotificaciones ? (
+              <div className="text-center py-3">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Cargando...</span>
+                </div>
+              </div>
+            ) : errorNotificaciones ? (
+              <div className="alert alert-warning" role="alert">
+                {errorNotificaciones}
+              </div>
+            ) : notificacionesTodas.length === 0 ? (
+              <p className="text-muted text-center my-3">No hay notificaciones</p>
+            ) : (
+              <ul className="list-group list-group-flush">
+                {notificacionesTodas.map((item, index) => (
+                  <li
+                    className="list-group-item cursor-pointer"
+                    key={index}
+                  >
+                    <div className="d-flex justify-content-between align-items-center">
+                      <div>
+                        <h6 className="mb-0">{item.titulo}</h6>
+                        <p className="mb-1">{item.mensaje || item.descripcion}</p>
+                      </div>
+                      {item.fechaCreacion && (
+                        <small className="text-muted">{new Date(item.fechaCreacion).toLocaleDateString()}</small>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Modal.Body>
+          
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowAllNotificationsModal(false)}>
+              Cerrar
+            </Button>
+          </Modal.Footer>
+        </Modal>
         {/* Modal para crear proyecto con etapas dinámicas */}
         {mostrarModalEtapas && vinculacionSeleccionada && (
           <div className="modal fade show d-block" tabIndex="-1" role="dialog" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
@@ -1497,11 +1801,33 @@ const Administrador = () => {
         )}
 
         <section>
-          <h2 className="mb-4">Mapa de escuelas</h2>
+          <h2 className="mb-4" id="map">Mapa de escuelas</h2>
           <div className="map-container">
             <MapaGoogle tipo="admin" />
           </div>
         </section>
+        <Toast 
+          show={notification.show}
+          onClose={() => setNotification({...notification, show: false})}
+          style={{
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            minWidth: '250px',
+            zIndex: 9999
+          }}
+          delay={10000}
+          autohide
+          bg={notification.type}
+          className="text-white"
+        >
+          <Toast.Header closeButton={true}>
+            <strong className="me-auto">{notification.title}</strong>
+          </Toast.Header>
+          <Toast.Body>
+            {notification.message}
+          </Toast.Body>
+        </Toast>
       </div>
     </div>
   );

@@ -19,7 +19,7 @@ exports.up = function(knex) {
 			.references('idUsuario')
 			.inTable('usuario')
 			.onDelete('CASCADE');
-		tabla.date('fechaEnvio')
+		tabla.timestamp('fechaEnvio')
 			.defaultTo(knex.fn.now())
 			.notNullable();
 		tabla.text('contenido')

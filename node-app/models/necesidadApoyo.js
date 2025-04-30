@@ -49,15 +49,14 @@ const necesidadApoyoPorId = async (id) => {
 
 const crearNecesidadApoyo = async (params) => {
     const resultado = await db.query(
-        'INSERT INTO "necesidadApoyo" ("idUsuario", "categoria", "subcategoria", "descripcion", "prioridad", "fechaCreacion", "estadoValidacion") VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *', // Comillas en columnas
+        'INSERT INTO "necesidadApoyo" ("idUsuario", "categoria", "subcategoria", "descripcion", "prioridad", "fechaCreacion") VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
         [
             params.idUsuario,
             params.categoria,
             params.subcategoria,
             params.descripcion,
             params.prioridad,
-            params.fechaCreacion || new Date(),
-            params.estadoValidacion || 0
+            new Date().toISOString(),
         ]
     );
     return resultado.rows[0];
@@ -95,7 +94,7 @@ const actualizarNecesidadApoyo = async (idNecesidadApoyo, params) => { // Correg
 
 const necesidadApoyoPorUsuario = async (idUsuario) => { // Corregido: sin coma al final
     try {
-        const query = 'SELECT * FROM "necesidadApoyo" WHERE "idUsuario" = $1';
+        const query = 'SELECT * FROM "necesidadApoyo" WHERE "idUsuario" = $1 AND "estadoValidacion" = 3';
         const resultado = await db.query(query, [idUsuario]);
         return resultado.rows;
     } catch (error) {

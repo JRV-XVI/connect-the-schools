@@ -31,7 +31,9 @@ const validarIdUsuario = (req, res, next) => {
  */
 const verificarUsuarioExiste = async (req, res, next) => {
     try {
-        const idUsuario = Number(req.idUsuario);
+        // Use req.idUsuario from validarIdUsuario middleware or from URL params
+        // instead of trying to get it from req.body which is undefined for GET requests
+        const idUsuario = req.idUsuario || Number(req.params.idUsuario);
 
         if (!idUsuario) {
             return res.status(400).json({
@@ -47,7 +49,7 @@ const verificarUsuarioExiste = async (req, res, next) => {
             });
         }
 
-        if (!req.idUsuario) req.idUsuario = idUsuario;
+        req.idUsuario = idUsuario;
         next();
     } catch (error) {
         next(error);
