@@ -56,13 +56,13 @@ const obtenerProyectosPorUsuario = async (idUsuario) => {
                 p."validacionAdmin", 
                 p."fechaCreacion", 
                 p."fechaFin",
-                u."nombre" as "nombreAliado",
+                COALESCE(u."nombre", 'Aliado sin nombre') as "nombreAliado",
                 pe."numeroEstudiantes"
             FROM "proyecto" p 
             JOIN "participacionProyecto" pp ON p."idProyecto" = pp."idProyecto" 
             JOIN "perfilEscuela" pe ON pp."cct" = pe."cct" 
             JOIN "perfilAliado" pa ON pp."rfc" = pa."rfc"
-            JOIN "usuario" u ON pa."idUsuario" = u."idUsuario"
+            LEFT JOIN "usuario" u ON pa."idUsuario" = u."idUsuario"
             WHERE pe."idUsuario" = $1 
             ORDER BY p."fechaCreacion" DESC
         `, [idUsuario]);

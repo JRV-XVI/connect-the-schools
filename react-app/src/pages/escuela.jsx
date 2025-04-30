@@ -74,6 +74,7 @@ const Escuela = ({ userData, onLogout }) => {
   // Estados para el componente ProyectoDetallado
   const [mostrarProyectoDetallado, setMostrarProyectoDetallado] = useState(false);
   const [proyectoSeleccionado, setProyectoSeleccionado] = useState(null);
+  const [proyectosActualizados, setProyectosActualizados] = useState(0);
 
   //-------------------------------//
   //---------RENDER DATOS---------//
@@ -82,7 +83,7 @@ const Escuela = ({ userData, onLogout }) => {
   // Obtener proyectos del usuario logeado
   useEffect(() => {
     fetchProyectos();
-  }, [usuario.idUsuario]);
+  }, [usuario.idUsuario, proyectosActualizados]);
   
     // Add this useEffect to fetch notifications
   useEffect(() => {
@@ -192,7 +193,8 @@ const mapearCategoriaATipo = (categoria) => {
           progreso: proyecto.progreso || 0,
           estado: proyecto.validacionAdmin ? 'En tiempo' : 'Pendiente',
           escuela: proyecto.nombreEscuela || 'Escuela asociada',
-          estudiantes: proyecto.numeroEstudiantes || 0
+          estudiantes: proyecto.numeroEstudiantes || 0,
+          aliado: proyecto.nombreAliado || 'Aliado asociada'
         }));
         console.log("Proyectos normales: ", respuesta);
         setProyectos(proyectosFormateados);
@@ -682,6 +684,7 @@ const handleEditNecesidad = async (id, necesidadActualizada) => {
                     onSaveChanges={handleSaveChanges}
                     onDownloadDocument={handleDownloadDocument}
                     onViewDocument={handleViewDocument}
+                    onFIleUploadSucces={() => setProyectosActualizados(prev => prev +1)}
                   />
                 </section>
               )}

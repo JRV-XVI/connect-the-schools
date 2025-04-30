@@ -72,6 +72,9 @@ const Administrador = ({userData, onLogout}) => {
     type: 'success', // 'success', 'warning', 'danger', 'info'
     title: ''
   });
+
+  // Agregar este estado después de los estados existentes
+  const [proyectosActualizados, setProyectosActualizados] = useState(0);
   
   // Función para mostrar notificaciones
   const showNotification = (message, type = 'success', title = '') => {
@@ -210,7 +213,7 @@ const Administrador = ({userData, onLogout}) => {
   // Obtener todos los proyectos del sistema
   useEffect(() => {
     fetchProyectos();
-  }, []);
+  }, [proyectosActualizados]);
 
   //--------------------------//
   //---------PROYECTO---------//
@@ -999,6 +1002,8 @@ const enviarProyecto = async () => {
       // No bloqueamos la creación del proyecto si fallan las notificaciones
     }
 
+    setProyectosActualizados(prev => prev + 1);3
+    
     // Cerrar el modal y mostrar mensaje de éxito
     setMostrarModalEtapas(false);
     showNotification('Proyecto creado exitosamente y notificaciones enviadas', 'success', 'Proyecto Creado');

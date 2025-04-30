@@ -19,7 +19,8 @@ const ProyectoDetallado = ({
   onSaveChanges = () => {},
   onDownloadDocument = () => {},
   onViewDocument = () => {},
-  userData = null
+  userData = null,
+  onFIleUploadSucces = () => {}
 }) => {
   const [activeTab, setActiveTab] = useState('timeline');
   const [mensaje, setMensaje] = useState('');
@@ -75,6 +76,9 @@ const ProyectoDetallado = ({
         console.log("Archivo subido correctamente!", formData)
         fetchArchivo(etapaSeleccionada.idEtapa);
         setArchivoEtapa(null);
+
+        onFIleUploadSucces(etapaSeleccionada.idEtapa)
+
       } else {
         throw new Error(`Error ${respuesta.status}: ${respuesta.statusText}`)
       }
@@ -293,7 +297,7 @@ const ProyectoDetallado = ({
                                   <i className={`${getDocumentIcon(archivoExistente.tipoContenido)} fa-2x`}></i>
                                 </div>
                                 <div className="flex-grow-1">
-                                  <div className="fw-bold">Nombre Archivo: </div>
+                                  <div className="fw-bold"></div>
                                   <small className="text-muted">
                                     Subido el {new Date(archivoExistente.fechaSubida).toLocaleDateString()}
                                   </small>
