@@ -700,7 +700,7 @@ const Aliado = ({ userData, onLogout }) => {
           <section>
             <h2 className="mb-4">Mapa de escuelas</h2>
             <div className="map-container">
-              <MapaGoogle tipo="escuelas" />
+              <MapaGoogle tipo="aliados" />
             </div>
           </section>
 

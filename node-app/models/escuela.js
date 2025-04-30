@@ -31,14 +31,14 @@ const obtenerUbicacionesAliados = async () => {
 const obtenerUbicacionesEscuelas = async () => {
     const query = `
         SELECT 
-            pe."idUsuario" AS id, 
-            pe."cct", 
-            u."nombre" AS nombre_escuela, 
-            pe."latitud", 
-            pe."longitud"
-        FROM "perfilEscuela" pe
-        INNER JOIN "usuario" u ON pe."idUsuario" = u."idUsuario"
-        WHERE pe."latitud" IS NOT NULL AND pe."longitud" IS NOT NULL
+            u."idUsuario" AS id,
+            u."nombre" AS nombre_escuela,
+            u."calle",
+            u."codigoPostal",
+            u."ciudad",
+            u."estado"
+        FROM "usuario" u
+        INNER JOIN "perfilEscuela" pe ON u."idUsuario" = pe."idUsuario"
     `;
     const { rows } = await db.query(query);
     return rows;
