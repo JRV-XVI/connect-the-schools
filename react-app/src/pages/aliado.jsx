@@ -47,6 +47,9 @@ const Aliado = ({ userData, onLogout }) => {
   const [resultadosBusqueda, setResultadosBusqueda] = useState(escuelasData);
   const [paginaActual, setPaginaActual] = useState(1);
   const [cargandoBusqueda, setCargandoBusqueda] = useState(false);
+
+  const [proyectosActualizados, setProyectosActualizados] = useState(0);
+
   
   const [notification, setNotification] = useState({
     show: false,
@@ -93,7 +96,7 @@ const Aliado = ({ userData, onLogout }) => {
   // Obtener proyectos del usuario logeado
   useEffect(() => {
     fetchProyectos();
-  }, [usuario.idUsuario]);
+  }, [usuario.idUsuario, proyectosActualizados]);
 
   useEffect(() => {
     const obtenerNotificaciones = async () => {
@@ -316,8 +319,13 @@ useEffect(() => {
   };
 
   const handleLogout = () => {
-    setUserRole(null);
-    setUserData(null);
+    // Eliminar datos de localStorage
+    localStorage.removeItem('userData');
+    
+    // Llamar a la función onLogout proporcionada por App.jsx
+    if (onLogout) {
+      onLogout();
+    }
   };
   
   const totalAlumnosProyecto = useMemo(() => {
@@ -895,6 +903,7 @@ useEffect(() => {
                 onDownloadDocument={handleDownloadDocument}
                 onViewDocument={handleViewDocument}
                 userData={userData}
+                onFIleUploadSucces={() => setProyectosActualizados(prev => prev + 1)}
               />
             </section>
           )}

@@ -25,7 +25,6 @@ const mensajePorMensajeria = async (id) => {
         FROM "mensaje" m
         JOIN "usuario" u ON m."idUsuario" = u."idUsuario"
         WHERE m."idMensajeria" = $1
-        ORDER BY m."fechaEnvio" ASC
     `, [id]);
     return resultado.rows;
 }
