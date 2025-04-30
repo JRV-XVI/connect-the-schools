@@ -9,7 +9,7 @@ import '../styles/styles.css';
 function App() {
   const [userRole, setUserRole] = useState(null);
   const [userData, setUserData] = useState(null);
-  
+
   const isDraggingRef = useRef(false);
   const offsetRef = useRef({ x: 0, y: 0 });
 
@@ -18,7 +18,7 @@ function App() {
 
     setUserRole(usuario.rol);
     setUserData(usuario);
-};
+  };
 
   const handleLogout = () => {
     setUserRole(null);
@@ -27,14 +27,14 @@ function App() {
 
   const handleMouseMove = (e) => {
     if (!isDraggingRef.current) return;
-    
+
     // Calcular la nueva posición basada en la posición del mouse y el offset
     const newX = e.clientX - offsetRef.current.x;
     const newY = e.clientY - offsetRef.current.y;
-    
+
     // Actualizar la posición del panel
     setPanelPosition({ x: newX, y: newY });
-    
+
     // Prevenir comportamiento predeterminado
     e.preventDefault();
   };
@@ -48,7 +48,7 @@ function App() {
   useEffect(() => {
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-    
+
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
@@ -60,7 +60,7 @@ function App() {
       return <InicioSesion onLogin={handleLogin} />;
     }
 
-    switch(userRole) {
+    switch (userRole) {
       case 'admin':
         return <Administrador userData={userData} onLogout={handleLogout} />;
       case 'aliado':
@@ -74,7 +74,7 @@ function App() {
 
   return (
     <div className="App">
-      {renderView()}      
+      {renderView()}
 
     </div>
   );
