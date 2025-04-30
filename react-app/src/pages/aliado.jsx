@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { get, post } from "../api.js";
+import { Modal, Button, Toast } from 'react-bootstrap';
 import Sidebar from "../components/barraLateral.jsx";
 import Navbar from "../components/barraNavegacion.jsx";
-import Pendientes from "../components/pendientes.jsx";
+import Notificaciones from "../components/notificaciones.jsx"; // Changed from 
 import Proyecto from "../components/proyectos.jsx";
 import axios from "axios";
 // Reemplazamos NecesidadApoyo por el nuevo componente
@@ -15,9 +16,8 @@ import { navbarAliado } from "../data/barraNavegacion/barraNavegacionAliado.js";
 import { cartasAliado } from "../data/cartas/cartasAliado.js";
 import { pendientesAliado } from '../data/pendientes/pendientesAliado.js';
 import { proyectosAliado } from '../data/proyectos/proyectosAliado.js';
-// Mantenemos la importación para migrar los datos iniciales
-import { tabsApoyos, columnasApoyos, datosApoyos } from '../data/necesidadApoyo/apoyos.js';
-import { escuelasData, opcionesFiltros, apoyosDisponiblesAliado } from '../data/busqueda/busquedaEscuelas.js';
+import { datosApoyos } from '../data/necesidadApoyo/apoyos.js';
+import { escuelasData, opcionesFiltros } from '../data/busqueda/busquedaEscuelas.js';
 import { proyectoDetallado } from '../data/proyectoDetallado/proyectoDetallado.js';
 import Logo from "../assets/MPJ.png";
 import MapaGoogle from "../components/mapaGoogle.jsx";
@@ -26,12 +26,11 @@ const Aliado = ({ userData, onLogout }) => {
   const usuario = userData || { nombre: "Aliado", foto: "" };
   const notificaciones = navbarAliado?.notificaciones || [];
   const menuItems = navbarAliado?.menuItems || [];
-
-  // Obtenemos todos los pendientes y los limitamos a 4 para el dashboard
-  const pendientesTodos = pendientesAliado?.items || [];
-  const pendientesItems = pendientesTodos.slice(0, 5);
-  const pendientesTitulo = pendientesAliado?.titulo || "Validaciones Pendientes";
-  const pendientesTextoBoton = pendientesAliado?.textoBoton || "Ver todos los pendientes";
+  
+  // New state for API notifications
+  const [notificacionesTodas, setNotificacionesTodas] = useState([]);
+  const [cargandoNotificaciones, setCargandoNotificaciones] = useState(false);
+  const [errorNotificaciones, setErrorNotificaciones] = useState(null);
 
   // PROYECTOS / ETAPAS / MENSAJES / VINCULACIONES -> VARIABLES
   const [proyectos, setProyectos] = useState([]);
@@ -48,7 +47,30 @@ const Aliado = ({ userData, onLogout }) => {
   const [resultadosBusqueda, setResultadosBusqueda] = useState(escuelasData);
   const [paginaActual, setPaginaActual] = useState(1);
   const [cargandoBusqueda, setCargandoBusqueda] = useState(false);
+  
+  const [notification, setNotification] = useState({
+    show: false,
+    message: '',
+    type: 'success', // 'success', 'warning', 'danger', 'info'
+    title: ''
+  });
 
+  const showNotification = (message, type = 'success', title = '') => {
+  setNotification({
+    show: true,
+    message,
+    type,
+    title: title || (type === 'success' ? 'Éxito' : 
+                    type === 'warning' ? 'Advertencia' : 
+                    type === 'danger' ? 'Error' : 'Información')
+  });
+};
+
+  // Update the handleVerNotificaciones function
+  const handleVerNotificaciones = () => {
+    console.log("Ver todas las notificaciones");
+    setShowAllNotificationsModal(true);
+  };
   // Configuración de paginación
   const escuelasPorPagina = 3;
   const totalPaginas = Math.ceil(resultadosBusqueda.length / escuelasPorPagina);
@@ -74,6 +96,54 @@ const Aliado = ({ userData, onLogout }) => {
   }, [usuario.idUsuario]);
 
   useEffect(() => {
+    const obtenerNotificaciones = async () => {
+      if (!usuario?.idUsuario) {
+        console.error("Error: No hay ID de usuario disponible", usuario);
+        return;
+      }
+      
+      console.log("Intentando obtener notificaciones para usuario ID:", usuario.idUsuario);
+      setCargandoNotificaciones(true);
+      setErrorNotificaciones(null);
+      
+      try {
+        // Direct call without retries to simplify debugging
+        console.log(`Obteniendo notificaciones para ID: ${usuario.idUsuario}`);
+        
+        // Use axios directly for better error details
+        const response = await axios.get(`http://localhost:4001/api/usuario/${usuario.idUsuario}/notificacion`, {
+          withCredentials: true
+        });
+        
+        console.log("Notificaciones recibidas:", response.data);
+        setNotificacionesTodas(response.data);
+      } catch (error) {
+        console.error("Error al obtener notificaciones:", error);
+        
+        // Get detailed error information
+        if (error.response) {
+          // The server responded with a status code outside the 2xx range
+          console.error("Detalle del error del servidor:", error.response.data);
+          console.error("Estado HTTP:", error.response.status);
+        } else if (error.request) {
+          // The request was made but no response was received
+          console.error("No se recibió respuesta del servidor");
+        } else {
+          // Something else caused the error
+          console.error("Error en la configuración de la solicitud:", error.message);
+        }
+        
+        setErrorNotificaciones("No se pudieron cargar las notificaciones. Error del servidor.");
+        setNotificacionesTodas([]);
+      } finally {
+        setCargandoNotificaciones(false);
+      }
+    };
+  
+  obtenerNotificaciones();
+}, [usuario.idUsuario]);
+  
+useEffect(() => {
     fetchVinculaciones();
   }, [usuario?.idUsuario]);
 
@@ -161,8 +231,7 @@ const Aliado = ({ userData, onLogout }) => {
     ];
   };
 
-  // CORREGIDO: Usar el método de procesamiento seguro
-  const apoyosIniciales = procesarDatosApoyos();
+  const [showAllNotificationsModal, setShowAllNotificationsModal] = useState(false);
 
   // Estado para gestionar las ofertas de apoyo
   const [apoyos, setApoyos] = useState([]);
@@ -178,13 +247,12 @@ const Aliado = ({ userData, onLogout }) => {
   ]);
 
   useEffect(() => {
-    // Transformar apoyos al formato esperado por el componente Búsqueda con campos correctos
+    // Transformar apoyos al formato esperado - SOLO APOYOS APROBADOS
     const apoyosFormateados = apoyos
-      // Asegúrate que sólo filtras si realmente quieres excluir algunos
-      //.filter(a => a.estado === "Disponible" || a.estadoValidacion === 1)
+      .filter(a => a.estadoValidacion === 3) // Solo apoyos aprobados
       .map(a => ({
         id: a.id || a.idNecesidadApoyo,
-        titulo: a.titulo || a.descripcion || "Apoyo sin título", // Usar descripción como respaldo
+        titulo: a.titulo || a.descripcion || "Apoyo sin título",
         tipo: a.tipo || mapearCategoriaAliado(a.categoria),
         descripcion: a.descripcion || "",
         categoria: a.categoria || "",
@@ -195,10 +263,6 @@ const Aliado = ({ userData, onLogout }) => {
     setApoyosDisponibles(apoyosFormateados);
   }, [apoyos]);
 
-  // Resto del código permanece igual...
-  const handleVerPendientes = () => {
-    console.log("Ver todos los pendientes");
-  };
 
   //-------------------------------------------//
   //---------VINCULACIONES PENDIENTES---------//
@@ -295,7 +359,8 @@ const Aliado = ({ userData, onLogout }) => {
 
   const handleActionProyecto = (proyecto) => {
     console.log("Acción en proyecto:", proyecto.nombre, "Estado:", proyecto.estado);
-  };
+  }
+
 
   //----------------------------------//
   //---------ETAPAS PROYECTO---------//
@@ -317,6 +382,7 @@ const Aliado = ({ userData, onLogout }) => {
   //-------------------------------//
 
   // Manejadores para ofertas de apoyo
+  // En la función handleAddApoyo
   const handleAddApoyo = async (nuevaOferta) => {
     try {
       const payload = {
@@ -324,54 +390,74 @@ const Aliado = ({ userData, onLogout }) => {
         descripcion: nuevaOferta.descripcion || nuevaOferta.titulo,
         categoria: nuevaOferta.categoria || "Apoyo Material",
         subcategoria: nuevaOferta.subcategoria || "General",
-        estadoValidacion: nuevaOferta.estado || 0
       };
-
-
-      const response = await axios.post('http://localhost:4001/api/apoyos-aliado', payload, {
+      
+      const response = await axios.post('http://localhost:4001/api/necesidadApoyo', payload, {
         withCredentials: true
       });
 
       console.log("[SUCCESS] Apoyo creado en base:", response.data);
-
-
-      const apoyoNuevo = {
-        id: response.data.idNecesidadApoyo,
-        descripcion: response.data.descripcion,
-        categoria: response.data.categoria,
-        subcategoria: response.data.subcategoria || "General",
-        fechaCreacion: response.data.fechaCreacion,
-        tipo: mapearCategoriaAliado(response.data.categoria),
-        estado: "Disponible"
-      };
-
-      setApoyos((prev) => [...prev, apoyoNuevo]);
-
-      alert('¡Oferta de apoyo creada correctamente!');
+  
+      // No agregamos el apoyo al estado para que no aparezca hasta ser validado
+      // setApoyos((prev) => [...prev, apoyoNuevo]);
+  
+      showNotification('¡Oferta de apoyo creada correctamente! Será revisada por un administrador antes de aparecer en la lista.', 'success', 'Apoyo Enviado');
     } catch (error) {
       console.error("[ERROR] Al crear apoyo:", error.response?.data || error.message);
-      alert('Error al guardar apoyo. Inténtalo de nuevo.');
+      showNotification('Error al guardar apoyo. Inténtalo de nuevo.', 'danger', 'Error');
     }
   };
 
 
 
-  const handleEditApoyo = (id, apoyoActualizado) => {
+  const handleEditApoyo = async (id, apoyoActualizado) => {
     console.log("Editando oferta de apoyo con ID:", id);
 
     // Verificar si se debe eliminar el apoyo
     if (apoyoActualizado._delete) {
-      setApoyos(apoyos.filter(apoyo => apoyo.id !== id));
-      alert("Oferta de apoyo eliminada correctamente");
+      try {
+        // Determinar el ID correcto para la API
+        const idNecesidadApoyo = apoyoActualizado.idNecesidadApoyo || id;
+        
+        console.log("[DEBUG] Intentando eliminar con ID:", idNecesidadApoyo);
+        
+        // Hacer la llamada a la API para eliminar el apoyo
+        await axios.delete(`http://localhost:4001/api/necesidadApoyo/${idNecesidadApoyo}`, {
+          withCredentials: true
+        });
+        
+        console.log("[SUCCESS] Apoyo eliminado del servidor");
+        
+        // Eliminar del estado local (mejorado para manejar diferentes formatos de ID)
+        setApoyos(apoyos.filter(apoyo => {
+          return apoyo.id !== id && 
+                 apoyo.idNecesidadApoyo !== id && 
+                 apoyo.id !== idNecesidadApoyo && 
+                 apoyo.idNecesidadApoyo !== idNecesidadApoyo;
+        }));
+        
+        // Refetch all supports to ensure the list is in sync with backend
+        await fetchApoyos();
+        
+        showNotification('Oferta de apoyo eliminada correctamente', 'success', 'Apoyo Eliminado');
+      } catch (error) {
+        console.error("[ERROR] Error al eliminar apoyo:", error.response?.data || error.message);
+        console.error("[ERROR] Detalles completos:", error);
+        showNotification('Error al eliminar el apoyo. Inténtalo de nuevo.', 'danger', 'Error');
+      }
       return;
     }
-
-    // Actualizar el apoyo en el estado
-    setApoyos(apoyos.map(apoyo =>
-      apoyo.id === id ? { ...apoyo, ...apoyoActualizado } : apoyo
+    
+    // Actualizar el apoyo en el estado (manteniendo la lógica existente para actualizar)
+    setApoyos(apoyos.map(apoyo => 
+      apoyo.id === id ? {...apoyo, ...apoyoActualizado} : apoyo
     ));
-
-    alert(`Oferta de apoyo "${apoyoActualizado.titulo}" actualizada correctamente`);
+    
+    showNotification(
+      `Oferta de apoyo "${apoyoActualizado.titulo}" actualizada correctamente`, 
+      'success', 
+      'Apoyo Actualizado'
+    );
   };
 
   const handleViewApoyo = (id) => {
@@ -413,8 +499,12 @@ const Aliado = ({ userData, onLogout }) => {
   const handleVincular = (escuela, formData) => {
     console.log("Vinculando con escuela:", escuela.nombre);
     console.log("Datos del formulario:", formData);
-
-    alert(`Solicitud de vinculación con ${escuela.nombre} enviada correctamente`);
+    
+    showNotification(
+      `Solicitud de vinculación con ${escuela.nombre} enviada correctamente`, 
+      'success', 
+      'Vinculación Iniciada'
+    );
   };
 
   const handleVerDetalles = (escuela) => {
@@ -502,40 +592,43 @@ const Aliado = ({ userData, onLogout }) => {
     }
   };
 
-  // Refrescar mensajes cada 2 segundos si hay un proyecto seleccionado
-  if (proyectoSeleccionado) {
-    setTimeout(fetchMensajes, 2000, proyectoSeleccionado.id)
-  }
-
-  useEffect(() => {
-    const fetchApoyos = async () => {
-      try {
-        const response = await axios.get(`http://localhost:4001/api/apoyos-aliado/${usuario.idUsuario}`, {
-          withCredentials: true
-        });
-        console.log("[INFO] Apoyos cargados:", response.data);
-
-        // Inspección detallada de la primera entrada para diagnóstico
-        if (response.data.length > 0) {
-          console.log("[DEBUG] Primer apoyo - campos disponibles:",
-            Object.keys(response.data[0]));
-          console.log("[DEBUG] Primer apoyo - estado:",
-            response.data[0].estado || response.data[0].estadoValidacion);
-        } else {
-          console.log("[WARN] No se encontraron apoyos para mostrar");
-        }
-
-        const apoyosConTipo = response.data.map(apoyo => ({
+  // Actualizar la función fetchApoyos en useEffect
+  const fetchApoyos = async () => {
+    try {
+      const response = await axios.get(`http://localhost:4001/api/necesidades-escuela/${usuario.idUsuario}`, {
+        withCredentials: true
+      });
+      console.log("[INFO] Apoyos cargados:", response.data);
+      
+      // Process response data as before
+      const apoyosNormalizados = response.data.map(apoyo => {
+        // Your existing normalization logic
+        let estadoValidacion;
+        
+        // Existing conversion logic...
+        if (typeof apoyo.estadoValidacion === 'string') {
+          estadoValidacion = parseInt(apoyo.estadoValidacion, 10);
+        } else if (typeof apoyo.estadoValidacion === 'number') {
+          estadoValidacion = apoyo.estadoValidacion;
+        } 
+        // Rest of existing logic...
+        
+        return {
           ...apoyo,
+          estadoValidacion,
           tipo: mapearCategoriaAliado(apoyo.categoria)
-        }));
-
-        setApoyos(apoyosConTipo);
-      } catch (error) {
-        console.error("[ERROR] Error al cargar apoyos:", error.response?.data || error.message);
-      }
-    };
-
+        };
+      });
+      
+      setApoyos(apoyosNormalizados);
+      return apoyosNormalizados;
+    } catch (error) {
+      console.error("[ERROR] Error al cargar apoyos:", error.response?.data || error.message);
+      return [];
+    }
+  };
+  
+  useEffect(() => {
     fetchApoyos();
   }, [usuario.idUsuario]);
 
@@ -729,15 +822,54 @@ const Aliado = ({ userData, onLogout }) => {
                 />
               </div>
               <div className="col-xl-4 col-lg-5">
-                {/* Componente de Pendientes - Limitado a 5 */}
-                <Pendientes
-                  titulo={pendientesTitulo}
-                  items={pendientesItems}
-                  tipo="aliado"
-                  textoBoton={pendientesTextoBoton}
-                  onButtonClick={handleVerPendientes}
-                  allItems={pendientesTodos}
-                />
+                <div className="card h-100">
+                  <div className="card-header d-flex justify-content-between align-items-center">
+                    <h5 className="mb-0">Notificaciones</h5>
+                    <button
+                      className="btn btn-sm btn-primary"
+                      onClick={handleVerNotificaciones}
+                    >
+                      Ver todas
+                    </button>
+                  </div>
+                  <div className="card-body">
+                    {cargandoNotificaciones ? (
+                      <div className="text-center py-3">
+                        <div className="spinner-border text-primary" role="status">
+                          <span className="visually-hidden">Cargando...</span>
+                        </div>
+                      </div>
+                    ) : errorNotificaciones ? (
+                      <div className="alert alert-warning" role="alert">
+                        {errorNotificaciones}
+                      </div>
+                    ) : notificacionesTodas.length === 0 ? (
+                      <p className="text-muted text-center my-3">No hay notificaciones</p>
+                    ) : (
+                      <ul className="list-group list-group-flush">
+                        {notificacionesTodas.slice(0, 2).map((item, index) => (
+                          <li
+                            className="list-group-item px-0 cursor-pointer"
+                            key={index}
+                          >
+                            <div className="d-flex justify-content-between align-items-center">
+                              <div>
+                                <h6 className="mb-0">{item.titulo}</h6>
+                                <small className="text-muted">{item.mensaje || item.descripcion}</small>
+                              </div>
+                              {item.fechaCreacion && (
+                                <small className="text-muted">{new Date(item.fechaCreacion).toLocaleDateString()}</small>
+                              )}
+                              {item.cantidad && (
+                                <span className={`badge bg-${item.color || 'primary'} rounded-pill`}>{item.cantidad}</span>
+                              )}
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </section>
@@ -787,23 +919,99 @@ const Aliado = ({ userData, onLogout }) => {
           {/* Búsqueda de Escuelas */}
           <div id="schools">
             <section id="seccionBusqueda" className="mt-5">
-              <Busqueda
-                titulo="Búsqueda de Escuelas"
-                resultados={escuelasPaginaActual}
-                opcionesFiltros={opcionesFiltros}
-                onFilterChange={handleFilterChange}
-                onMapView={handleMapView}
-                onVincular={handleVincular}
-                onVerDetalles={handleVerDetalles}
-                onPageChange={handlePageChange}
-                paginaActual={paginaActual}
-                totalPaginas={totalPaginas}
-                cargando={cargandoBusqueda}
-                apoyosDisponibles={apoyosDisponibles}
-                userData={userData}  // Aquí está pasando correctamente userData
-              />
+            <Busqueda
+              titulo="Búsqueda de Escuelas"
+              resultados={escuelasPaginaActual}
+              opcionesFiltros={opcionesFiltros}
+              onFilterChange={handleFilterChange}
+              onMapView={handleMapView}
+              onVincular={handleVincular}
+              onVerDetalles={handleVerDetalles}
+              onPageChange={handlePageChange}
+              paginaActual={paginaActual}
+              totalPaginas={totalPaginas}
+              cargando={cargandoBusqueda}
+              apoyosDisponibles={apoyosDisponibles}
+              userData={userData}  // Aquí está pasando correctamente userData
+            />
             </section>
           </div>
+          
+          {/* Modal para ver todas las notificaciones */}
+          <Modal 
+            show={showAllNotificationsModal} 
+            onHide={() => setShowAllNotificationsModal(false)}
+            size="lg"
+            aria-labelledby="notificacionesModalLabel"
+          >
+            <Modal.Header closeButton>
+              <Modal.Title id="notificacionesModalLabel">Todas las Notificaciones</Modal.Title>
+            </Modal.Header>
+            
+            <Modal.Body>
+              {cargandoNotificaciones ? (
+                <div className="text-center py-3">
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Cargando...</span>
+                  </div>
+                </div>
+              ) : errorNotificaciones ? (
+                <div className="alert alert-warning" role="alert">
+                  {errorNotificaciones}
+                </div>
+              ) : notificacionesTodas.length === 0 ? (
+                <p className="text-muted text-center my-3">No hay notificaciones</p>
+              ) : (
+                <ul className="list-group list-group-flush">
+                  {notificacionesTodas.map((item, index) => (
+                    <li
+                      className="list-group-item cursor-pointer"
+                      key={index}
+                    >
+                      <div className="d-flex justify-content-between align-items-center">
+                        <div>
+                          <h6 className="mb-0">{item.titulo}</h6>
+                          <p className="mb-1">{item.mensaje || item.descripcion}</p>
+                        </div>
+                        {item.fechaCreacion && (
+                          <small className="text-muted">{new Date(item.fechaCreacion).toLocaleDateString()}</small>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Modal.Body>
+            
+            <Modal.Footer>
+              <Button variant="secondary" onClick={() => setShowAllNotificationsModal(false)}>
+                Cerrar
+              </Button>
+            </Modal.Footer>
+          </Modal>  
+
+          <Toast 
+            show={notification.show}
+            onClose={() => setNotification({...notification, show: false})}
+            style={{
+              position: 'fixed',
+              bottom: '20px',
+              right: '20px',
+              minWidth: '250px',
+              zIndex: 9999
+            }}
+            delay={10000}
+            autohide
+            bg={notification.type}
+            className="text-white"
+          >
+            <Toast.Header closeButton={true}>
+              <strong className="me-auto">{notification.title}</strong>
+            </Toast.Header>
+            <Toast.Body>
+              {notification.message}
+            </Toast.Body>
+          </Toast>
         </div>
       </div>
     </div>

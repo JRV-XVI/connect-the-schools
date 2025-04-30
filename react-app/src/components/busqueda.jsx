@@ -40,6 +40,10 @@ const Busqueda = ({
   const escuelasPorPagina = 3;
   const [totalPaginasLocal, setTotalPaginasLocal] = useState(1);
   
+  const [apoyosFiltrados, setApoyosFiltrados] = useState([]);
+
+  const [solicitudesEnviadas, setSolicitudesEnviadas] = useState([]);
+
   // Estados para modal de vinculación
   const [showVinculacionModal, setShowVinculacionModal] = useState(false);
   const [escuelaSeleccionada, setEscuelaSeleccionada] = useState(null);
@@ -184,6 +188,89 @@ const Busqueda = ({
     loadEscuelas();
   }, []);
 
+  // First useEffect for filtering apoyos when necesidadSeleccionada changes
+  useEffect(() => {
+    if (!formData.necesidadSeleccionada) {
+      setApoyosFiltrados([]);
+      return;
+    }
+    
+    // Encontrar la necesidad seleccionada
+    const necesidadSeleccionada = escuelaSeleccionada?.necesidades.find(
+      n => (n.id || n.idNecesidad || n.idNecesidadApoyo) == formData.necesidadSeleccionada
+    );
+    
+    if (!necesidadSeleccionada) {
+      setApoyosFiltrados([]);
+      return;
+    }
+    
+    // Obtener la categoría y subcategoría de la necesidad
+    const nombrePartes = necesidadSeleccionada.nombre.split(' - ');
+    const categoriaNecesidad = nombrePartes[0];
+    const subcategoriaNecesidad = nombrePartes[1];
+    
+    console.log(`Filtrando apoyos por categoría: ${categoriaNecesidad} y subcategoría: ${subcategoriaNecesidad}`);
+    
+    // Filtrar apoyos por categoría y subcategoría
+    const apoyosCompatibles = apoyosDisponibles.filter(apoyo => {
+      // Si tiene directamente campos de categoría y subcategoría
+      if (apoyo.categoria && apoyo.subcategoria) {
+        return apoyo.categoria === categoriaNecesidad && 
+               apoyo.subcategoria === subcategoriaNecesidad;
+      }
+      
+      // Si la info está en el título/nombre con formato similar "Categoría - Subcategoría"
+      const titulo = apoyo.titulo || apoyo.nombre || '';
+      if (titulo.includes(' - ')) {
+        const [categoriaApoyo, subcategoriaApoyo] = titulo.split(' - ');
+        return categoriaApoyo === categoriaNecesidad && 
+               subcategoriaApoyo === subcategoriaNecesidad;
+      }
+      
+      return false;
+    });
+    
+    console.log(`Apoyos compatibles encontrados: ${apoyosCompatibles.length}`);
+    setApoyosFiltrados(apoyosCompatibles);
+    
+    // Limpiar la selección de apoyo si el actual ya no está entre los compatibles
+    const apoyoActualEsCompatible = apoyosCompatibles.some(
+      a => (a.id || a.idApoyo) == formData.apoyoSeleccionado
+    );
+    
+    if (!apoyoActualEsCompatible && formData.apoyoSeleccionado) {
+      setFormData(prev => ({
+        ...prev,
+        apoyoSeleccionado: ""
+      }));
+    }
+  }, [formData.necesidadSeleccionada, escuelaSeleccionada, apoyosDisponibles]);
+  
+  // Second useEffect - separated out as its own top-level hook
+  useEffect(() => {
+    const cargarSolicitudesExistentes = async () => {
+      if (!userData?.idUsuario) return;
+      
+      try {
+        // Get existing vinculaciones for this user
+        const response = await get(`/vinculacion/usuario/${userData.idUsuario}`);
+        console.log("Solicitudes existentes cargadas:", response);
+        
+        // Extract the key information we need to prevent duplicates
+        const solicitudesPendientes = response.map(sol => ({
+          cct: sol.cct,
+          idNecesidad: sol.idNecesidad
+        }));
+        
+        setSolicitudesEnviadas(solicitudesPendientes);
+      } catch (error) {
+        console.error("Error al cargar solicitudes existentes:", error);
+      }
+    };
+  
+    cargarSolicitudesExistentes();
+  }, [userData?.idUsuario]);
   // Efecto para manejar cambios de página
   useEffect(() => {
     if (escuelasCompatibles.length > 0) {
@@ -252,7 +339,6 @@ const Busqueda = ({
     return errors;
   };
 
-  // Enviar solicitud de vinculación
   const handleSubmitVinculacion = async (e) => {
     e.preventDefault();
     
@@ -271,36 +357,88 @@ const Busqueda = ({
       return;
     }
     
+    // Encontrar necesidad seleccionada
+    const necesidadSeleccionada = escuelaSeleccionada.necesidades.find(
+      n => (n.id || n.idNecesidadApoyo) == formData.necesidadSeleccionada
+    );
+    
+    const idNecesidad = parseInt(necesidadSeleccionada?.idNecesidadApoyo || formData.necesidadSeleccionada, 10);
+    
+    // Verificar si ya existe una solicitud para esta necesidad
+    const solicitudExistente = solicitudesEnviadas.some(sol => 
+      sol.cct === escuelaSeleccionada.cct && 
+      sol.idNecesidad === idNecesidad
+    );
+    
+    if (solicitudExistente) {
+      setValidationErrors({
+        submit: "Ya has enviado una solicitud para esta necesidad. Por favor espera la respuesta o selecciona otra necesidad."
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
-      // Encontrar necesidad y apoyo seleccionados
-      const necesidadSeleccionada = escuelaSeleccionada.necesidades.find(
-        n => (n.id || n.idNecesidad || n.idNecesidadApoyo) == formData.necesidadSeleccionada
-      );
-      
+      // Find selected support
       const apoyoSeleccionado = apoyosDisponibles.find(
         a => (a.id || a.idApoyo) == formData.apoyoSeleccionado
       );
       
-      // Datos para la base de datos con el formato correcto para el endpoint
       const vinculacionData = {
         idUsuario: userData.idUsuario,
         rfc: userData.rfc, 
         cct: escuelaSeleccionada.cct,
-        idNecesidad: parseInt(necesidadSeleccionada?.idNecesidadApoyo || formData.necesidadSeleccionada, 10),
+        idNecesidad: idNecesidad,
         idApoyo: parseInt(apoyoSeleccionado?.idNecesidadApoyo || formData.apoyoSeleccionado, 10),
         observacion: formData.descripcionServicios || "Sin observaciones",
       };
       
       console.log("Enviando datos a la base de datos:", vinculacionData);
-      console.log("Usuario actual:", userData);
       
-      // Usar el servicio API centralizado 
+      // Send data to API
       const response = await post('/vinculacion', vinculacionData);
       console.log("Vinculación registrada en base de datos:", response);
-     
-    
+      
+      // Update local state to prevent duplicate requests
+      setSolicitudesEnviadas(prev => [
+        ...prev, 
+        {
+          cct: escuelaSeleccionada.cct,
+          idNecesidad: idNecesidad
+        }
+      ]);
+
+      // Obtener los datos del usuario directamente de la base de datos
+      const usuarioInfo = await get(`/usuario/${userData.idUsuario}`);
+      const nombreUsuario = usuarioInfo?.nombre || "Usuario aliado";
+      
+      // 1. Notificación al administrador
+      const notificacionAdmin = {
+        idUsuario: 3, // Identificador para administradores
+        titulo: "Nueva solicitud de vinculación",
+        mensaje: `El aliado ${nombreUsuario} (${userData?.rfc || 'Sin RFC'}) ha solicitado vincularse con la escuela ${escuelaSeleccionada.nombre} (${escuelaSeleccionada.cct})`
+      };
+      
+      // 2. Notificación a la escuela
+      const notificacionEscuela = {
+        cct: escuelaSeleccionada.cct,
+        titulo: "Nuevo interés en tu necesidad",
+        mensaje: `El aliado ${nombreUsuario} ha mostrado interés en atender una necesidad de tu escuela. Un administrador revisará la propuesta.`
+      };
+      
+      try {
+        // Enviar notificaciones
+        await post('/notificacion', notificacionAdmin);
+        console.log("Notificación enviada al administrador");
+        
+        await post('/notificacion', notificacionEscuela);
+        console.log("Notificación enviada a la escuela");
+      } catch (errorNotif) {
+        console.error("Error al enviar notificaciones:", errorNotif);
+        // No detenemos el flujo si fallan las notificaciones
+      }
+      
       // Para el componente padre - incluir los documentos seleccionados
       const fullData = {
         escuela: {
@@ -328,17 +466,21 @@ const Busqueda = ({
         resultado: response
       };
       
-      onVincular(escuelaSeleccionada, fullData);
-      handleCloseVinculacionModal();
-    } catch (error) {
-      console.error("Error al crear vinculación en la base de datos:", error);
-      setValidationErrors({ 
-        submit: "Error al enviar la solicitud a la base de datos. Intente nuevamente." 
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    onVincular(escuelaSeleccionada, fullData);
+    handleCloseVinculacionModal();
+    
+    // Optional: refresh the schools list to reflect the updated state
+    const escuelasActualizadas = await fetchEscuelasCompatibles();
+    setEscuelasCompatibles(escuelasActualizadas);
+    const startIndex = (paginaLocal - 1) * escuelasPorPagina;
+    setEscuelasParaMostrar(escuelasActualizadas.slice(startIndex, startIndex + escuelasPorPagina));
+    
+  } catch (error) {
+    // Your existing error handling
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   // Funciones de filtrado
   const handleFiltroChange = (campo, valor) => {
@@ -457,18 +599,6 @@ const Busqueda = ({
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="mb-0">{titulo}</h2>
         <div>
-          <button 
-            className="btn btn-outline-primary me-2" 
-            onClick={() => setMostrarFiltros(!mostrarFiltros)}
-          >
-            <i className="fas fa-filter me-1"></i> Filtros
-          </button>
-          <button 
-            className="btn btn-primary"
-            onClick={onMapView}
-          >
-            <i className="fas fa-map-marked-alt me-2"></i> Ver Mapa
-          </button>
         </div>
       </div>
 
@@ -640,11 +770,23 @@ const Busqueda = ({
               isInvalid={!!validationErrors.necesidadSeleccionada}
             >
               <option value="">-- Seleccione una necesidad --</option>
-              {escuelaSeleccionada.necesidades.map((necesidad) => (
-                <option key={necesidad.id} value={necesidad.id}>
-                  {necesidad.nombre} (Prioridad: {necesidad.prioridad})
-                </option>
-              ))}
+              {escuelaSeleccionada.necesidades.map((necesidad) => {
+                const idNecesidad = parseInt(necesidad.idNecesidadApoyo || necesidad.id, 10);
+                const solicitudPendiente = solicitudesEnviadas.some(sol => 
+                  sol.cct === escuelaSeleccionada.cct && 
+                  sol.idNecesidad === idNecesidad
+                );
+                
+                return (
+                  <option 
+                    key={necesidad.id} 
+                    value={necesidad.id}
+                    disabled={solicitudPendiente}
+                  >
+                    {necesidad.nombre} {solicitudPendiente ? '(Solicitud ya enviada)' : `(Prioridad: ${necesidad.prioridad})`}
+                  </option>
+                );
+              })}
             </Form.Select>
             <Form.Control.Feedback type="invalid">
               {validationErrors.necesidadSeleccionada}
@@ -662,21 +804,51 @@ const Busqueda = ({
               value={formData.apoyoSeleccionado}
               onChange={handleFormChange}
               isInvalid={!!validationErrors.apoyoSeleccionado}
+              disabled={!formData.necesidadSeleccionada || apoyosFiltrados.length === 0}
             >
               <option value="">-- Seleccione un apoyo --</option>
-              {apoyosDisponibles.map((apoyo) => (
-                <option key={apoyo.id || apoyo.idApoyo} value={apoyo.id || apoyo.idApoyo}>
-                  {apoyo.titulo || apoyo.nombre} {apoyo.tipo ? `(${apoyo.tipo})` : ''}
-                </option>
-              ))}
+              {apoyosFiltrados.length > 0 ? (
+                apoyosFiltrados.map((apoyo) => {
+                  // Determinamos el texto a mostrar con formato "Categoría - Subcategoría"
+                  let displayText = '';
+                  
+                  // Si tiene campos directos de categoría y subcategoría
+                  if (apoyo.categoria && apoyo.subcategoria) {
+                    displayText = `${apoyo.categoria} - ${apoyo.subcategoria}`;
+                  } 
+                  // Si la info está en el título/nombre con formato similar
+                  else {
+                    const titulo = apoyo.titulo || apoyo.nombre || '';
+                    if (titulo.includes(' - ')) {
+                      displayText = titulo; // Ya tiene el formato correcto
+                    } else {
+                      displayText = titulo; // Usamos el título tal cual si no tiene el formato
+                    }
+                  }
+                  
+                  return (
+                    <option key={apoyo.id || apoyo.idApoyo} value={apoyo.id || apoyo.idApoyo}>
+                      {displayText}
+                    </option>
+                  );
+                })
+              ) : formData.necesidadSeleccionada ? (
+                <option disabled value="">No hay apoyos compatibles con esta necesidad</option>
+              ) : null}
             </Form.Select>
             <Form.Control.Feedback type="invalid">
               {validationErrors.apoyoSeleccionado}
             </Form.Control.Feedback>
+            {formData.necesidadSeleccionada && apoyosFiltrados.length === 0 && (
+              <div className="text-warning mt-2">
+                <i className="fas fa-exclamation-triangle me-1"></i>
+                No se encontraron apoyos compatibles con esta necesidad. Por favor seleccione otra necesidad.
+              </div>
+            )}
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label>Describa su interés y los servicios o recursos que ofrecerá:</Form.Label>
+            <Form.Label>Descripción:</Form.Label>
             <Form.Control
               as="textarea"
               rows={4}
@@ -689,9 +861,6 @@ const Busqueda = ({
             <Form.Control.Feedback type="invalid">
               {validationErrors.descripcionServicios}
             </Form.Control.Feedback>
-            <Form.Text className="text-muted">
-              Incluya tanto su motivación como los detalles concretos de su oferta.
-            </Form.Text>
           </Form.Group>
         </div>
 

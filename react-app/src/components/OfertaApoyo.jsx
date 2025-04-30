@@ -191,19 +191,25 @@ const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {
     });
   };
   
-  // Actualizar la función filtrarApoyos para usar categoria en lugar de tipo
-const filtrarApoyos = (listaApoyos) => {
-  return listaApoyos.filter(apoyo => {
-    // Si el tab activo es "todos", no filtramos por categoría
-    if (activeTab === 'todos') return true;
+  const filtrarApoyos = (listaApoyos) => {
+    // Primero filtramos por estado de validación (solo mostrar aprobados)
+    const apoyosAprobados = listaApoyos.filter(apoyo => 
+      apoyo.estadoValidacion === 3 // Solo mostrar apoyos aprobados
+    );
     
-    // Filtrar por categoria (o tipo) según el tab activo
-    const categoriaActiva = getCategoriaTexto(activeTab);
-    if (apoyo.categoria !== categoriaActiva) return false;
+    // Luego aplicamos el filtro por categoría
+    if (activeTab === 'todos') {
+      return apoyosAprobados;
+    }
     
-    return true;
-  });
-};
+    return apoyosAprobados.filter(apoyo => {
+      // Filtrar por categoria según el tab activo
+      const categoriaActiva = getCategoriaTexto(activeTab);
+      if (apoyo.categoria !== categoriaActiva) return false;
+      
+      return true;
+    });
+  };
 
   // Manejador para cambios en el formulario (simplificado)
   const handleFormChange = (e) => {
@@ -235,8 +241,6 @@ const filtrarApoyos = (listaApoyos) => {
       categoria: categoria,          // La categoría textual (que también será el título)
       subcategoria: formData.subcategoria,
       descripcion: formData.descripcion,
-      fechaCreacion: new Date().toISOString(),
-      estadoValidacion: 2
     };
     
     onAddApoyo(nuevaOferta);
@@ -707,7 +711,6 @@ const filtrarApoyos = (listaApoyos) => {
         </Modal.Footer>
       </Modal>
       
-      {/* Modal para confirmar eliminación */}
       <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Confirmar eliminación</Modal.Title>
@@ -717,8 +720,7 @@ const filtrarApoyos = (listaApoyos) => {
             <div>
               <p>¿Está seguro que desea eliminar la siguiente oferta?</p>
               <div className="alert alert-warning">
-                <strong>{currentApoyo.titulo}</strong>
-                <p className="mb-0">{currentApoyo.subcategoria}</p>
+                {currentApoyo.categoria} - {currentApoyo.subcategoria}
               </div>
               <p className="text-danger">Esta acción no se puede deshacer.</p>
             </div>

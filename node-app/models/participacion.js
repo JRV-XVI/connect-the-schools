@@ -67,15 +67,19 @@ const crearVinculacion = async (data) => {
 };
 
 const eliminarVinculacion = async (params) => {
-	const query = 'DELETE FROM "participacionProyecto" WHERE rfc = $1 AND cct = $2 AND "idNecesidad" = $3 AND "idApoyo" = $4 RETURNING *'
-	const data = [
-		params.rfc,
-		params.cct,
-		params.idNecesidad,
-		params.idApoyo
-	]
-	const resultado = await db.query(query, data);
-	return resultado.rows;
+    const query = 'DELETE FROM "participacionProyecto" WHERE rfc = $1 AND cct = $2 AND "idNecesidad" = $3 AND "idApoyo" = $4 RETURNING *'
+    const data = [
+        params.rfc,
+        params.cct,
+        params.idNecesidad,
+        params.idApoyo
+    ]
+    const resultado = await db.query(query, data);
+    // Eliminar necesidad
+    await db.query('DELETE FROM "necesidadApoyo" WHERE "idNecesidadApoyo" = $1', [params.idNecesidad]);
+    // Eliminar apoyo
+    await db.query('DELETE FROM "necesidadApoyo" WHERE "idNecesidadApoyo" = $1', [params.idApoyo]);
+    return resultado.rows;
 };
 
 // Obtener todas las vinculaciones
