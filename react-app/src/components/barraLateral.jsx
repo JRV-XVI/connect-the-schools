@@ -1,6 +1,10 @@
 import React from "react";
 
-const Sidebar = ({ logo, title, menuItems, isOpen, toggleSidebar }) => {
+const Sidebar = ({ logo, title, menuItems, isOpen, toggleSidebar, onLogout }) => {
+  const handleLogout = (e) => {
+    e.preventDefault();
+    if (onLogout) onLogout(); // Llama a la función pasada desde arriba
+  };
   return (
     <div className={`sidebar ${isOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
       <div className="sidebar-header text-center">
@@ -13,12 +17,11 @@ const Sidebar = ({ logo, title, menuItems, isOpen, toggleSidebar }) => {
           {menuItems.map((item, index) => (
             <li
               key={index}
-              className={`nav-item ${item.marginTop ? "mt-3" : ""} ${
-                item.marginTopLarge ? "mt-5" : ""
-              }`}
+              className={`nav-item ${item.marginTop ? "mt-3" : ""} ${item.marginTopLarge ? "mt-5" : ""
+                }`}
             >
               <a href={item.href} className={`nav-link ${item.active ? "active" : ""}`}>
-                <i className={`fas ${item.icon}`}></i> 
+                <i className={`fas ${item.icon}`}></i>
                 <span className="menu-text">{item.text}</span>
                 {item.badge && (
                   <span className={`badge ${item.badgeColor} float-end`}>

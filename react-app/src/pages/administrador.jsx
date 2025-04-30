@@ -36,6 +36,11 @@ const Administrador = () => {
     documentos: []
   });
 
+  const handleLogout = () => {
+    setUserRole(null);
+    setUserData(null);
+  };
+
 
   const [mostrarModalEtapas, setMostrarModalEtapas] = useState(false);
   const [vinculacionSeleccionada, setVinculacionSeleccionada] = useState(null);
@@ -798,7 +803,7 @@ const Administrador = () => {
   };
 
   return (
-    <div className="dashboard-container">
+    <div className="dashboard-container" id="dashboard">
       {/* Sidebar fijo */}
       <Sidebar
         logo={Logo}
@@ -806,6 +811,7 @@ const Administrador = () => {
         menuItems={sidebarAdministrador}
         isOpen={sidebarOpen}
         toggleSidebar={toggleSidebar}
+        onLogout={handleLogout}
       />
 
       {/* Contenido del dashboard */}
@@ -835,8 +841,8 @@ const Administrador = () => {
           </section>
 
           {/* Sección de Proyectos y Validaciones Pendientes */}
-          <section className="mb-4">
-            <div className="row">
+          <section className="mb-4" id="projects">
+            <div className="row" >
               <div className="col-xl-8 col-lg-7">
                 <Proyecto
                   titulo={proyectosTitulo}
@@ -981,7 +987,7 @@ const Administrador = () => {
           {/* Gestión de Necesidades */}
           <section className="mb-4">
             <div className="row">
-              <div className="col-12">
+              <div className="col-12" id="needs">
                 <Gestiones
                   titulo={datosGestionNecesidades.titulo}
                   items={datosGestionNecesidades.items}
@@ -1018,7 +1024,7 @@ const Administrador = () => {
           {/* Gestión de Apoyos */}
           <section className="mb-4">
             <div className="row">
-              <div className="col-12">
+              <div className="col-12" id="supports">
                 <Gestiones
                   titulo={datosGestionApoyos.titulo}
                   items={datosGestionApoyos.items}
@@ -1055,7 +1061,7 @@ const Administrador = () => {
           {/* Gestión de Vinculaciones */}
           <section className="mb-4">
             <div className="row">
-              <div className="col-12">
+              <div className="col-12" id="matches">
                 <Gestiones
                   titulo={datosGestionVinculaciones.titulo}
                   items={datosGestionVinculaciones.items}
@@ -1497,7 +1503,7 @@ const Administrador = () => {
         )}
 
         <section>
-          <h2 className="mb-4">Mapa de escuelas</h2>
+          <h2 className="mb-4" id="map">Mapa de escuelas</h2>
           <div className="map-container">
             <MapaGoogle tipo="admin" />
           </div>
