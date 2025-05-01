@@ -53,7 +53,10 @@ escuela.post('/registro/escuela', async (req, res, next) => {
             contrasena: password,
             telefono: phone,
             nombre_escuela: schoolName,
-            direccion: direction,
+            ciudad,
+            estado,
+            calle,
+            postal,
             nivel_educativo: educationalLevel,
             sector,
             numero_estudiantes: numberStudents,
@@ -68,7 +71,10 @@ escuela.post('/registro/escuela', async (req, res, next) => {
             password,
             phone,
             schoolName,
-            direction,
+            ciudad,
+            estado,
+            calle,
+            postal,
             educationalLevel,
             sector,
             numberStudents,
@@ -80,9 +86,13 @@ escuela.post('/registro/escuela', async (req, res, next) => {
 
         res.status(201).json({
             email,
+            password,
             phone,
             schoolName,
-            direction,
+            ciudad,
+            estado,
+            calle,
+            postal,
             educationalLevel,
             sector,
             numberStudents,
@@ -130,13 +140,20 @@ escuela.get('/escuelas/ubicaciones', async (req, res, next) => {
 });
 
 // Obtener ubicaciones de aliados
-escuela.get('/aliados/ubicaciones', async (req, res) => {
+escuela.get('/escuelas/ubicaciones', async (req, res) => {
     try {
+        const escuelas = await obtenerUbicacionesEscuelas();
         const aliados = await obtenerUbicacionesAliados();
-        res.status(200).json(aliados);
+
+        const ubicaciones = [
+            ...escuelas.map((escuela) => ({ ...escuela, tipo: 'escuela' })),
+            ...aliados.map((aliado) => ({ ...aliado, tipo: 'aliado' }))
+        ];
+
+        res.status(200).json(ubicaciones);
     } catch (error) {
-        console.error('Error al obtener ubicaciones de aliados:', error);
-        res.status(500).json({ error: 'Error al obtener ubicaciones de aliados' });
+        console.error('Error al obtener ubicaciones:', error);
+        res.status(500).json({ error: 'Error al obtener ubicaciones' });
     }
 });
 

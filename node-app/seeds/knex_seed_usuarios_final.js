@@ -18,7 +18,10 @@ exports.seed = async function(knex) {
       telefono: '1234567890',
       nombre: 'Escuela Test',
       tipoPerfil: 1,
-      direccion: 'Dirección Escuela'
+      calle: "Avenida Durango 1250",
+      codigoPostal: "46688",
+      ciudad: "Arandas",
+      estado: "Jalisco"
     },
     {
       correo: 'aliado@test.com',
@@ -28,7 +31,10 @@ exports.seed = async function(knex) {
       telefono: '0987654321',
       nombre: 'Aliado Test',
       tipoPerfil: 2,
-      direccion: 'Dirección Aliado'
+      calle: "Boulevard Grecia 60",
+      codigoPostal: "47157",
+      ciudad: "Tlaquepaque",
+      estado: "Jalisco"
     },
     {
       correo: 'admin@test.com',
@@ -38,9 +44,11 @@ exports.seed = async function(knex) {
       telefono: '1122334455',
       nombre: 'Admin Test',
       tipoPerfil: 3,
-      direccion: 'Dirección Admin'
+      calle: "Circunvalación Guinea 1678",
+      codigoPostal: "49420",
+      ciudad: "Guadalajara",
+      estado: "Jalisco"
     },
-    
     {
       correo: 'escuela2@test.com',
       contraseña: '123456',
@@ -48,8 +56,11 @@ exports.seed = async function(knex) {
       fechaCreacion: '2025-04-25',
       telefono: '5544332211',
       nombre: 'Escuela Secundaria',
-      tipoPerfil: 1,            // Escuela
-      direccion: 'Avenida Educación 456'
+      tipoPerfil: 1,
+      calle: "Callejón Moya 2178",
+      codigoPostal: "45003",
+      ciudad: "Arandas",
+      estado: "Jalisco"
     },
     {
       correo: 'escuela3@test.com',
@@ -58,8 +69,11 @@ exports.seed = async function(knex) {
       fechaCreacion: '2025-04-26',
       telefono: '6677889900',
       nombre: 'Preparatoria Técnica',
-      tipoPerfil: 1,            // Escuela
-      direccion: 'Calle Tecnológica 321'
+      tipoPerfil: 1,
+      calle: "Callejón Norte Navarrete 10",
+      codigoPostal: "46658",
+      ciudad: "Tlaquepaque",
+      estado: "Jalisco"
     },
     {
       correo: 'aliado2@test.com',
@@ -68,8 +82,11 @@ exports.seed = async function(knex) {
       fechaCreacion: '2025-04-25',
       telefono: '9988776655',
       nombre: 'Empresa Aliada',
-      tipoPerfil: 2,            // Aliado
-      direccion: 'Boulevard Corporativo 789'
+      tipoPerfil: 2,
+      "calle": "Viaducto Sur Montes 387",
+      codigoPostal: "46234",
+      ciudad: "Tlaquepaque",
+      estado: "Jalisco"
     },
     {
       correo: 'aliado3@test.com',
@@ -78,8 +95,11 @@ exports.seed = async function(knex) {
       fechaCreacion: '2025-04-26',
       telefono: '1231231234',
       nombre: 'Fundación Educativa',
-      tipoPerfil: 2,            // Aliado
-      direccion: 'Plaza Central 111'
+      tipoPerfil: 2,
+      calle: "Calle Jalisco 674",
+      codigoPostal: "47829",
+      ciudad: "Puerto Vallarta",
+      estado: "Jalisco"
     }
   ]);
 
@@ -109,7 +129,7 @@ exports.seed = async function(knex) {
     }
   ]);
 
-// Inserta los perfiles escuelas despues de aliados
+  // Inserta los perfiles escuelas despues de aliados
   await knex('perfilEscuela').insert([
     {
       cct: "CCT00900D",

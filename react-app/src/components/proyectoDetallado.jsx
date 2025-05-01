@@ -19,7 +19,8 @@ const ProyectoDetallado = ({
   onSaveChanges = () => {},
   onDownloadDocument = () => {},
   onViewDocument = () => {},
-  userData = null
+  userData = null,
+  onFIleUploadSucces = () => {}
 }) => {
   const [activeTab, setActiveTab] = useState('timeline');
   const [mensaje, setMensaje] = useState('');
@@ -75,6 +76,9 @@ const ProyectoDetallado = ({
         console.log("Archivo subido correctamente!", formData)
         fetchArchivo(etapaSeleccionada.idEtapa);
         setArchivoEtapa(null);
+
+        onFIleUploadSucces(etapaSeleccionada.idEtapa)
+
       } else {
         throw new Error(`Error ${respuesta.status}: ${respuesta.statusText}`)
       }
@@ -164,7 +168,7 @@ const ProyectoDetallado = ({
           <span className={`badge ${getStateBadgeClass(proyecto.estado)}`}>{proyecto.estado}</span>
         </div>
         <div className="text-muted">
-          <small>Escuela: <strong>{proyecto.escuela}</strong> | Inicio: {formatDate(proyecto.fechaInicio)} | Finalización estimada: {formatDate(proyecto.fechaFin)}</small>
+          <small>Escuela: <strong>{proyecto.escuela}</strong> | Inicio: {new Date(proyecto.fechaInicio).toLocaleDateString()} | Finalización estimada: {new Date(proyecto.fechaFin).toLocaleDateString()}</small>
         </div>
       </div>
 
@@ -176,30 +180,26 @@ const ProyectoDetallado = ({
               <div 
                 className="progress-bar bg-success" 
                 role="progressbar" 
-                style={{ width: `${proyecto.progreso || calcularProgreso()}%` }} 
-                aria-valuenow={proyecto.progreso || calcularProgreso()} 
+                style={{ width: `${proyecto.progreso}%` }} 
+                aria-valuenow={proyecto.progreso} 
                 aria-valuemin="0" 
                 aria-valuemax="100"
               >
-                {proyecto.progreso || calcularProgreso()}% completado
+                {proyecto.progreso}% completado
               </div>
             </div>
             <div className="d-flex justify-content-between text-muted small">
-              <span>Inicio: {formatDate(proyecto.fechaInicio)}</span>
+              <span>Inicio: {new Date(proyecto.fechaInicio).toLocaleDateString()}</span>
               <span>Hoy</span>
-              <span>Fin: {formatDate(proyecto.fechaFin)}</span>
+              <span>Fin: {new Date(proyecto.fechaFin).toLocaleDateString()}</span>
             </div>
           </div>
           <div className="col-md-6">
             <h6>Información General</h6>
             <div className="row">
               <div className="col-6">
-                <p className="mb-1"><strong>Inversión:</strong> ${proyecto.inversion?.toLocaleString()} MXN</p>
-                <p className="mb-1"><strong>Beneficiados:</strong> {proyecto.beneficiados?.toLocaleString()} alumnos</p>
-              </div>
-              <div className="col-6">
-                <p className="mb-1"><strong>Responsable:</strong> {proyecto.responsable}</p>
-                <p className="mb-1"><strong>Tipo de apoyo:</strong> {proyecto.tipoApoyo}</p>
+                <p className="mb-1"><strong>Beneficiados:</strong> {proyecto.estudiantes} alumnos</p>
+                <p className="mb-1"><strong>Responsable:</strong> {proyecto.escuela}</p>
               </div>
             </div>
           </div>
@@ -219,32 +219,12 @@ const ProyectoDetallado = ({
             </li>
             <li className="nav-item" role="presentation">
               <button 
-                className={`nav-link ${activeTab === 'evidence' ? 'active' : ''}`} 
-                onClick={() => handleTabChange('evidence')}
-                type="button" 
-                role="tab"
-              >
-                Evidencias
-              </button>
-            </li>
-            <li className="nav-item" role="presentation">
-              <button 
                 className={`nav-link ${activeTab === 'communication' ? 'active' : ''}`} 
                 onClick={() => handleTabChange('communication')}
                 type="button" 
                 role="tab"
               >
                 Comunicación
-              </button>
-            </li>
-            <li className="nav-item" role="presentation">
-              <button 
-                className={`nav-link ${activeTab === 'documents' ? 'active' : ''}`} 
-                onClick={() => handleTabChange('documents')}
-                type="button" 
-                role="tab"
-              >
-                Documentos
               </button>
             </li>
           </ul>
@@ -255,9 +235,6 @@ const ProyectoDetallado = ({
               <div className="tab-pane fade show active">
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <h6 className="mb-0">Etapas del Proyecto</h6>
-                  <button className="btn btn-sm btn-outline-primary" onClick={onUpdateProgress}>
-                    <i className="fas fa-pen me-1"></i> Actualizar avance
-                  </button>
                 </div>
 
                 {fases.map((etapa, index) => (
@@ -317,7 +294,7 @@ const ProyectoDetallado = ({
                                   <i className={`${getDocumentIcon(archivoExistente.tipoContenido)} fa-2x`}></i>
                                 </div>
                                 <div className="flex-grow-1">
-                                  <div className="fw-bold">Nombre Archivo: </div>
+                                  <div className="fw-bold"></div>
                                   <small className="text-muted">
                                     Subido el {new Date(archivoExistente.fechaSubida).toLocaleDateString()}
                                   </small>
@@ -351,47 +328,6 @@ const ProyectoDetallado = ({
               </div>
             )}
 
-            {/* Tab Evidencias */}
-            {activeTab === 'evidence' && (
-              <div className="tab-pane fade show active">
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h6 className="mb-0">Evidencias del Proyecto</h6>
-                  <button className="btn btn-sm btn-primary" onClick={onUploadEvidence}>
-                    <i className="fas fa-plus me-1"></i> Subir nueva evidencia
-                  </button>
-                </div>
-
-                <div className="row g-3">
-                  {evidencias.map((evidencia, index) => (
-                    <div className="col-md-4" key={index}>
-                      <div className="card h-100">
-                        <img 
-                          src={evidencia.imagen || "https://via.placeholder.com/300x200?text=Evidencia"} 
-                          className="card-img-top" 
-                          alt={evidencia.titulo}
-                        />
-                        <div className="card-body">
-                          <h6 className="card-title">{evidencia.titulo}</h6>
-                          <p className="card-text small">{evidencia.descripcion}</p>
-                          <div className="d-flex justify-content-between align-items-center">
-                            <span className={`badge ${getStateBadgeClass(evidencia.fase)}`}>Fase {evidencia.fase}</span>
-                            <small className="text-muted">{formatDate(evidencia.fecha)}</small>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {evidencias.length === 0 && (
-                    <div className="col-12 text-center my-4">
-                      <i className="fas fa-images fa-3x text-muted mb-3"></i>
-                      <p>No hay evidencias registradas para este proyecto.</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
             {/* Tab Comunicación */}
             {activeTab === 'communication' && (
               <div className="tab-pane fade show active">
@@ -413,9 +349,26 @@ const ProyectoDetallado = ({
                           <div className={`message-wrapper ${mensaje.esPropio ? 'text-end' : 'text-start'} w-100`}>
                             <div className="message-header mb-1">
                               {mensaje.esPropio ? (
-                                <small className="text-muted">{mensaje.hora || '00:00'}</small>
+                                <small className="text-muted">{new Date(mensaje.hora).toLocaleTimeString()}</small>
                               ) : (
-                                <small><strong>{mensaje.remitente}</strong></small>
+                                <div>
+                                  <small>
+                                    <strong>{mensaje.remitente}</strong>
+                                    {mensaje.tipoRemitente && (
+                                      <span 
+                                        className={`badge ms-2 ${
+                                          mensaje.tipoRemitente === 'Escuela' ? 'bg-success' : 
+                                          mensaje.tipoRemitente === 'Aliado' ? 'bg-primary' : 
+                                          mensaje.tipoRemitente === 'Administrador' ? 'bg-danger' : 
+                                          'bg-secondary'
+                                        }`} 
+                                        style={{fontSize: '0.7em'}}
+                                      >
+                                        {mensaje.tipoRemitente}
+                                      </span>
+                                    )}
+                                  </small>
+                                </div>
                               )}
                             </div>
                             <div className={`message-content p-3 ${mensaje.esPropio ? 'bg-primary text-white ms-auto' : 'bg-light me-auto'} rounded`}>
@@ -425,7 +378,7 @@ const ProyectoDetallado = ({
                               {mensaje.esPropio ? (
                                 <small><strong>Tú</strong></small>
                               ) : (
-                                <small className="text-muted">{mensaje.hora || '00:00'}</small>
+                                <small className="text-muted">{new Date(mensaje.hora).toLocaleTimeString()}</small>
                               )}
                             </div>
                           </div>
@@ -459,73 +412,6 @@ const ProyectoDetallado = ({
                 </div>
               </div>
             )}
-
-            {/* Tab Documentos */}
-            {activeTab === 'documents' && (
-              <div className="tab-pane fade show active">
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h6 className="mb-0">Documentación del Proyecto</h6>
-                  <button className="btn btn-sm btn-primary" onClick={onUploadDocument}>
-                    <i className="fas fa-upload me-1"></i> Subir documento
-                  </button>
-                </div>
-
-                <div className="table-responsive">
-                  <table className="table">
-                    <thead>
-                      <tr>
-                        <th>Documento</th>
-                        <th>Etapa</th>
-                        <th>Fecha</th>
-                        <th>Acciones</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {documentos.map((documento, index) => (
-                        <tr key={index}>
-                          <td>
-                            <div className="d-flex align-items-center">
-                              <div className="me-2">
-                                <i className={`${getDocumentIcon(documento.tipo)} fa-lg`}></i>
-                              </div>
-                              <div>
-                                <div>{documento.nombre}</div>
-                                <small className="text-muted">{documento.tamaño}</small>
-                              </div>
-                            </div>
-                          </td>
-                          <td>Etapa : </td>
-                          <td>{formatDate(documento.fecha)}</td>
-                          <td>
-                            <button 
-                              className="btn btn-sm btn-outline-primary me-1" 
-                              onClick={() => onDownloadDocument(documento)}
-                            >
-                              <i className="fas fa-download"></i>
-                            </button>
-                            <button 
-                              className="btn btn-sm btn-outline-info"
-                              onClick={() => onViewDocument(documento)}
-                            >
-                              <i className="fas fa-eye"></i>
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-
-                      {documentos.length === 0 && (
-                        <tr>
-                          <td colSpan="6" className="text-center py-4">
-                            <i className="fas fa-file fa-3x text-muted mb-3 d-block"></i>
-                            No hay documentos registrados para este proyecto.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
@@ -533,12 +419,6 @@ const ProyectoDetallado = ({
         <div className="mt-4 text-end">
           <button className="btn btn-outline-secondary me-2" onClick={onGoBack}>
             <i className="fas fa-arrow-left me-1"></i> Volver a proyectos
-          </button>
-          <button className="btn btn-outline-primary me-2" onClick={onGenerateReport}>
-            <i className="fas fa-file-export me-1"></i> Generar reporte
-          </button>
-          <button className="btn btn-primary" onClick={onSaveChanges}>
-            <i className="fas fa-save me-1"></i> Guardar cambios
           </button>
         </div>
       </div>

@@ -77,9 +77,11 @@ admin.get('/admin/:idPerfilAdmin', obtenerIdAdmin, (req, res) => {
 admin.get('/ubicaciones', async (req, res) => {
     try {
         const escuelas = await obtenerUbicacionesEscuelas();
-        const aliados = await obtenerUbicacionesAliados();
+        console.log('Escuelas:', escuelas); // Debug
 
-        // Agregar un campo `tipo` para distinguir entre escuelas y aliados
+        const aliados = await obtenerUbicacionesAliados();
+        console.log('Aliados:', aliados); // Debug
+
         const ubicaciones = [
             ...escuelas.map((escuela) => ({ ...escuela, tipo: 'escuela' })),
             ...aliados.map((aliado) => ({ ...aliado, tipo: 'aliado' }))

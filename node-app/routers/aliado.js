@@ -4,6 +4,8 @@ const { query } = require('../db.js');
 const usuario = express.Router();
 const aliado = express.Router();
 const db = require('../db.js');
+const { obtenerUbicacionesAliados } = require('../models/aliado.js');
+const { obtenerUbicacionesEscuelas } = require('../models/escuela.js');
 
 // ---------------------------------------------- //
 // ----------------- MIDDLEWARE ----------------- //
@@ -40,7 +42,10 @@ aliado.post('/registro/aliado', async (req, res, next) => {
 			telefono: phone,
 			nombre_aliado: allyName,
 			tipo_usuario: userType,
-			direccion: direction,
+			ciudad,
+			estado,
+			calle,
+			postal,
 			rfc,
 			razon_social: socialReason,
 			telefono_representante: phoneRepresentative,
@@ -53,7 +58,10 @@ aliado.post('/registro/aliado', async (req, res, next) => {
 			phone,
 			allyName,
 			userType,
-			direction,
+			ciudad,
+			estado,
+			calle,
+			postal,
 			rfc,
 			socialReason,
 			phoneRepresentative,
@@ -65,7 +73,10 @@ aliado.post('/registro/aliado', async (req, res, next) => {
 			phone,
 			allyName,
 			userType,
-			direction,
+			ciudad,
+			estado,
+			calle,
+			postal,
 			rfc,
 			socialReason,
 			phoneRepresentative,
@@ -145,6 +156,23 @@ usuario.get('/aliado', async (req, res, next) => {
 usuario.get('/aliado/:rfc', obtenerAliado, (req, res) => {
 	res.status(200).send(req.aliado);
 });
+
+aliado.get('/aliados/ubicaciones', async (req, res) => {
+    try {
+        const aliados = await obtenerUbicacionesAliados();
+
+        const ubicaciones = aliados.map((aliado) => ({
+            ...aliado,
+            tipo: 'aliado'
+        }));
+
+        res.status(200).json(ubicaciones);
+    } catch (error) {
+        console.error('Error al obtener ubicaciones de aliados:', error);
+        res.status(500).json({ error: 'Error al obtener ubicaciones de aliados' });
+    }
+});
+
 
 // Actualizar datos de aliado por RFC
 usuario.put('/aliado/:rfc', obtenerAliado, async (req, res, next) => {

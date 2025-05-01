@@ -31,14 +31,14 @@ const obtenerUbicacionesAliados = async () => {
 const obtenerUbicacionesEscuelas = async () => {
     const query = `
         SELECT 
-            pe."idUsuario" AS id, 
-            pe."cct", 
-            u."nombre" AS nombre_escuela, 
-            pe."latitud", 
-            pe."longitud"
-        FROM "perfilEscuela" pe
-        INNER JOIN "usuario" u ON pe."idUsuario" = u."idUsuario"
-        WHERE pe."latitud" IS NOT NULL AND pe."longitud" IS NOT NULL
+            u."idUsuario" AS id,
+            u."nombre" AS nombre_escuela,
+            u."calle",
+            u."codigoPostal",
+            u."ciudad",
+            u."estado"
+        FROM "usuario" u
+        INNER JOIN "perfilEscuela" pe ON u."idUsuario" = pe."idUsuario"
     `;
     const { rows } = await db.query(query);
     return rows;
@@ -50,7 +50,10 @@ async function crearEscuela(data) {
         password,
         phone,
         schoolName,
-        direction,
+        estado,
+        ciudad,
+        calle,
+        postal,
         educationalLevel,
         sector,
         numberStudents,
@@ -64,7 +67,7 @@ async function crearEscuela(data) {
     const fechaCreacion = new Date();
 
     // Insertar en Usuario
-    const idUsuario = await db.query(`INSERT INTO Usuario (correo, contraseña, "tipoPerfil", "estadoCuenta", "fechaCreacion", telefono, nombre, direccion) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING "idUsuario"`, [
+    const idUsuario = await db.query(`INSERT INTO Usuario (correo, contraseña, "tipoPerfil", "estadoCuenta", "fechaCreacion", telefono, nombre, ciudad, estado, calle, "codigoPostal") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING "idUsuario"`, [
         email,
         password,
         userType,
@@ -72,7 +75,10 @@ async function crearEscuela(data) {
         fechaCreacion,
         phone,
         schoolName,
-        direction
+        ciudad,
+        estado,
+        calle,
+        postal
     ]);
     var id = idUsuario.rows[0].idUsuario;
 

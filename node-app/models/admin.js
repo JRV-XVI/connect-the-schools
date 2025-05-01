@@ -60,12 +60,14 @@ const verificarUsuarioExiste = async (idUsuario) => {
 const obtenerUbicacionesAliados = async () => {
     const query = `
         SELECT 
-            pa."idUsuario" AS id, 
-            pa."razonSocial" AS nombre_aliado, 
-            pa."latitud", 
-            pa."longitud"
-        FROM "perfilAliado" pa
-        WHERE pa."latitud" IS NOT NULL AND pa."longitud" IS NOT NULL
+            u."idUsuario" AS id, 
+            u."nombre" AS nombre_aliado, 
+            u."calle", 
+            u."codigoPostal", 
+            u."ciudad", 
+            u."estado"
+        FROM "usuario" u
+        INNER JOIN "perfilAliado" pa ON u."idUsuario" = pa."idUsuario"
     `;
     const { rows } = await db.query(query);
     return rows;
