@@ -230,7 +230,7 @@ const Escuela = ({ userData, onLogout }) => {
       if (seccionDetalles) {
         seccionDetalles.scrollIntoView({ behavior: 'smooth' });
       }
-    }, 100);
+    }, 10);
   };
 
   const totalAlumnosProyecto = () => {

@@ -422,7 +422,7 @@ const Administrador = ({userData, onLogout}) => {
       if (seccionDetalles) {
         seccionDetalles.scrollIntoView({ behavior: 'smooth' });
       }
-    }, 100);
+    }, 10);
   };
 
   const handleActionProyecto = (proyecto) => {

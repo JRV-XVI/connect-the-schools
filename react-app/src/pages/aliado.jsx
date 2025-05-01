@@ -328,6 +328,7 @@ const Aliado = ({ userData, onLogout }) => {
     }
   };
 
+  // Calcular el total de alumnos por proyecto
   const totalAlumnosProyecto = useMemo(() => {
     if (proyectos && proyectos.length > 0) {
       let estudiantes = 0;
@@ -362,7 +363,7 @@ const Aliado = ({ userData, onLogout }) => {
       if (seccionDetalles) {
         seccionDetalles.scrollIntoView({ behavior: 'smooth' });
       }
-    }, 100);
+    }, 10);
   };
 
   const handleActionProyecto = (proyecto) => {
