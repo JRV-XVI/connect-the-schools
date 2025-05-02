@@ -9,7 +9,6 @@ const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {
   
   // Estados para modales
   const [showViewModal, setShowViewModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [currentApoyo, setCurrentApoyo] = useState(null);
   
@@ -31,12 +30,6 @@ const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {
       }));
     }
   }, [activeTab, showNewOfferForm]);
-  
-  // Estado para los filtros
-  const [filtro, setFiltro] = useState({
-    subcategoria: "Todas",
-    busqueda: ""
-  });
   
   // Definición de categorías y subcategorías según MI ESCUELA PRIMERO
   const categoriasConfig = {
@@ -173,23 +166,6 @@ const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {
       ]
     }
   };
-
-  // Función para manejar cambios en los filtros
-  const handleFiltroChange = (e) => {
-    const { name, value } = e.target;
-    setFiltro(prevFiltro => ({
-      ...prevFiltro,
-      [name]: value
-    }));
-  };
-  
-  // Función para limpiar los filtros
-  const limpiarFiltros = () => {
-    setFiltro({
-      subcategoria: "Todas",
-      busqueda: ""
-    });
-  };
   
   const filtrarApoyos = (listaApoyos) => {
     // Primero filtramos por estado de validación (solo mostrar aprobados)
@@ -255,22 +231,6 @@ const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {
     setShowNewOfferForm(false);
   };
   
-  // Manejador para guardar cambios en edición
-  const handleSaveEdit = () => {
-    if (!currentApoyo) return;
-    
-    const apoyoActualizado = {
-      ...currentApoyo,
-      ...formData
-    };
-    
-    // Llamar al método de edición pasado por props
-    onEditApoyo(apoyoActualizado.id, apoyoActualizado);
-    
-    setShowEditModal(false);
-    setCurrentApoyo(null);
-  };
-  
   // Manejador para borrar apoyo
   const handleDeleteApoyo = () => {
     if (!currentApoyo) return;
@@ -291,21 +251,6 @@ const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {
     onViewApoyo(apoyo.id);
   };
   
-  // Manejador para abrir modal de edición
-  const handleEdit = (apoyo) => {
-    setCurrentApoyo(apoyo);
-    
-    // Inicializar el formulario con los datos del apoyo (simplificado)
-    setFormData({
-      titulo: apoyo.titulo || '',
-      descripcion: apoyo.descripcion || '',
-      tipo: apoyo.tipo || activeTab,
-      subcategoria: apoyo.subcategoria || '',
-    });
-    
-    setShowEditModal(true);
-  };
-  
   // Manejador para confirmar eliminación
   const handleConfirmDelete = (apoyo) => {
     setCurrentApoyo(apoyo);
@@ -313,7 +258,7 @@ const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {
   };
 
   // Función para renderizar la tabla de apoyos
-  const renderApoyosTable = (tipo) => {
+  const renderApoyosTable = () => {
     // Aplicar filtros y paginación
     const apoyosFiltrados = filtrarApoyos(apoyos);
     
@@ -386,11 +331,6 @@ const OfertaApoyo = ({ apoyos = [], onAddApoyo = () => {}, onEditApoyo = () => {
   // Obtener las subcategorías según el tipo activo o seleccionado en el formulario
   const getSubcategoriesForType = (tipo) => {
     return categoriasConfig[tipo]?.subcategorias || [];
-  };
-  
-  // Obtener las subcategorías según el tipo activo para filtros
-  const getSubcategoriesForActiveType = () => {
-    return categoriasConfig[activeTab]?.subcategorias || [];
   };
 
   // Obtener título para el formulario según el tipo activo

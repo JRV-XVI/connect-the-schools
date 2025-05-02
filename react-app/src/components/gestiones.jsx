@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Badge } from 'react-bootstrap';
 
 /**
  * Componente reutilizable para mostrar diferentes tipos de gestiones en formato tabla

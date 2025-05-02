@@ -1,25 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { put, get} from "../api.js";
+import { get } from "../api.js";
 const URL_BASE = 'http://localhost:4001/api';
 
 const ProyectoDetallado = ({
   proyecto,
   fases = [],
-  evidencias = [],
   mensajes = [],
-  documentos = [],
-  onExportReport = () => {},
-  onAddRecord = () => {},
-  onUpdateProgress = () => {},
-  onUploadEvidence = () => {},
   onSendMessage = () => {},
-  onUploadDocument = () => {},
   onGoBack = () => {},
-  onGenerateReport = () => {},
-  onSaveChanges = () => {},
-  onDownloadDocument = () => {},
-  onViewDocument = () => {},
-  userData = null,
   onFIleUploadSucces = () => {}
 }) => {
   const [activeTab, setActiveTab] = useState('timeline');
@@ -95,33 +83,6 @@ const ProyectoDetallado = ({
   // Agrega esta función para manejar la descarga
   const handleDownloadFile = async () => {
     window.open(`${URL_BASE}/archivo/${etapaSeleccionada.idEtapa}?download=true`);
-  };
-
-  // Función auxiliar para formatear fechas (YYYY-MM-DD a DD/MM/YYYY)
-  const formatDate = (dateString) => {
-    if (!dateString) return '00:00';
-  
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('es-ES', { 
-      hour: '2-digit', 
-      minute: '2-digit',
-      hour12: false // Usar formato 24h
-    });
-  };
-
-  // Calcular el porcentaje de progreso basado en fechas
-  const calcularProgreso = () => {
-    const inicio = new Date(proyecto.fechaInicio);
-    const fin = new Date(proyecto.fechaFin);
-    const hoy = new Date();
-
-    if (hoy <= inicio) return 0;
-    if (hoy >= fin) return 100;
-
-    const totalDias = (fin - inicio) / (1000 * 60 * 60 * 24);
-    const diasTranscurridos = (hoy - inicio) / (1000 * 60 * 60 * 24);
-    
-    return Math.round((diasTranscurridos / totalDias) * 100);
   };
 
   // Determinar la clase de estilo para fases según su estado

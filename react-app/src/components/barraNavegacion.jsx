@@ -1,14 +1,9 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 
 const BarraNavegacion = ({ 
   tipoUsuario, 
   usuario = { nombre: "Usuario", foto: "https://via.placeholder.com/40x40" }, 
-  notificaciones = [], 
-  menuItems = [],
   logo,
-  onMarkAllRead = () => {},
-  onViewAllNotifications = () => {},
-  onMenuItemClick = () => {}
 }) => {
   const [isNavCollapsed, setIsNavCollapsed] = useState(true);
 

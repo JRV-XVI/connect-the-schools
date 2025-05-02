@@ -21,7 +21,6 @@ import axios from 'axios';
 const Notificaciones = ({ 
     titulo = "Notificaciones", 
     items = [], 
-    tipo = 'admin', 
     badgeText,
     badgeColor = "primary",
     textoBoton,

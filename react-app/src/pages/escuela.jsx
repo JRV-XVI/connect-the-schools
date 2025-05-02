@@ -4,14 +4,11 @@ import Sidebar from "../components/barraLateral.jsx";
 import Navbar from "../components/barraNavegacion.jsx";
 import Proyecto from "../components/proyectos.jsx";
 import NecesidadApoyo from "../components/necesidadApoyo.jsx";
-import DiagnosticoNecesidades from '../components/DiagnosticoNecesidades';
-import MapaEscuelas from "../components/mapasEscuela.jsx";
 import ProyectoDetallado from '../components/proyectoDetallado.jsx';
 import { get, post } from "../api.js";
 import { StatCardGroup } from "../components/cartas.jsx";
 import { sidebarEscuela } from "../data/barraLateral/barraLateralEscuela.js";
 import { navbarEscuela } from "../data/barraNavegacion/barraNavegacionEscuela.js";
-import { cartasEscuela } from "../data/cartas/cartasEscuela.js";
 import { proyectosEscuela } from '../data/proyectos/proyectosEscuela.js';
 import axios from 'axios';
 import { Container } from 'react-bootstrap';
@@ -106,16 +103,6 @@ const Escuela = ({ userData, onLogout }) => {
 
     obtenerNotificaciones();
   }, [userData?.idUsuario]); // Re-fetch when user ID changes
-
-  // Estado para el proyecto seleccionado y su detalle
-  const [selectedProject, setSelectedProject] = useState(null);
-  const [showProjectDetail, setShowProjectDetail] = useState(false);
-  const [projectData, setProjectData] = useState({
-    fases: [],
-    evidencias: [],
-    mensajes: [],
-    documentos: []
-  });
 
   const handleNotificacionClick = (item) => {
     console.log("Notificación clickeada:", item);
@@ -279,7 +266,6 @@ const Escuela = ({ userData, onLogout }) => {
 
         // Paso 3: Transformar los mensajes para el front
         const mensajesFormateados = respuestaMensajes.map(mensaje => {
-          const fecha = new Date(mensaje.fechaEnvio);
           return {
             esPropio: mensaje.idUsuario === usuario.idUsuario,
             remitente: mensaje.idUsuario === usuario.idUsuario,
@@ -300,7 +286,7 @@ const Escuela = ({ userData, onLogout }) => {
   };
 
   // Crear mensajes
-  const handleSendMessage = async (mensaje, idUsuario) => {
+  const handleSendMessage = async (mensaje) => {
     try {
 
       const idProyecto = proyectoSeleccionado.id;

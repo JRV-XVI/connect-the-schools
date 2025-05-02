@@ -16,14 +16,11 @@ const Proyecto = ({
   titulo = "Proyectos", 
   proyectos = [], 
   tipo = 'admin', 
-  textoBoton = "Ver todos",
   onButtonClick = () => {},
   onViewClick = () => {},
-  onActionClick = () => {}
 }) => {
   // Estado para el modal de vista completa
   const [showModal, setShowModal] = useState(false);
-  const [allProjects, setAllProjects] = useState(proyectos);
 
   // Determinar las columnas según el tipo de usuario
   const getColumns = () => {
@@ -166,12 +163,6 @@ const Proyecto = ({
       default:
         return null;
     }
-  };
-
-  // Añadir la función handleButtonClick que faltaba
-  const handleButtonClick = () => {
-    setShowModal(true);
-    onButtonClick();
   };
 
   // Agregar mensaje de depuración si no hay proyectos

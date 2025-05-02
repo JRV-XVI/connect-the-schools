@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
 import { post } from '../api'; // Importamos la función post del módulo de API
 
-const HeroSection = ({ onForgotPassword, onLogin }) => {
+const HeroSection = ({ onLogin }) => {
   const [loginData, setLoginData] = useState({
     email: '',
     password: '',
