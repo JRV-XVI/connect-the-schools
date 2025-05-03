@@ -103,7 +103,7 @@ escuela.post('/registro/escuela', async (req, res, next) => {
         });
     } catch (error) {
         console.error("Error al registrar escuela:", error);
-        res.status(500).json({ error: 'Error al registrar escuela' });
+        res.status(400).json({ error: 'Error al registrar escuela' });
     }
 });
 

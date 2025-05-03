@@ -84,7 +84,7 @@ aliado.post('/registro/aliado', async (req, res, next) => {
 		});
 	} catch (error) {
 		console.error("Error al registrar aliado:", error);
-		res.status(500).json({ error: 'Error al registrar aliado' });
+		res.status(400).json({ error: 'Error al registrar aliado' });
 	}
 });
 
@@ -158,19 +158,19 @@ usuario.get('/aliado/:rfc', obtenerAliado, (req, res) => {
 });
 
 aliado.get('/aliados/ubicaciones', async (req, res) => {
-    try {
-        const aliados = await obtenerUbicacionesAliados();
+	try {
+		const aliados = await obtenerUbicacionesAliados();
 
-        const ubicaciones = aliados.map((aliado) => ({
-            ...aliado,
-            tipo: 'aliado'
-        }));
+		const ubicaciones = aliados.map((aliado) => ({
+			...aliado,
+			tipo: 'aliado'
+		}));
 
-        res.status(200).json(ubicaciones);
-    } catch (error) {
-        console.error('Error al obtener ubicaciones de aliados:', error);
-        res.status(500).json({ error: 'Error al obtener ubicaciones de aliados' });
-    }
+		res.status(200).json(ubicaciones);
+	} catch (error) {
+		console.error('Error al obtener ubicaciones de aliados:', error);
+		res.status(500).json({ error: 'Error al obtener ubicaciones de aliados' });
+	}
 });
 
 

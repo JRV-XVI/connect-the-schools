@@ -51,7 +51,8 @@ usuario.post('/login', async (req, res, next) => {
 		// Devuelve los datos del usuario
 		res.status(200).send(resultado);
 	} catch (error) {
-		next(error);
+		console.error("Credenciales no validas:", error);
+		res.status(400).json({ error: 'Credenciales no validas' });
 	}
 });
 
