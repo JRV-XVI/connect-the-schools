@@ -4,10 +4,16 @@ import { get, post } from '../api';
 
 const Busqueda = ({
   titulo = "Búsqueda de Escuelas",
+  resultados = [],
   opcionesFiltros = {},
   onFilterChange = () => { },
+  onMapView = () => { },
   onVincular = () => { },
   onVerDetalles = () => { },
+  onPageChange = () => { },
+  paginaActual = 1,
+  totalPaginas = 1,
+  cargando: externalLoading = false,
   apoyosDisponibles = [],
   userData = null  // Cambiado de userId a userData para ser consistente
 }) => {

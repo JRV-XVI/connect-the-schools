@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { get, post, put, del } from '../api.js';
+import axios from "axios"; // Add axios import
 import Sidebar from "../components/barraLateral.jsx";
 import Navbar from "../components/barraNavegacion.jsx";
 import Notificaciones from "../components/notificaciones.jsx";
@@ -35,6 +36,12 @@ const Administrador = ({userData, onLogout}) => {
   // Estados para ProyectoDetallado
   const [selectedProject, setSelectedProject] = useState(null);
   const [showProjectDetail, setShowProjectDetail] = useState(false);
+  const [projectData, setProjectData] = useState({
+    fases: [],
+    evidencias: [],
+    mensajes: [],
+    documentos: []
+  });
   // Añadir estos estados después de la declaración de projectData
   const [proyectos, setProyectos] = useState([]);
   const [mensajes, setMensajes] = useState([]);
@@ -371,6 +378,8 @@ const Administrador = ({userData, onLogout}) => {
   ];
 
   // Obtenemos todos los proyectos y los limitamos a 3 para el dashboard
+  const proyectosTodos = proyectosAdministrador?.proyectos || [];
+  const proyectosItems = proyectosTodos.slice(0, 3);
   const proyectosTitulo = proyectosAdministrador?.titulo || "Proyectos Recientes";
   const proyectosTextoBoton = proyectosAdministrador?.textoBoton || "Ver todos";
 
@@ -390,6 +399,11 @@ const Administrador = ({userData, onLogout}) => {
     setDetalleSeleccionado(item);
     setTipoDetalle(tipo);
     setMostrarModal(true);
+  };
+
+  const handleVerProyectos = () => {
+    console.log("Ver todos los proyectos");
+    setMostrarProyectoDetallado(false);
   };
 
   const handleVerDetallesProyecto = (proyecto) => {
@@ -435,6 +449,12 @@ const Administrador = ({userData, onLogout}) => {
 
   const handleUploadEvidence = () => {
     console.log("Subiendo evidencia para el proyecto:", selectedProject?.nombre);
+  };
+
+  const handleSendMessage = () => {
+    // Función vacía o con alerta
+    alert("Los administradores solo pueden visualizar mensajes, no enviarlos.");
+    return null;
   };
 
   const handleUploadDocument = () => {

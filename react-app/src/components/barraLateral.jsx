@@ -1,6 +1,10 @@
 import React from "react";
 
-const Sidebar = ({ logo, title, menuItems, isOpen, toggleSidebar }) => {
+const Sidebar = ({ logo, title, menuItems, isOpen, toggleSidebar, onLogout }) => {
+  const handleLogout = (e) => {
+    e.preventDefault();
+    if (onLogout) onLogout(); // Llama a la función pasada desde arriba
+  };
   return (
     <div className={`sidebar ${isOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
       <div className="sidebar-header text-center">

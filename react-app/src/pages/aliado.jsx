@@ -3,6 +3,7 @@ import { get, post } from "../api.js";
 import { Modal, Button, Toast } from 'react-bootstrap';
 import Sidebar from "../components/barraLateral.jsx";
 import Navbar from "../components/barraNavegacion.jsx";
+import Notificaciones from "../components/notificaciones.jsx"; // Changed from 
 import Proyecto from "../components/proyectos.jsx";
 import axios from "axios";
 // Reemplazamos NecesidadApoyo por el nuevo componente
@@ -12,6 +13,8 @@ import ProyectoDetallado from "../components/proyectoDetallado.jsx";
 import { StatCardGroup } from "../components/cartas.jsx";
 import { sidebarAliado } from "../data/barraLateral/barraLateralAliado.js";
 import { navbarAliado } from "../data/barraNavegacion/barraNavegacionAliado.js";
+import { cartasAliado } from "../data/cartas/cartasAliado.js";
+import { pendientesAliado } from '../data/pendientes/pendientesAliado.js';
 import { proyectosAliado } from '../data/proyectos/proyectosAliado.js';
 import { datosApoyos } from '../data/necesidadApoyo/apoyos.js';
 import { escuelasData, opcionesFiltros } from '../data/busqueda/busquedaEscuelas.js';
@@ -36,6 +39,7 @@ const Aliado = ({ userData, onLogout }) => {
   const [vinculaciones, setVInculaciones] = useState([]);
 
   const proyectosTodos = proyectosAliado?.proyectos || [];
+  const proyectosItems = proyectosTodos.slice(0, 3);
   const proyectosTitulo = "Proyectos Recientes";
   const proyectosTextoBoton = proyectosAliado?.textoBoton || "Ver todos";
 
@@ -83,7 +87,7 @@ const Aliado = ({ userData, onLogout }) => {
   // Estados para el componente ProyectoDetallado
   const [mostrarProyectoDetallado, setMostrarProyectoDetallado] = useState(false);
   const [proyectoSeleccionado, setProyectoSeleccionado] = useState(null);
-  const { evidencias, documentos } = proyectoDetallado; // Datos Dummie
+  const { proyecto, fases, evidencias, documentos } = proyectoDetallado; // Datos Dummie
 
   //-------------------------------//
   //---------RENDER DATOS---------//
@@ -149,6 +153,86 @@ const Aliado = ({ userData, onLogout }) => {
   //-------------------------------//
   //------------------------------//
   //-----------------------------//
+
+  // MODIFICADO: Función auxiliar para mapear categorías antiguas a nuevos tipos
+  const mapearCategoriaATipo = (categoria) => {
+    switch (categoria) {
+      case "Infraestructura": return "material";
+      case "Formación": return "servicios";
+      case "Materiales": return "material";
+      case "Financiero": return "economico";
+      case "Voluntariado": return "voluntariado";
+      default: return "material";
+    }
+  };
+
+  // SIMPLIFICADO: Procesamiento de datos de apoyos eliminando campos no necesarios
+  const procesarDatosApoyos = () => {
+    // Verificar si datosApoyos es un array
+    if (Array.isArray(datosApoyos)) {
+      // Usar flatMap si datosApoyos es un array
+      return datosApoyos.flatMap(categoria => {
+        if (categoria && Array.isArray(categoria.items)) {
+          return categoria.items.map(item => ({
+            id: item.id || Math.random().toString(36).substr(2, 9),
+            titulo: item.titulo || item.nombre || "Apoyo sin título",
+            descripcion: item.descripcion || "Sin descripción",
+            tipo: mapearCategoriaATipo(categoria.categoria || "material"),
+            subcategoria: item.subcategoria || "General",
+            estado: item.estado || "Disponible",
+            fechaCreacion: item.fecha || new Date().toISOString()
+          }));
+        }
+        return [];
+      });
+    }
+    // Si datosApoyos es un objeto con propiedades
+    else if (datosApoyos && typeof datosApoyos === 'object') {
+      const resultado = [];
+
+      // Intentar iterar sobre las propiedades del objeto
+      Object.keys(datosApoyos).forEach(key => {
+        const categoria = datosApoyos[key];
+        if (categoria && Array.isArray(categoria.items)) {
+          categoria.items.forEach(item => {
+            resultado.push({
+              id: item.id || Math.random().toString(36).substr(2, 9),
+              titulo: item.titulo || item.nombre || "Apoyo sin título",
+              descripcion: item.descripcion || "Sin descripción",
+              tipo: mapearCategoriaATipo(categoria.categoria || key || "material"),
+              subcategoria: item.subcategoria || "General",
+              estado: item.estado || "Disponible",
+              fechaCreacion: item.fecha || new Date().toISOString()
+            });
+          });
+        }
+      });
+
+      return resultado;
+    }
+
+    // Si nada funciona, devolver datos de muestra simplificados
+    return [
+      {
+        id: 1,
+        titulo: "Donación de equipos informáticos",
+        descripcion: "10 computadoras de escritorio para laboratorio de cómputo",
+        tipo: "material",
+        subcategoria: "Equipamiento tecnológico",
+        estado: "Disponible",
+        fechaCreacion: new Date().toISOString()
+      },
+      {
+        id: 2,
+        titulo: "Taller de programación básica",
+        descripcion: "Curso de introducción a la programación para estudiantes",
+        tipo: "servicios",
+        subcategoria: "Capacitación docente",
+        estado: "Disponible",
+        fechaCreacion: new Date().toISOString()
+      }
+    ];
+  };
 
   const [showAllNotificationsModal, setShowAllNotificationsModal] = useState(false);
 
@@ -462,6 +546,7 @@ const Aliado = ({ userData, onLogout }) => {
 
         // Paso 3: Transformar los mensajes para el front
         const mensajesFormateados = respuestaMensajes.map(mensaje => {
+          const fecha = new Date(mensaje.fechaEnvio);
           return {
             esPropio: mensaje.idUsuario === usuario.idUsuario,
             remitente: mensaje.idUsuario === usuario.idUsuario,
@@ -482,7 +567,7 @@ const Aliado = ({ userData, onLogout }) => {
   };
 
   // Crear mensajes
-  const handleSendMessage = async (mensaje) => {
+  const handleSendMessage = async (mensaje, idUsuario) => {
     try {
 
       const idProyecto = proyectoSeleccionado.id;
