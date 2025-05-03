@@ -4,8 +4,6 @@ const db = require('../db');
 // ----------------- QUERYS ----------------- //
 // ------------------------------------------ //
 
-// LOS QUE SE USAN
-
 const obtenerNecesidades = async (req, res, next) => {
     const necesidad = await db.query('SELECT * FROM "necesidadApoyo" WHERE prioridad IS NOT NULL')
     return necesidad.rows;
@@ -26,7 +24,6 @@ const cambiarEstadoValidacion = async (data) => {
 
 };
 
-// No se si se usan
 
 const verificarUsuarioExiste = async (idUsuario) => {
     const resultado = await db.query('SELECT 1 FROM "usuario" WHERE "idUsuario" = $1', [idUsuario]);
@@ -70,28 +67,6 @@ const eliminarNecesidadApoyo = async (id) => {
     return resultado.rows;
 };
 
-const actualizarNecesidadApoyo = async (idNecesidadApoyo, params) => { // Corregido: idNecesidadApoyo
-    const camposActualizables = ['descripcion', 'prioridad', 'estadoValidacion'];
-    const updates = [];
-    const values = [idNecesidadApoyo]; // Nombre corregido
-
-    let paramIndex = 2;
-
-    camposActualizables.forEach(campo => {
-        if (params[campo] !== undefined) {
-            updates.push(`"${campo}" = $${paramIndex}`);
-            values.push(params[campo]);
-            paramIndex++;
-        }
-    });
-
-    if (updates.length === 0) return null;
-
-    const query = `UPDATE "necesidadApoyo" SET ${updates.join(', ')} WHERE "idNecesidadApoyo" = $1 RETURNING *`; // Columna corregida
-    const resultado = await db.query(query, values);
-    return resultado.rows[0];
-};
-
 const necesidadApoyoPorUsuario = async (idUsuario) => { // Corregido: sin coma al final
     try {
         const query = 'SELECT * FROM "necesidadApoyo" WHERE "idUsuario" = $1 AND "estadoValidacion" = 3';
@@ -108,7 +83,6 @@ module.exports = {
     necesidadApoyoPorUsuario,
     crearNecesidadApoyo,
     eliminarNecesidadApoyo,
-    actualizarNecesidadApoyo,
     verificarUsuarioExiste,
     obtenerApoyos,
     obtenerNecesidades,

@@ -41,9 +41,4 @@ const crearMensaje = async (params) => {
     return resultado.rows[0];
 }
 
-const eliminarMensajePorId = async (idMensaje) => {
-    const resultado = await db.query('DELETE FROM "mensaje" WHERE "idMensaje" = $1 RETURNING *', [idMensaje]);
-    return resultado.rows;
-}
-
-module.exports = { obtenerMensaje, mensajePorId, mensajePorUsuario, mensajePorMensajeria, crearMensaje, eliminarMensajePorId }
+module.exports = { mensajePorMensajeria, crearMensaje }

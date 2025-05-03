@@ -1,47 +1,5 @@
 const db = require('../db');
 
-
-// Crear nueva participación en proyecto
-const crearParticipacion = async (rfc, cct, datos = {}) => {
-	// Datos deafault para crear la participacion
-	const {
-		idProyecto = null,
-		aceptacionAliado = true,
-		aceptacionEscuela = false
-	} = datos;
-
-	// Verifica existencia de la escuela
-	const escuela = await db.query('SELECT * FROM "perfilEscuela" WHERE cct = $1', [cct]);
-	if (escuela.rows.length === 0) {
-		const error = new Error(`No se encontró la escuela con CCT: ${cct}`);
-		error.status = 404;
-		throw error;
-	}
-
-	// Verifica existencia del aliado
-	const aliado = await db.query('SELECT * FROM "perfilAliado" WHERE rfc = $1', [rfc]);
-	if (aliado.rows.length === 0) {
-		const error = new Error(`No se encontró el aliado con RFC: ${rfc}`);
-		error.status = 404;
-		throw error;
-	}
-
-	const resultado = await db.query(`
-		INSERT INTO "participacionProyecto" 
-			("idProyecto", cct, rfc, "aceptacionAliado", "aceptacionEscuela")
-		VALUES ($1, $2, $3, $4, $5)
-		RETURNING *
-	`, [idProyecto, cct, rfc, aceptacionAliado, aceptacionEscuela]);
-
-	const participacion = resultado.rows[0];
-
-	// Añadir campo virtual: fechaCreacion
-	return {
-		...participacion,
-		fechaCreacion: new Date().toISOString() // o cualquier formato que estés usando
-	};
-};
-
 const crearVinculacion = async (data) => {
 	// Datos deafault para crear la participacion
 	const {
@@ -67,19 +25,19 @@ const crearVinculacion = async (data) => {
 };
 
 const eliminarVinculacion = async (params) => {
-    const query = 'DELETE FROM "participacionProyecto" WHERE rfc = $1 AND cct = $2 AND "idNecesidad" = $3 AND "idApoyo" = $4 RETURNING *'
-    const data = [
-        params.rfc,
-        params.cct,
-        params.idNecesidad,
-        params.idApoyo
-    ]
-    const resultado = await db.query(query, data);
-    // Eliminar necesidad
-    await db.query('DELETE FROM "necesidadApoyo" WHERE "idNecesidadApoyo" = $1', [params.idNecesidad]);
-    // Eliminar apoyo
-    await db.query('DELETE FROM "necesidadApoyo" WHERE "idNecesidadApoyo" = $1', [params.idApoyo]);
-    return resultado.rows;
+	const query = 'DELETE FROM "participacionProyecto" WHERE rfc = $1 AND cct = $2 AND "idNecesidad" = $3 AND "idApoyo" = $4 RETURNING *'
+	const data = [
+		params.rfc,
+		params.cct,
+		params.idNecesidad,
+		params.idApoyo
+	]
+	const resultado = await db.query(query, data);
+	// Eliminar necesidad
+	await db.query('DELETE FROM "necesidadApoyo" WHERE "idNecesidadApoyo" = $1', [params.idNecesidad]);
+	// Eliminar apoyo
+	await db.query('DELETE FROM "necesidadApoyo" WHERE "idNecesidadApoyo" = $1', [params.idApoyo]);
+	return resultado.rows;
 };
 
 // Obtener todas las vinculaciones
@@ -162,7 +120,7 @@ const crearProyecto = async (data) => {
 
 // Participaciones sin proyecto asignado de un usuario específico
 const obtenerParticipacionesSinProyectoPorUsuario = async (id) => {
-    const resultado = await db.query(`
+	const resultado = await db.query(`
         SELECT p.*, 
             to_jsonb(pe.*) AS escuela,
             to_jsonb(pa.*) AS aliado
@@ -172,8 +130,8 @@ const obtenerParticipacionesSinProyectoPorUsuario = async (id) => {
         WHERE p."idProyecto" IS NULL
         AND (p.cct = $1 OR p.rfc = $1)
     `, [id]);
-    
-    return resultado.rows.map(row => ({ ...row, estado: "Pendiente de asignación a proyecto" }));
+
+	return resultado.rows.map(row => ({ ...row, estado: "Pendiente de asignación a proyecto" }));
 };
 
 // Participación por rfc y cct
@@ -231,12 +189,7 @@ const actualizarParticipacionConProyecto = async (rfc, cct, idProyecto) => {
 };
 
 module.exports = {
-	crearParticipacion,
 	obtenerParticipacionesSinProyectoPorUsuario,
-	obtenerParticipacionPorEscuelaYAliado,
-	obtenerParticipacionConsolidada,
-	actualizarParticipacion,
-	actualizarParticipacionConProyecto,
 	crearVinculacion,
 	obtenerVinculaciones,
 	crearProyecto,

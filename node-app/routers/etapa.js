@@ -69,12 +69,8 @@ etapa.get('/archivo/:idEtapa', validarEtapa, async (req, res, next) => {
     }
 });
 
-etapa.get('/archivos/:idEtapa', async (req, res, next) => {
-    const resultado = [];
-});
 
-
-// Crear una entrega en una etapa
+// Subir archivo en una etapa
 etapa.put('/archivo/:idEtapa', validarEtapa, upload.single('archivo'), async (req, res, next) => {
     try {
         if (!req.file) {
@@ -93,6 +89,11 @@ etapa.put('/archivo/:idEtapa', validarEtapa, upload.single('archivo'), async (re
     } catch (error) {
         next(error);
     }
+});
+
+etapa.use((err, req, res, next) => {
+    const estado = err.status || 500;
+    res.status(estado).send({ error: err.message });
 });
 
 module.exports = etapa

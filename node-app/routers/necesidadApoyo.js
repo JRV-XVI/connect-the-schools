@@ -129,12 +129,9 @@ necesidadApoyo.post('/necesidadApoyo', async (req, res, next) => {
         res.status(201).send(resultado);
     } catch (error) {
         console.error('[ERROR] Al crear necesidad de apoyo:', error);
-        res.status(500).send({ error: 'Error al crear necesidad de apoyo' });
+        res.status(400).send({ error: 'Error al crear necesidad/apoyo' });
     }
 });
-;
-
-
 
 // Obtener necesidades/apoyo por Usuario ID
 necesidadApoyo.get('/necesidades-escuela/:idUsuario', async (req, res, next) => {
@@ -158,17 +155,6 @@ necesidadApoyo.get('/necesidades-escuela/:idUsuario', async (req, res, next) => 
     }
 });
 
-// Obtener todas las necesidades/apoyo
-necesidadApoyo.get('/necesidadApoyo', async (req, res, next) => {
-    try {
-        const resultado = await model.obtenerNecesidadApoyo();
-        res.status(200).send(resultado);
-    } catch (error) {
-        next(error);
-    }
-});
-
-
 // Eliminar una necesidad/apoyo por su ID
 necesidadApoyo.delete('/necesidadApoyo/:idNecesidadApoyo', async (req, res, next) => {
     try {
@@ -191,28 +177,6 @@ necesidadApoyo.delete('/necesidadApoyo/:idNecesidadApoyo', async (req, res, next
         res.status(200).json({
             mensaje: `Necesidad/Apoyo con id ${id} eliminado correctamente`
         });
-    } catch (error) {
-        next(error);
-    }
-});
-
-necesidadApoyo.get('/necesidadApoyo/:idNecesidadApoyo', async (req, res, next) => {
-    try {
-        const id = Number(req.params.idNecesidadApoyo);
-        console.log('[INFO] ID recibido:', id);
-
-        if (isNaN(id) || id <= 0) {
-            return res.status(400).json({ error: 'El ID proporcionado no es válido' });
-        }
-
-        const resultado = await model.necesidadApoyoPorId(id);
-        console.log('[INFO] Resultado de la consulta:', resultado);
-
-        if (!resultado || resultado.length === 0) {
-            return res.status(404).json({ error: `No se encontró la necesidad de apoyo con ID ${id}` });
-        }
-
-        res.status(200).json(resultado[0]);
     } catch (error) {
         next(error);
     }

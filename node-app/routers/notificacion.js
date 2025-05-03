@@ -84,17 +84,6 @@ const validarCamposNotificacion = (req, res, next) => {
 // ----------------- ROUTERS ----------------- //
 // ------------------------------------------- //
 
-
-notificacion.post('/notificacion', async (req, res, next) => {
-    try {
-        const resultado = await model.crearNotificacion(req.body);
-        res.status(201).json(resultado);
-    } catch (error) {
-        next(error);
-    }
-});
-
-// ESTE ENDPOINT LO ESTOY USANDO// ESTE ENDPOINT LO ESTOY USANDO
 /**
  * Crear una notificación
  * POST /api/notificacion/

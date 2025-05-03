@@ -3,6 +3,7 @@ const modelo = require('../models/participacion.js');
 const { param } = require('./proyecto.js');
 const participacion = express.Router();
 
+// Obtener vinculaciones 
 participacion.get('/vinculacion/:id', async (req, res, next) => {
     try {
         const resultado = await modelo.obtenerParticipacionesSinProyectoPorUsuario(req.params.id);
@@ -15,7 +16,7 @@ participacion.get('/vinculacion/:id', async (req, res, next) => {
     }
 });
 
-// Realizar una vinculacion de un aliado a una escuala
+// Realizar una vinculacion de un aliado a una escuela
 participacion.post('/vinculacion', async (req, res, next) => {
     try {
         // Match frontend field names
@@ -46,6 +47,7 @@ participacion.post('/vinculacion', async (req, res, next) => {
     }
 });
 
+// Eliminar vinculacion
 participacion.delete('/vinculacion', async (req, res, next) => {
     try {
         // Get parameters from query string instead of body
@@ -70,7 +72,7 @@ participacion.delete('/vinculacion', async (req, res, next) => {
             idNecesidad,
             idApoyo,
         });
-        res.status(200).send(resultado);
+        res.status(200).json({ mensaje: "Se elimino correctamente la vinculacion " });
     } catch (error) {
         console.error("Error al eliminar vinculacion:", error);
         res.status(400).json({
@@ -79,6 +81,7 @@ participacion.delete('/vinculacion', async (req, res, next) => {
     }
 });
 
+// Obetner todas las vinculaciones
 participacion.get('/vinculaciones', async (req, res, next) => {
     try {
         const vinculaciones = await modelo.obtenerVinculaciones();
@@ -128,6 +131,7 @@ participacion.get('/vinculaciones', async (req, res, next) => {
     }
 });
 
+// Aceptar vinculaciones
 participacion.post('/vinculacion/aceptar', async (req, res, next) => {
     try {
         // Match frontend field names

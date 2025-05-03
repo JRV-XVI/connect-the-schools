@@ -4,12 +4,8 @@ const db = require('../db');
 // ----------------- ALIADO ------------------ //
 // ------------------------------------------- //
 
-const registroAliado = async () => {
-	const resultado = await db.query('SELECT * FROM ');
-};
-
 const obtenerUbicacionesAliados = async () => {
-    const query = `
+	const query = `
         SELECT 
             u."idUsuario" AS id, 
             u."nombre" AS nombre_aliado, 
@@ -20,18 +16,10 @@ const obtenerUbicacionesAliados = async () => {
         FROM "usuario" u
         INNER JOIN "perfilAliado" pa ON u."idUsuario" = pa."idUsuario"
     `;
-    const { rows } = await db.query(query);
-    return rows;
-};
-const obtenerAliados = async () => {
-	const resultado = await db.query('SELECT * FROM "perfilAliado"');
-	return resultado.rows;
+	const { rows } = await db.query(query);
+	return rows;
 };
 
-const infoAliado = async (id) => {
-	const resultado = await db.query('SELECT * FROM "perfilAliado" WHERE rfc = $1', [id]);
-	return resultado.rows;
-};
 
 async function crearAliado(data) {
 	const {
@@ -118,37 +106,6 @@ const necesidadesCompatibles = async (idUsuario) => {
 
 	return resultado.rows;
 }
-const actualizarAliado = async (rfc, params) => {
-	// Construir query dinámicamente
-	const camposActualizables = ['idUsuario', 'razonSocial', 'telefono', 'correoRepresentante'];
-	const updates = [];
-	const values = [rfc]; // El primer parámetro es siempre el rfc
 
-	let paramIndex = 2; // Empezamos desde $2
-
-	camposActualizables.forEach(campo => {
-		if (params[campo] !== undefined) {
-			updates.push(`"${campo}" = $${paramIndex}`);
-			values.push(params[campo]);
-			paramIndex++;
-		}
-	});
-
-	// Si no hay campos para actualizar, retornar
-	if (updates.length === 0) return null;
-
-	const query = `UPDATE "perfilAliado" SET ${updates.join(', ')} WHERE "rfc" = $1 RETURNING *`;
-	const resultado = await db.query(query, values);
-	return resultado.rows[0];
-}
-
-const eliminarAliado = async (id) => {
-	const resultado = await db.query('DELETE FROM "perfilAliado" WHERE rfc = $1', [id]);
-	return {
-		mensaje: `Aliado con rfc de ${id} fue eliminado correctamente`
-	};
-};
-
-
-module.exports = { obtenerAliados, infoAliado, crearAliado, actualizarAliado, eliminarAliado, necesidadesCompatibles, obtenerAliados, obtenerUbicacionesAliados };
+module.exports = { crearAliado, necesidadesCompatibles, obtenerUbicacionesAliados };
 
