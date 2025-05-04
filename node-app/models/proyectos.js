@@ -4,6 +4,12 @@ const db = require('../db');
 // ----------------- PROYECTO ---------------- //
 // ------------------------------------------- //
 
+// Obtener un proyecto por id
+const infoProyecto = async (id) => {
+    const resultado = await db.query('SELECT * FROM proyecto WHERE "idProyecto" = $1', [id]);
+    return resultado.rows;
+};
+
 // Obtener todos los proyecto por idUsuario de Aliado
 const obtenerProyectosPorUsuario = async (idUsuario) => {
     // Primero determinar el tipo de usuario
@@ -91,6 +97,36 @@ const obtenerProyectosPorUsuario = async (idUsuario) => {
     return proyectos;
 };
 
+// Obtener porcentaje de progreso de etapas por idProyecto
+const progresoProyectoEtapas = async (idProyecto) => {
+    const resultado = await db.query(`
+        SELECT 
+            COUNT(*) as total_etapas,
+            SUM(CASE WHEN "estadoEntrega" = true THEN 1 ELSE 0 END) as etapas_completadas
+        FROM "proyectoEtapas"
+        WHERE "idProyecto" = $1
+    `, [idProyecto]);
+
+    const { total_etapas, etapas_completadas } = resultado.rows[0];
+
+    // Evitar división por cero
+    if (parseInt(total_etapas) === 0) {
+        return {
+            totalEtapas: 0,
+            etapasCompletadas: 0,
+            porcentaje: 0
+        };
+    }
+
+    const porcentaje = Math.round((parseInt(etapas_completadas) * 100) / parseInt(total_etapas));
+
+    return {
+        totalEtapas: parseInt(total_etapas),
+        etapasCompletadas: parseInt(etapas_completadas),
+        porcentaje: porcentaje
+    };
+};
+
 // ------------------------------------------- //
 // ----------------- ETAPAS ------------------ //
 // ------------------------------------------- //
@@ -101,4 +137,4 @@ const obtenerProyectoEtapas = async (idProyecto) => {
     return resultado.rows;
 };
 
-module.exports = { obtenerProyectoEtapas, obtenerProyectosPorUsuario };
+module.exports = { obtenerProyectoEtapas, obtenerProyectosPorUsuario, infoProyecto };
