@@ -3,7 +3,7 @@ import { Tab, Nav, Alert, Button, Form, Badge, Table, Card, Modal, Toast, ToastC
 import PropTypes from 'prop-types';
 import axios from 'axios';
 
-const NecesidadApoyo = ({ necesidades =[], onEditNecesidad = () => { }, onViewNecesidad = () => { }, userData = {} }) => {
+const NecesidadApoyo = ({ necesidades =[], setNecesidades = () => { }, onAddNecesidad = () => { }, onEditNecesidad = () => { }, onViewNecesidad = () => { }, userData = {} }) => {
 
   // Definición de categorías y subcategorías para necesidades escolares
   const categoriasConfig = {
@@ -213,6 +213,25 @@ const NecesidadApoyo = ({ necesidades =[], onEditNecesidad = () => { }, onViewNe
     { value: 2, label: '2', color: 'info' },
     { value: 1, label: '1 - Baja', color: 'info' }
   ];
+
+
+  // Función para manejar cambios en los filtros
+  const handleFiltroChange = (e) => {
+    const { name, value } = e.target;
+    setFiltro(prevFiltro => ({
+      ...prevFiltro,
+      [name]: value
+    }));
+  };
+  
+  // Función para limpiar los filtros
+  const limpiarFiltros = () => {
+    setFiltro({
+      subcategoria: "Todas",
+      prioridad: "Todas",
+      busqueda: ""
+    });
+  };
   
 const filtrarNecesidades = (listaNecesidades) => {
   // Primero filtramos por estado de validación (solo mostrar aprobadas)
@@ -306,6 +325,22 @@ const getTipoFromCategoria = (categoriaTexto) => {
           }
   };
   
+  // Manejador para guardar cambios en edición
+  const handleSaveEdit = () => {
+    if (!currentNecesidad) return;
+    
+    const necesidadActualizada = {
+      ...currentNecesidad,
+      ...formData
+    };
+    
+    // Llamar al método de edición pasado por props
+    onEditNecesidad(necesidadActualizada.id, necesidadActualizada);
+    
+    setShowEditModal(false);
+    setCurrentNecesidad(null);
+  };
+  
   // Manejador para borrar necesidad
   const handleDeleteNecesidad = () => {
     if (!currentNecesidad) return;
@@ -324,6 +359,21 @@ const getTipoFromCategoria = (categoriaTexto) => {
     
     // También podemos llamar al manejador pasado por props si necesita hacer algo específico
     onViewNecesidad(necesidad.id);
+  };
+  
+  // Manejador para abrir modal de edición
+  const handleEdit = (necesidad) => {
+    setCurrentNecesidad(necesidad);
+    
+    // Inicializar el formulario con los datos de la necesidad
+    setFormData({
+      descripcion: necesidad.descripcion || '',
+      tipo: necesidad.tipo || activeTab,
+      subcategoria: necesidad.subcategoria || '',
+      prioridad: necesidad.prioridad || '5',
+    });
+    
+    setShowEditModal(true);
   };
   
   // Manejador para confirmar eliminación
@@ -367,7 +417,7 @@ const getTipoFromCategoria = (categoriaTexto) => {
   };
 
   // Función para renderizar la tabla de necesidades
-  const renderNecesidadesTable = () => {
+  const renderNecesidadesTable = (tipo) => {
     // Aplicar filtros y paginación
     const necesidadesFiltradas = filtrarNecesidades(necesidades);
     
@@ -449,6 +499,11 @@ const getTipoFromCategoria = (categoriaTexto) => {
   // Obtener las subcategorías según el tipo activo o seleccionado en el formulario
   const getSubcategoriesForType = (tipo) => {
     return categoriasConfig[tipo]?.subcategorias || [];
+  };
+  
+  // Obtener las subcategorías según el tipo activo para filtros
+  const getSubcategoriesForActiveType = () => {
+    return categoriasConfig[activeTab]?.subcategorias || [];
   };
 
   // Obtener título para el formulario según el tipo activo
@@ -548,6 +603,35 @@ const getTipoFromCategoria = (categoriaTexto) => {
         </ul>
       </nav>
     );
+  };
+
+  // Obtener placeholder según el tipo seleccionado
+  const getTitlePlaceholder = () => {
+    const tipo = formData.tipo || activeTab;
+    switch (tipo) {
+      case 'formacionDocente':
+        return 'Ej: Curso de capacitación en métodos pedagógicos actualizados';
+      case 'formacionFamilias':
+        return 'Ej: Taller para padres sobre apoyo en tareas escolares';
+      case 'formacionNinos':
+        return 'Ej: Necesidad de talleres artísticos para alumnos';
+      case 'personalApoyo':
+        return 'Ej: Necesitamos un psicólogo escolar';
+      case 'infraestructura':
+        return 'Ej: Reparación urgente de techos en aulas';
+      case 'materiales':
+        return 'Ej: Libros de texto para 3er grado';
+      case 'mobiliario':
+        return 'Ej: Necesitamos 30 pupitres nuevos';
+      case 'alimentacion':
+        return 'Ej: Programa de desayunos escolares';
+      case 'transporte':
+        return 'Ej: Necesidad de transporte para alumnos de zonas alejadas';
+      case 'juridico':
+        return 'Ej: Apoyo para regularización de documentos escolares';
+      default:
+        return 'Título de la necesidad';
+    }
   };
 
   const getDescriptionPlaceholder = () => {
